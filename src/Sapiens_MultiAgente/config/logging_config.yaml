@@ -1,0 +1,189 @@
+# =============================================================================
+# CONFIGURAÇÕES DE LOGGING - SAPIENS PLATAFORMA ACADÊMICA
+# =============================================================================
+# Sistema de auditoria detalhada para análise acadêmica
+
+sistema:
+  nome: "SAPIENS - Sistema de Logging Acadêmico"
+  versao: "2.0.0"
+  ambiente: "desenvolvimento"
+
+# -----------------------------------------------------------------------------
+# CONFIGURAÇÕES GERAIS DE LOGGING
+# -----------------------------------------------------------------------------
+logging:
+  # Níveis de log disponíveis: DEBUG, INFO, WARNING, ERROR, CRITICAL
+  nivel_console: "INFO"
+  nivel_arquivo: "DEBUG"
+
+  # Formatação dos logs
+  formato:
+    timestamp: "%Y-%m-%d %H:%M:%S"
+    formato_console: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    formato_arquivo: "%(asctime)s | %(name)s | %(levelname)s | %(funcName)s:%(lineno)d | %(message)s"
+
+  # Rotação de arquivos
+  rotacao:
+    max_bytes: 10485760  # 10MB
+    backup_count: 5
+    compressao: true
+
+# -----------------------------------------------------------------------------
+# AUDITORIA ACADÊMICA ESPECÍFICA
+# -----------------------------------------------------------------------------
+auditoria:
+  habilitada: true
+  diretorio: "logs/auditoria"
+
+  # Eventos que devem ser auditados
+  eventos_criticidade_alta:
+    - "inicio_analise"
+    - "dados_recebidos"
+    - "validacao_dados"
+    - "resultado_analise"
+    - "erro_sistema"
+    - "acesso_negado"
+
+  eventos_criticidade_media:
+    - "delegacao_tarefa"
+    - "processamento_arquivo"
+    - "consulta_api"
+    - "geracao_relatorio"
+
+  eventos_criticidade_baixa:
+    - "informacao_sistema"
+    - "status_agente"
+    - "performance_metricas"
+
+  # Campos obrigatórios para auditoria
+  campos_auditoria:
+    - "timestamp"
+    - "usuario_id"
+    - "sessao_id"
+    - "evento_tipo"
+    - "dados_entrada"
+    - "dados_saida"
+    - "status_execucao"
+    - "tempo_execucao_ms"
+    - "ip_origem"
+    - "user_agent"
+
+# -----------------------------------------------------------------------------
+# LOGGING POR COMPONENTE
+# -----------------------------------------------------------------------------
+componentes:
+
+  agente_gerente:
+    arquivo: "logs/agente_gerente.log"
+    nivel: "DEBUG"
+    auditoria_detalhada: true
+
+  especialista_descritiva:
+    arquivo: "logs/especialista_descritiva.log"
+    nivel: "INFO"
+    auditoria_detalhada: false
+
+  especialista_diagnostica:
+    arquivo: "logs/especialista_diagnostica.log"
+    nivel: "INFO"
+    auditoria_detalhada: false
+
+  especialista_preditiva:
+    arquivo: "logs/especialista_preditiva.log"
+    nivel: "INFO"
+    auditoria_detalhada: false
+
+  especialista_prescritiva:
+    arquivo: "logs/especialista_prescritiva.log"
+    nivel: "INFO"
+    auditoria_detalhada: false
+
+  ferramentas:
+    arquivo: "logs/ferramentas.log"
+    nivel: "INFO"
+    auditoria_detalhada: true
+
+  api:
+    arquivo: "logs/api.log"
+    nivel: "INFO"
+    auditoria_detalhada: true
+
+  seguranca:
+    arquivo: "logs/seguranca.log"
+    nivel: "WARNING"
+    auditoria_detalhada: true
+
+# -----------------------------------------------------------------------------
+# MÉTRICAS DE PERFORMANCE
+# -----------------------------------------------------------------------------
+metricas:
+  habilitadas: true
+  intervalo_coleta_segundos: 60
+
+  indicadores:
+    tempo_resposta_medio:
+      descricao: "Tempo médio de resposta das análises"
+      unidade: "segundos"
+      alerta_limite: 300  # 5 minutos
+
+    taxa_sucesso:
+      descricao: "Taxa de sucesso das análises"
+      unidade: "porcentagem"
+      alerta_limite: 95
+
+    uso_memoria:
+      descricao: "Uso de memória do sistema"
+      unidade: "MB"
+      alerta_limite: 1024  # 1GB
+
+    uso_cpu:
+      descricao: "Uso de CPU do sistema"
+      unidade: "porcentagem"
+      alerta_limite: 80
+
+# -----------------------------------------------------------------------------
+# EXPORTAÇÃO DE LOGS
+# -----------------------------------------------------------------------------
+exportacao:
+  habilitada: false
+
+  formatos:
+    - "json"
+    - "csv"
+    - "xml"
+
+  destinos:
+    arquivo_local:
+      habilitado: true
+      diretorio: "exports"
+
+    banco_dados:
+      habilitado: false
+      connection_string: "postgresql://localhost/sapiens_logs"
+
+    api_externa:
+      habilitado: false
+      endpoint: "https://api.externa.com/logs"
+      api_key: ""
+
+# -----------------------------------------------------------------------------
+# RETENÇÃO E LIMPEZA
+# -----------------------------------------------------------------------------
+retencao:
+  auditoria_dias: 90
+  logs_gerais_dias: 30
+  metricas_dias: 365
+
+  limpeza_automatica:
+    habilitada: true
+    horario_execucao: "02:00"  # 2h da manhã
+    dia_semana: "domingo"
+
+# -----------------------------------------------------------------------------
+# CONFIGURAÇÕES DE DESENVOLVIMENTO
+# -----------------------------------------------------------------------------
+desenvolvimento:
+  debug_habilitado: true
+  log_sql_queries: false
+  mostrar_stack_trace: true
+  salvar_requests_response: true

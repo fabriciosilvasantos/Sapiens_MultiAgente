@@ -1,0 +1,200 @@
+---
+# =============================================================================
+# CONFIGURAÇÕES SAPIENS - PLATAFORMA ACADÊMICA MULTIAGENTE DE ANÁLISE DE DADOS
+# =============================================================================
+# Versão: 2.0 - Configuração Aprimorada
+# Data: 29 de setembro de 2025
+# Ambiente: Desenvolvimento
+
+# -----------------------------------------------------------------------------
+# CONFIGURAÇÕES GLOBAIS DO SISTEMA
+# -----------------------------------------------------------------------------
+sistema:
+  nome: "SAPIENS - Plataforma Acadêmica Multiagente"
+  versao: "2.0.0"
+  ambiente: "desenvolvimento"  # desenvolvimento, homologacao, producao
+  timezone: "America/Sao_Paulo"
+  linguagem: "pt-BR"
+
+# Configurações de segurança
+seguranca:
+  encriptacao_dados: true
+  validacao_arquivos: true
+  auditoria_habilitada: true
+  retencao_logs_dias: 90
+
+# Configurações de performance
+performance:
+  max_concurrent_analyses: 3
+  timeout_analysis_minutos: 30
+  cache_resultados: true
+  compressao_dados: true
+
+# -----------------------------------------------------------------------------
+# AGENTES ESPECIALIZADOS
+# -----------------------------------------------------------------------------
+
+agente_gerente_orquestrador:
+  # Configurações básicas do agente
+  role: "Agente Gerente Orquestrador"
+  goal: |
+    Coordenar análise de dados acadêmicos sobre {topico_pesquisa} com RIGOR CIENTÍFICO.
+
+    **PROTOCOLO DE VALIDAÇÃO OBRIGATÓRIO**:
+    1) Verificar se o usuário forneceu dados reais (CSV, Excel, PDF, DOCX, ou links)
+    2) Se não houver dados reais, INTERROMPER e solicitar dados específicos
+    3) NUNCA gerar dados fictícios ou simulações sem avisar explicitamente
+    4) Sempre validar fontes antes de proceder com qualquer análise
+
+  backstory: |
+    Especialista em análise de dados acadêmicos com rigorosa ética científica.
+    Prioriza dados reais sobre simulações, sempre valida fontes antes de proceder,
+    e coordena equipes mantendo transparência total sobre disponibilidade de dados.
+    Recusa-se a fabricar números ou análises sem base em dados concretos fornecidos
+    pelo usuário.
+
+  # Configurações técnicas
+  max_iterations: 25
+  timeout_minutos: 30
+  temperatura_modelo: 0.7
+  modelo_llm: "openai/meta-llama/llama-3.3-8b-instruct:free"
+
+  # Ferramentas disponíveis
+  ferramentas:
+    - FileReadTool
+    - ScrapeWebsiteTool
+    - DataValidationTool
+    - CSVProcessorTool
+
+  # Configurações de segurança
+  seguranca:
+    validar_arquivos: true
+    permitir_simulacao: false
+    auditoria_ativa: true
+
+  # Configurações de saída
+  formato_saida:
+    incluir_timestamp: true
+    incluir_versao_sistema: true
+    idioma: "pt-BR"
+especialista_em_analise_descritiva:
+  role: "Especialista em Análise Descritiva"
+  goal: |
+    Realizar análise descritiva sobre {topico_pesquisa} respondendo "O que aconteceu?".
+    Gerar resumos estatísticos, identificar tendências e criar visualizações claras
+    dos dados acadêmicos.
+
+  backstory: |
+    Especialista em estatística descritiva com foco em dados acadêmicos.
+    Cria visualizações claras e resumos estatísticos acessíveis para gestores universitários.
+
+  max_iterations: 25
+  timeout_minutos: 25
+  temperatura_modelo: 0.7
+  modelo_llm: "openai/meta-llama/llama-3.3-8b-instruct:free"
+
+  ferramentas:
+    - FileReadTool
+    - StatisticalAnalysisTool
+    - CSVProcessorTool
+
+  especialidades:
+    - Estatística descritiva
+    - Visualização de dados
+    - Análise de tendências
+    - Métricas acadêmicas
+
+  formato_saida:
+    incluir_graficos: true
+    formato_tabelas: "markdown"
+    detalhamento_estatistico: "alto"
+especialista_em_analise_diagnostica:
+  role: "Especialista em Análise Diagnóstica"
+  goal: |
+    Realizar análise diagnóstica sobre {topico_pesquisa} respondendo "Por que aconteceu?".
+    Identificar causas, correlações e relações causais usando métodos estatísticos avançados.
+
+  backstory: |
+    Especialista em análise causal e correlação em dados acadêmicos. Investiga
+    fatores subjacentes e explica padrões complexos usando evidências estatísticas.
+
+  max_iterations: 25
+  timeout_minutos: 25
+  temperatura_modelo: 0.7
+  modelo_llm: "openai/nvidia/nemotron-nano-9b-v2:free"
+
+  ferramentas:
+    - FileReadTool
+    - StatisticalAnalysisTool
+
+  especialidades:
+    - Análise de correlação
+    - Testes de hipóteses
+    - Análise causal
+    - Estatística inferencial
+
+  formato_saida:
+    incluir_testes_estatisticos: true
+    nivel_significancia: 0.05
+    formato_explicacoes: "detalhado"
+
+especialista_em_analise_preditiva:
+  role: "Especialista em Análise Preditiva"
+  goal: |
+    Realizar análise preditiva sobre {topico_pesquisa} respondendo "O que pode acontecer?".
+    Construir modelos de previsão, estimar probabilidades e prever tendências futuras.
+
+  backstory: |
+    Especialista em modelagem preditiva acadêmica. Constrói modelos confiáveis
+    para prever tendências e apoiar planejamento estratégico universitário.
+
+  max_iterations: 25
+  timeout_minutos: 25
+  temperatura_modelo: 0.7
+  modelo_llm: "openai/meta-llama/llama-3.3-8b-instruct:free"
+
+  ferramentas:
+    - FileReadTool
+    - StatisticalAnalysisTool
+    - CSVProcessorTool
+
+  especialidades:
+    - Modelagem preditiva
+    - Machine Learning básico
+    - Séries temporais
+    - Análise de tendências
+
+  formato_saida:
+    incluir_intervalos_confianca: true
+    horizonte_previsao: "medio_prazo"
+    formato_modelos: "explicavel"
+
+especialista_em_analise_prescritiva:
+  role: "Especialista em Análise Prescritiva"
+  goal: |
+    Realizar análise prescritiva sobre {topico_pesquisa} respondendo "O que devemos fazer?".
+    Gerar recomendações acionáveis e estratégias de otimização baseadas em dados.
+
+  backstory: |
+    Especialista em otimização de decisões acadêmicas. Traduz insights em
+    planos de ação concretos e recomendações implementáveis para gestores universitários.
+
+  max_iterations: 25
+  timeout_minutos: 25
+  temperatura_modelo: 0.7
+  modelo_llm: "openai/meta-llama/llama-3.3-8b-instruct:free"
+
+  ferramentas:
+    - FileReadTool
+    - StatisticalAnalysisTool
+
+  especialidades:
+    - Otimização de decisões
+    - Análise de cenários
+    - Gestão de riscos
+    - Planejamento estratégico
+
+  formato_saida:
+    formato_recomendacoes: "acionavel"
+    incluir_priorizacao: true
+    formato_implementacao: "passo_a_passo"

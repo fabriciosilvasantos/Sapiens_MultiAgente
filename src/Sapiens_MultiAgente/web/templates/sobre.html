@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Sobre o SAPIENS{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center mb-5">
+                <h1 class="display-4 fw-bold">Sobre o SAPIENS</h1>
+                <p class="lead text-muted">
+                    Conheça nossa plataforma acadêmica multiagente
+                </p>
+            </div>
+        </div>
+
+        <div class="row mb-5">
+            <div class="col-lg-8 mx-auto">
+                <div class="card shadow-sm">
+                    <div class="card-body p-4">
+                        <h2 class="h3 mb-4">O que é o SAPIENS?</h2>
+                        <p class="mb-4">
+                            O SAPIENS é uma plataforma acadêmica avançada que utiliza inteligência artificial
+                            multiagente para realizar análises de dados complexas. Desenvolvida especificamente
+                            para pesquisadores, gestores universitários e estudantes, nossa plataforma oferece
+                            quatro tipos distintos de análise: descritiva, diagnóstica, preditiva e prescritiva.
+                        </p>
+
+                        <h3 class="h4 mb-3">Características Principais</h3>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <strong>Análise Multiagente:</strong> 5 agentes especializados trabalhando em conjunto
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <strong>Segurança Avançada:</strong> Validação rigorosa de arquivos e auditoria completa
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <strong>Interface Web Moderna:</strong> Fácil de usar e responsiva
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <strong>Suporte a Múltiplos Formatos:</strong> CSV, Excel, PDF, DOCX
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <strong>Auditoria Completa:</strong> Rastreamento de todas as ações realizadas
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-5">
+            <div class="col-md-6 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <i class="fas fa-cogs fa-3x text-primary"></i>
+                        </div>
+                        <h4>Tecnologia</h4>
+                        <p class="text-muted">
+                            Desenvolvido com CrewAI, Flask, Pandas, NumPy e outras tecnologias modernas
+                            para garantir performance e confiabilidade.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <i class="fas fa-graduation-cap fa-3x text-success"></i>
+                        </div>
+                        <h4>Para a Comunidade Acadêmica</h4>
+                        <p class="text-muted">
+                            Criado especificamente para atender às necessidades de pesquisadores,
+                            professores e estudantes em suas atividades acadêmicas.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12 text-center">
+                <a href="{{ url_for('analise') }}" class="btn btn-sapiens btn-lg">
+                    <i class="fas fa-play me-2"></i>Experimentar Agora
+                </a>
+                <a href="{{ url_for('index') }}" class="btn btn-outline-primary btn-lg ms-2">
+                    <i class="fas fa-home me-2"></i>Voltar ao Início
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

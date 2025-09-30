@@ -1,0 +1,53 @@
+[project]
+name = "sapiens-multiagente"
+version = "2.0.0"
+description = "SAPIENS - Plataforma Acadêmica Multiagente de Análise de Dados com interface web e auditoria"
+authors = [{ name = "Fabricio Silva Santos", email = "fabricio.silva.santos@example.com" }]
+requires-python = ">=3.10,<3.14"
+readme = "README.md"
+license = {text = "MIT"}
+
+dependencies = [
+    # Core CrewAI
+    "crewai[tools]>=0.177.0,<1.0.0",
+
+    # Web Framework
+    "flask>=3.0.0",
+    "werkzeug>=3.0.0",
+
+    # Data Processing
+    "pandas>=2.0.0",
+    "numpy>=1.24.0",
+    "scipy>=1.11.0",
+
+    # File Processing
+    "python-magic>=0.4.27",
+    "openpyxl>=3.1.0",
+    "pyyaml>=6.0",
+    "python-docx>=1.1.0",
+    "pypdf>=4.0.0",
+    "requests>=2.31.0",
+    "python-magic>=0.4.27",
+
+    # Logging & Monitoring
+    "colorlog>=6.7.0",
+
+    # Development & Testing
+    "pytest>=7.0.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0"
+]
+
+[project.scripts]
+sapiens = "Sapiens_MultiAgente.main:run"
+sapiens-web = "Sapiens_MultiAgente.web.app:create_web_interface"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/Sapiens_MultiAgente"]
+
+[tool.crewai]
+type = "crew"

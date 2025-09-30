@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}Análise em Andamento{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h3 class="mb-0">
+                                <i class="fas fa-spinner fa-spin me-2"></i>
+                                Análise em Andamento
+                            </h3>
+                            <span class="badge bg-light text-dark">ID: {{ analise.id }}</span>
+                        </div>
+                    </div>
+
+                    <div class="card-body p-4">
+                        <!-- Informações da análise -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h5 class="text-muted mb-2">Tópico de Pesquisa</h5>
+                                <p class="mb-0">{{ analise.topico_pesquisa }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h5 class="text-muted mb-2">Status</h5>
+                                <span class="badge
+                                    {% if analise.status == 'processando' %}bg-warning
+                                    {% elif analise.status == 'validando_dados' %}bg-info
+                                    {% elif analise.status == 'executando_analise' %}bg-primary
+                                    {% elif analise.status == 'gerando_relatorio' %}bg-success
+                                    {% else %}bg-secondary{% endif %}">
+                                    {% if analise.status == 'processando' %}Processando
+                                    {% elif analise.status == 'validando_dados' %}Validando Dados
+                                    {% elif analise.status == 'executando_analise' %}Executando Análise
+                                    {% elif analise.status == 'gerando_relatorio' %}Gerando Relatório
+                                    {% else %}{{ analise.status }}{% endif %}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Barra de progresso -->
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Progresso da Análise</span>
+                                <span>{{ analise.progresso }}%</span>
+                            </div>
+                            <div class="progress" style="height: 25px;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated
+                                    {% if analise.progresso < 30 %}bg-warning
+                                    {% elif analise.progresso < 70 %}bg-info
+                                    {% else %}bg-success{% endif %}"
+                                    role="progressbar"
+                                    style="width: {{ analise.progresso }}%"
+                                    aria-valuenow="{{ analise.progresso }}"
+                                    aria-valuemin="0"
+                                    aria-valuemax="100">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Arquivos processados -->
+                        {% if analise.arquivos %}
+                        <div class="mb-4">
+                            <h5 class="text-muted mb-3">Arquivos Enviados</h5>
+                            <div class="row">
+                                {% for arquivo in analise.arquivos %}
+                                <div class="col-md-6 mb-2">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas
+                                            {% if '.csv' in arquivo.nome_original.lower() %}fa-file-csv
+                                            {% elif '.xlsx' in arquivo.nome_original.lower() or '.xls' in arquivo.nome_original.lower() %}fa-file-excel
+                                            {% elif '.pdf' in arquivo.nome_original.lower() %}fa-file-pdf
+                                            {% elif '.docx' in arquivo.nome_original.lower() %}fa-file-word
+                                            {% else %}fa-file{% endif %}
+                                            text-primary me-2"></i>
+                                        <small class="text-muted">{{ arquivo.nome_original }}</small>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Etapas da análise -->
+                        <div class="mb-4">
+                            <h5 class="text-muted mb-3">Etapas da Análise</h5>
+                            <div class="list-group">
+                                <div class="list-group-item d-flex align-items-center
+                                    {% if analise.status == 'processando' %}active{% endif %}">
+                                    <i class="fas fa-check-circle text-success me-3
+                                        {% if analise.status != 'processando' %}visible{% else %}invisible{% endif %}"></i>
+                                    <i class="fas fa-spinner fa-spin text-primary me-3
+                                        {% if analise.status == 'processando' %}visible{% else %}invisible{% endif %}"></i>
+                                    <div class="flex-grow-1">
+                                        <strong>Processamento Inicial</strong>
+                                        <br><small class="text-muted">Validação e preparação dos dados</small>
+                                    </div>
+                                </div>
+
+                                <div class="list-group-item d-flex align-items-center
+                                    {% if analise.status == 'validando_dados' %}active{% endif %}">
+                                    <i class="fas fa-check-circle text-success me-3
+                                        {% if ['validando_dados', 'executando_analise', 'gerando_relatorio', 'concluida'] | select('equalto', analise.status) | list | length > 0 %}visible{% else %}invisible{% endif %}"></i>
+                                    <i class="fas fa-spinner fa-spin text-primary me-3
+                                        {% if analise.status == 'validando_dados' %}visible{% else %}invisible{% endif %}"></i>
+                                    <div class="flex-grow-1">
+                                        <strong>Análise Descritiva</strong>
+                                        <br><small class="text-muted">Estatísticas básicas e tendências</small>
+                                    </div>
+                                </div>
+
+                                <div class="list-group-item d-flex align-items-center
+                                    {% if analise.status == 'executando_analise' %}active{% endif %}">
+                                    <i class="fas fa-check-circle text-success me-3
+                                        {% if ['executando_analise', 'gerando_relatorio', 'concluida'] | select('equalto', analise.status) | list | length > 0 %}visible{% else %}invisible{% endif %}"></i>
+                                    <i class="fas fa-spinner fa-spin text-primary me-3
+                                        {% if analise.status == 'executando_analise' %}visible{% else %}invisible{% endif %}"></i>
+                                    <div class="flex-grow-1">
+                                        <strong>Análises Avançadas</strong>
+                                        <br><small class="text-muted">Diagnóstica, preditiva e prescritiva</small>
+                                    </div>
+                                </div>
+
+                                <div class="list-group-item d-flex align-items-center
+                                    {% if analise.status == 'gerando_relatorio' %}active{% endif %}">
+                                    <i class="fas fa-check-circle text-success me-3
+                                        {% if ['gerando_relatorio', 'concluida'] | select('equalto', analise.status) | list | length > 0 %}visible{% else %}invisible{% endif %}"></i>
+                                    <i class="fas fa-spinner fa-spin text-primary me-3
+                                        {% if analise.status == 'gerando_relatorio' %}visible{% else %}invisible{% endif %}"></i>
+                                    <div class="flex-grow-1">
+                                        <strong>Geração de Relatório</strong>
+                                        <br><small class="text-muted">Compilação dos resultados finais</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mensagem de conclusão -->
+                        {% if analise.status == 'concluida' %}
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <strong>Análise concluída com sucesso!</strong>
+                            <br>
+                            <a href="{{ url_for('resultados_analise', analise_id=analise.id) }}"
+                               class="btn btn-success btn-sm mt-2">
+                                <i class="fas fa-eye me-1"></i>Ver Resultados
+                            </a>
+                        </div>
+                        {% endif %}
+
+                        <!-- Botões de ação -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('analise') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Nova Análise
+                            </a>
+
+                            <button onclick="location.reload()" class="btn btn-primary">
+                                <i class="fas fa-sync me-1"></i>Atualizar Status
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card-footer text-muted">
+                        <small>
+                            <i class="fas fa-clock me-1"></i>
+                            Iniciado em: {{ analise.timestamp_inicio }}
+                            {% if analise.timestamp_atualizacao %}
+                            | Última atualização: {{ analise.timestamp_atualizacao }}
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+// Atualizar automaticamente a cada 5 segundos se não estiver concluída
+{% if analise.status != 'concluida' %}
+setInterval(function() {
+    location.reload();
+}, 5000);
+{% endif %}
+</script>
+{% endblock %}

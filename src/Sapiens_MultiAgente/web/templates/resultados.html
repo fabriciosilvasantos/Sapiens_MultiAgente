@@ -1,0 +1,293 @@
+{% extends "base.html" %}
+
+{% block title %}Resultados da Análise{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <!-- Cabeçalho -->
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-success text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h2 class="mb-0">
+                                <i class="fas fa-check-circle me-2"></i>
+                                Análise Concluída
+                            </h2>
+                            <span class="badge bg-light text-dark">ID: {{ analise.id }}</span>
+                        </div>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h4 class="mb-2">{{ analise.topico_pesquisa }}</h4>
+                                <p class="text-muted mb-0">
+                                    Análise realizada com sucesso utilizando {{ analise.arquivos|length }} arquivo(s)
+                                </p>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <small class="text-muted">
+                                    Concluída em: {{ analise.timestamp_fim or analise.timestamp_inicio }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navegação por seções -->
+                <div class="card shadow mb-4">
+                    <div class="card-body">
+                        <nav aria-label="Navegação dos resultados">
+                            <ul class="nav nav-pills nav-fill" id="resultadosTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="resumo-tab" data-bs-toggle="pill"
+                                            data-bs-target="#resumo" type="button" role="tab">
+                                        <i class="fas fa-file-alt me-2"></i>Resumo Executivo
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="descritiva-tab" data-bs-toggle="pill"
+                                            data-bs-target="#descritiva" type="button" role="tab">
+                                        <i class="fas fa-chart-bar me-2"></i>Análise Descritiva
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="diagnostica-tab" data-bs-toggle="pill"
+                                            data-bs-target="#diagnostica" type="button" role="tab">
+                                        <i class="fas fa-search me-2"></i>Análise Diagnóstica
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="preditiva-tab" data-bs-toggle="pill"
+                                            data-bs-target="#preditiva" type="button" role="tab">
+                                        <i class="fas fa-crystal-ball me-2"></i>Análise Preditiva
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="prescritiva-tab" data-bs-toggle="pill"
+                                            data-bs-target="#prescritiva" type="button" role="tab">
+                                        <i class="fas fa-lightbulb me-2"></i>Análise Prescritiva
+                                    </button>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+
+                <!-- Conteúdo das abas -->
+                <div class="tab-content" id="resultadosTabsContent">
+                    <!-- Resumo Executivo -->
+                    <div class="tab-pane fade show active" id="resumo" role="tabpanel">
+                        <div class="card shadow">
+                            <div class="card-header">
+                                <h3><i class="fas fa-file-alt me-2"></i>Resumo Executivo</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>Nota:</strong> Esta é uma demonstração da interface.
+                                    Em produção, aqui seriam exibidos os resultados reais da análise realizada pelos agentes de IA.
+                                </div>
+
+                                <h4>Principais Descobertas</h4>
+                                <ul class="list-group list-group-flush mb-4">
+                                    <li class="list-group-item">
+                                        <strong>Métricas Principais:</strong> Os dados analisados mostram tendências significativas...
+                                    </li>
+                                    <li class="list-group-item">
+                                        <strong>Padrões Identificados:</strong> Foram observados comportamentos consistentes...
+                                    </li>
+                                    <li class="list-group-item">
+                                        <strong>Correlações Importantes:</strong> Existe relação significativa entre...
+                                    </li>
+                                </ul>
+
+                                <h4>Arquivos Analisados</h4>
+                                <div class="row">
+                                    {% for arquivo in analise.arquivos %}
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card border">
+                                            <div class="card-body py-2">
+                                                <div class="d-flex align-items-center">
+                                                    <i class="fas
+                                                        {% if '.csv' in arquivo.nome_original.lower() %}fa-file-csv
+                                                        {% elif '.xlsx' in arquivo.nome_original.lower() or '.xls' in arquivo.nome_original.lower() %}fa-file-excel
+                                                        {% elif '.pdf' in arquivo.nome_original.lower() %}fa-file-pdf
+                                                        {% elif '.docx' in arquivo.nome_original.lower() %}fa-file-word
+                                                        {% else %}fa-file{% endif %}
+                                                        text-primary me-2"></i>
+                                                    <small>{{ arquivo.nome_original }}</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Análise Descritiva -->
+                    <div class="tab-pane fade" id="descritiva" role="tabpanel">
+                        <div class="card shadow">
+                            <div class="card-header">
+                                <h3><i class="fas fa-chart-bar me-2"></i>Análise Descritiva</h3>
+                                <small class="text-muted">O que aconteceu?</small>
+                            </div>
+                            <div class="card-body">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-chart-line me-2"></i>
+                                    Estatísticas descritivas e visualizações dos dados analisados.
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h5>Métricas Principais</h5>
+                                        <div class="table-responsive">
+                                            <table class="table table-striped">
+                                                <tbody>
+                                                    <tr>
+                                                        <td><strong>Total de Registros</strong></td>
+                                                        <td>N/A</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><strong>Média</strong></td>
+                                                        <td>N/A</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><strong>Mediana</strong></td>
+                                                        <td>N/A</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><strong>Desvio Padrão</strong></td>
+                                                        <td>N/A</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h5>Distribuição</h5>
+                                        <div class="text-center p-4 bg-light rounded">
+                                            <i class="fas fa-chart-pie fa-4x text-muted mb-3"></i>
+                                            <p class="text-muted">Gráfico de distribuição seria exibido aqui</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Análise Diagnóstica -->
+                    <div class="tab-pane fade" id="diagnostica" role="tabpanel">
+                        <div class="card shadow">
+                            <div class="card-header">
+                                <h3><i class="fas fa-search me-2"></i>Análise Diagnóstica</h3>
+                                <small class="text-muted">Por que aconteceu?</small>
+                            </div>
+                            <div class="card-body">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-search-plus me-2"></i>
+                                    Identificação de causas e correlações nos dados.
+                                </div>
+
+                                <h5>Correlações Identificadas</h5>
+                                <div class="text-center p-4 bg-light rounded">
+                                    <i class="fas fa-project-diagram fa-4x text-muted mb-3"></i>
+                                    <p class="text-muted">Mapa de correlações seria exibido aqui</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Análise Preditiva -->
+                    <div class="tab-pane fade" id="preditiva" role="tabpanel">
+                        <div class="card shadow">
+                            <div class="card-header">
+                                <h3><i class="fas fa-crystal-ball me-2"></i>Análise Preditiva</h3>
+                                <small class="text-muted">O que pode acontecer?</small>
+                            </div>
+                            <div class="card-body">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-chart-line me-2"></i>
+                                    Previsões e tendências futuras baseadas nos dados.
+                                </div>
+
+                                <h5>Previsões</h5>
+                                <div class="text-center p-4 bg-light rounded">
+                                    <i class="fas fa-chart-line fa-4x text-muted mb-3"></i>
+                                    <p class="text-muted">Gráfico de previsões seria exibido aqui</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Análise Prescritiva -->
+                    <div class="tab-pane fade" id="prescritiva" role="tabpanel">
+                        <div class="card shadow">
+                            <div class="card-header">
+                                <h3><i class="fas fa-lightbulb me-2"></i>Análise Prescritiva</h3>
+                                <small class="text-muted">O que devemos fazer?</small>
+                            </div>
+                            <div class="card-body">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-clipboard-check me-2"></i>
+                                    Recomendações acionáveis baseadas na análise.
+                                </div>
+
+                                <h5>Recomendações Principais</h5>
+                                <div class="list-group">
+                                    <div class="list-group-item">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">Recomendação 1</h6>
+                                            <small class="text-muted">Prioridade Alta</small>
+                                        </div>
+                                        <p class="mb-1">Descrição da recomendação baseada na análise dos dados.</p>
+                                    </div>
+                                    <div class="list-group-item">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">Recomendação 2</h6>
+                                            <small class="text-muted">Prioridade Média</small>
+                                        </div>
+                                        <p class="mb-1">Descrição da recomendação baseada na análise dos dados.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ações -->
+                <div class="card shadow mt-4">
+                    <div class="card-body text-center">
+                        <h5>O que deseja fazer agora?</h5>
+                        <div class="btn-group mt-3" role="group">
+                            <a href="{{ url_for('analise') }}" class="btn btn-primary">
+                                <i class="fas fa-plus me-1"></i>Nova Análise
+                            </a>
+                            <button onclick="window.print()" class="btn btn-outline-secondary">
+                                <i class="fas fa-print me-1"></i>Imprimir
+                            </button>
+                            <button onclick="location.reload()" class="btn btn-outline-info">
+                                <i class="fas fa-sync me-1"></i>Atualizar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+// Inicializar tooltips
+document.addEventListener('DOMContentLoaded', function () {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+{% endblock %}
