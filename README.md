@@ -374,7 +374,7 @@ Configure estas variáveis no dashboard do Vercel (Project Settings > Environmen
 ```bash
 # Configurações obrigatórias
 OPENAI_API_KEY=sua-chave-openai-aqui
-FLASK_SECRET_KEY=sua-secret-key-muito-segura-aqui
+FLASK_SECRET_KEY=sua-chave-secreta-muito-segura-aqui
 
 # Configurações de produção
 SAPIENS_ENV=producao
@@ -387,6 +387,11 @@ UPLOAD_FOLDER=/tmp/uploads
 LOGS_FOLDER=/tmp/logs
 TEMP_FOLDER=/tmp/temp
 ```
+
+⚠️ **Importante sobre FLASK_SECRET_KEY:**
+- Gere uma chave secreta forte e única
+- Nunca use a mesma chave em produção e desenvolvimento
+- Se não definida, o sistema gerará uma automaticamente (menos seguro)
 
 ### Deploy Automático
 

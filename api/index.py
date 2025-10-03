@@ -26,7 +26,7 @@ except ImportError:
 
 # Configuração para Vercel
 app = Flask(__name__)
-app.secret_key = os.getenv('FLASK_SECRET_KEY', 'dev-secret-key-change-in-production')
+app.secret_key = os.getenv('FLASK_SECRET_KEY', 'fallback-secret-key-change-in-production-' + str(uuid.uuid4()))
 
 # Configurações de upload
 UPLOAD_FOLDER = '/tmp/uploads'  # Usar /tmp no Vercel
