@@ -1,0 +1,13 @@
+Flask>=3.0.0
+Werkzeug>=3.0.0
+crewai[tools]>=0.177.0,<1.0.0
+pandas>=2.0.0
+numpy>=1.24.0
+scipy>=1.11.0
+python-magic>=0.4.27
+openpyxl>=3.1.0
+pyyaml>=6.0
+python-docx>=1.1.0
+pypdf>=4.0.0
+requests>=2.31.0
+colorlog>=6.7.0

@@ -357,9 +357,110 @@ python3 start_sapiens.py --help
 
 # Ver logs detalhados
 tail -f logs/sapiens_academico.log
+## 🚀 Deploy no Vercel (Produção Serverless)
+
+O SAPIENS foi adaptado para funcionar perfeitamente no Vercel como aplicação serverless.
+
+### Pré-requisitos para Vercel
+
+- Conta no [Vercel](https://vercel.com)
+- GitHub conectado ao Vercel
+- OpenAI API Key configurada
+
+### Configuração das Variáveis de Ambiente
+
+Configure estas variáveis no dashboard do Vercel (Project Settings > Environment Variables):
+
+```bash
+# Configurações obrigatórias
+OPENAI_API_KEY=sua-chave-openai-aqui
+FLASK_SECRET_KEY=sua-secret-key-muito-segura-aqui
+
+# Configurações de produção
+SAPIENS_ENV=producao
+SAPIENS_DEBUG=false
+FLASK_ENV=producao
+FLASK_DEBUG=false
+
+# Configurações serverless
+UPLOAD_FOLDER=/tmp/uploads
+LOGS_FOLDER=/tmp/logs
+TEMP_FOLDER=/tmp/temp
 ```
 
-## � Licença
+### Deploy Automático
+
+1. **Conecte o repositório no Vercel**
+   ```bash
+   # O Vercel detectará automaticamente a configuração
+   # baseada no arquivo vercel.json
+   ```
+
+2. **Configure as variáveis de ambiente**
+   - Acesse o dashboard do Vercel
+   - Vá em Project Settings > Environment Variables
+   - Adicione todas as variáveis listadas acima
+
+3. **Deploy automático**
+   - Faça push das alterações para o GitHub
+   - O Vercel fará deploy automaticamente
+
+### Arquivos Importantes para Vercel
+
+- `vercel.json` - Configuração do build e rotas
+- `api/index.py` - Ponto de entrada serverless
+- `requirements.txt` - Dependências para produção
+- `vercel.env.example` - Exemplo de configuração
+
+### Limitações do Ambiente Serverless
+
+⚠️ **Importante**: Algumas funcionalidades foram adaptadas para funcionar em ambiente serverless:
+
+- **Processamento síncrono**: Análises são processadas imediatamente (não em background)
+- **Armazenamento temporário**: Arquivos são armazenados em `/tmp` (limpeza automática)
+- **Análises simultâneas**: Limitado a 1 análise por vez
+- **Timeout**: Máximo de 10 minutos por análise
+
+### URL da Aplicação
+
+Após o deploy, sua aplicação estará disponível em:
+```
+https://seu-projeto.vercel.app
+```
+
+### Monitoramento e Logs
+
+- Use o comando `vercel logs` para ver logs da aplicação
+- Configure alertas no dashboard do Vercel
+- Monitore uso da API no dashboard do OpenAI
+
+### Solução de Problemas
+
+**Erro comum: Module not found**
+```bash
+# Certifique-se de que o requirements.txt está correto
+# e que todas as dependências estão listadas
+```
+
+**Erro de timeout**
+- Reduza a complexidade da análise
+- Use tópicos de pesquisa mais específicos
+- Considere dividir análises grandes em partes menores
+
+**Problemas de memória**
+- Otimize o tamanho dos arquivos de entrada
+- Use apenas arquivos essenciais para análise
+
+### Suporte
+
+Para problemas específicos do deploy no Vercel:
+1. Verifique os logs: `vercel logs --follow`
+2. Teste localmente: `python3 api/index.py`
+3. Consulte a [documentação do Vercel](https://vercel.com/docs)
+
+---
+
+
 
 Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para detalhes.
 
