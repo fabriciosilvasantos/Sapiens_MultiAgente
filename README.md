@@ -4,9 +4,112 @@
 ![Python Version](https://img.shields.io/badge/python-3.10+-green)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
-Plataforma acadêmica avançada para análise de dados usando múltiplos agentes especializados. Desenvolvida com CrewAI e interface web moderna para pesquisadores, gestores universitários e estudantes.
+O projeto **SAPIENS** (Plataforma Acadêmica Multiagente de Análise de Dados) é uma aplicação sofisticada que utiliza orquestração de agentes de IA para realizar análises de dados complexas (descritiva, diagnóstica, preditiva e prescritiva) com foco acadêmico.
 
-## 🚀 Características Principais
+
+### Introdução e Visão Geral
+
+A Plataforma Acadêmica Multiagente de Análise de Dados. Concebida como Software Livre, a plataforma será executada em um servidor dedicado para garantir segurança e desempenho, e foi projetada para automatizar e simplificar a extração de insights a partir de dados acadêmicos e de gestão.
+
+O sistema funcionará com uma arquitetura de múltiplos agentes, liderada por um Agente Gerente
+(Orquestrador), que simula a expertise de um Analista de Dados Sênior. O principal problema que este
+produto resolve é a dificuldade de gestores universitários e pesquisadores em realizar análises de dados
+complexas, que são cruciais tanto para a tomada de decisão administrativa quanto para o avanço da
+pesquisa científica.
+
+### Objetivo do Produto
+
+O objetivo central é potencializar a gestão universitária baseada em evidências e acelerar a pesquisa
+científica, fornecendo uma ferramenta poderosa e acessível. A plataforma permitirá que gestores,
+pesquisadores e alunos obtenham respostas rápidas e confiáveis para suas perguntas, automatizando as
+etapas de limpeza de dados, seleção de metodologia, análise e apresentação de resultados, sem exigir
+profundo conhecimento técnico em ciência de dados.
+
+
+### Potencial de Uso e Impacto
+
+Esta seção detalha o valor estratégico que a plataforma SAPIENS entrega à comunidade acadêmica.
+
+#### Potencial de Uso
+
+O SAPIENS atende aos dois pilares centrais de uma universidade: a gestão e a pesquisa.
+
+●**Na Gestão Acadêmica**: A plataforma se torna uma ferramenta essencial para pró-reitorias e
+coordenações, permitindo que gestores tomem decisões estratégicas baseadas em evidências de
+forma ágil, respondendo a perguntas complexas sobre evasão, alocação de recursos e planejamento
+de matrículas.
+
+●**Na Pesquisa Científica**: Para pesquisadores e alunos de pós-graduação, o SAPIENS acelera
+drasticamente o ciclo da pesquisa, permitindo a análise de grandes volumes de dados experimentais, a validação de hipóteses e a análise de dados de teses e dissertações com rigor estatístico, mesmo para
+não especialistas.
+
+#### Economia de Tempo
+
+A economia de tempo é um dos benefícios mais diretos da plataforma. O SAPIENS transforma tarefas que
+levariam semanas de trabalho manual em processos que podem ser concluídos em horas ou
+minutos, ao automatizar as etapas mais demoradas da análise:
+
+1.**Preparação e Limpeza dos Dados**: Automatiza a tarefa que consome até 80% do tempo de um
+analista.
+
+2.**Seleção da Metodologia**: Elimina horas de dúvida e pesquisa ao decidir automaticamente o método
+de análise mais adequado.
+
+3.**Geração de Relatórios**: Entrega instantaneamente um relatório completo com visualizações e textos
+explicativos.
+
+#### Impacto no Fator Humano
+
+O SAPIENS não visa substituir o analista humano, mas sim potencializar sua capacidade intelectual.
+
+1.**Democratização da Análise**: Reduz a necessidade de conhecimento técnico especializado,
+permitindo que especialistas de domínio (professores, pesquisadores) realizem análises complexas de
+forma autônoma, eliminando gargalos e dependências.
+
+2.**Foco no Estratégico, Não no Operacional**: Ao automatizar as tarefas repetitivas e operacionais, a
+plataforma libera o profissional para se concentrar no que realmente importa: interpretar os
+resultados, fazer novas perguntas, debater os insights e tomar decisões informadas. O esforço
+humano é deslocado da tarefa mecânica para a análise crítica e estratégica, onde a inteligência
+humana é insubstituível.
+
+
+### O Processo de Análise no SAPIENS
+
+Esta seção detalha como a plataforma SAPIENS aborda as etapas fundamentais do processo de análise de
+dados.
+
+●**Fazendo a Pergunta**: O usuário insere sua pergunta em linguagem natural.
+●**Coleta dos Dados**: O usuário faz o upload de seus arquivos de dados ou conecta-se a bancos de
+dados.
+●**Exploração, Preparação e Limpeza**: O Agente Gerente automatiza a limpeza e preparação dos dados.
+●**Análise dos Dados**: O Agente Gerente interpreta a pergunta e delega a tarefa ao Agente Especialista
+apropriado.
+●**Apresentando os Resultados**: O Agente Gerente traduz a análise técnica em uma apresentação clara
+e acionável.
+
+
+
+### Os Agentes Especializados
+
+O sistema é composto por uma equipe de agentes com papéis bem definidos em `src/Sapiens_MultiAgente/config/agents.yaml`:
+
+- **Gerente Orquestrador**: O "guardião" do rigor científico. Sua principal função é validar se os dados fornecidos são reais e impedir alucinações ou simulações não solicitadas.
+- **Especialista em Análise Descritiva**: Foca em "O que aconteceu?", gerando estatísticas e tendências.
+- **Especialista em Análise Diagnóstica**: Foca em "Por que aconteceu?", buscando correlações e causas (usa o modelo Nemotron).
+- **Especialista em Análise Preditiva**: Foca em "O que pode acontecer?", criando modelos de previsão.
+- **Especialista em Análise Prescritiva**: Foca em "O que devemos fazer?", gerando recomendações acionáveis.
+
+###  Fluxo de Trabalho
+
+1. **Entrada**: O usuário faz upload de arquivos ou fornece links via interface Web.
+2. **Validação**: O sistema valida a segurança dos arquivos e o Gerente Orquestrador verifica se há dados reais suficientes.
+3. **Execução**: A análise roda em *background* (thread separada no Flask), onde os agentes processam os dados sequencialmente conforme configurado em `tasks.yaml`.
+4. **Auditoria**: Todas as ações são registradas pelo `AcademicLogger` para garantir rastreabilidade.
+5. **Resultado**: Um relatório final consolidado é gerado e apresentado ao usuário.
+
+
+
+### Características Principais
 
 - **🤖 Agentes Especializados**: 5 agentes especializados em diferentes tipos de análise
 - **🔒 Segurança Avançada**: Validação rigorosa de arquivos e auditoria completa
@@ -15,7 +118,7 @@ Plataforma acadêmica avançada para análise de dados usando múltiplos agentes
 - **📋 Auditoria Detalhada**: Sistema completo de logging para rastreabilidade
 - **🔧 Configuração Flexível**: Estrutura configurável para diferentes ambientes
 
-## 📋 Tipos de Análise
+### Tipos de Análise
 
 | Tipo | Descrição | Agente Especialista |
 |------|-----------|-------------------|
@@ -24,59 +127,23 @@ Plataforma acadêmica avançada para análise de dados usando múltiplos agentes
 | **Preditiva** | O que pode acontecer? | Previsões futuras |
 | **Prescritiva** | O que devemos fazer? | Recomendações acionáveis |
 
-## 🛠️ Instalação
 
-### Pré-requisitos
+### Arquitetura e Tecnologias
 
-- Python >= 3.10 e < 3.14
-- UV (recomendado) ou pip
-- Git
+O projeto segue uma arquitetura modular bem definida, separando a lógica de inteligência artificial da interface do usuário.
 
-### Dependências Adicionais
+- **Core (IA & Agentes)**: Utiliza o framework **CrewAI** para orquestrar 5 agentes especializados.
+- **Interface Web**: Construída com **Flask**, oferecendo upload de arquivos e visualização de progresso.
+- **Modelos de IA**: Configurado para usar modelos abertos de alta performance via API (Llama 3.3 8B e Nemotron Nano 9B).
+- **Processamento de Dados**: Pandas, NumPy e ferramentas customizadas para leitura de CSV, Excel, PDF e DOCX.
+- **Infraestrutura**: Preparado para deploy serverless no **Vercel** ou execução local.
 
-Para processamento completo de arquivos, certifique-se de ter as seguintes bibliotecas instaladas:
-- `python-docx` - Para processamento de arquivos DOCX
-- `pypdf` - Para processamento de arquivos PDF
-- Todas as outras dependências serão instaladas automaticamente
 
-### Passo a Passo
 
-1. **Clone o repositório**
-```bash
-git clone <repository-url>
-cd Sapiens_MultiAgente
-```
 
-2. **Execute a instalação automática (recomendado)**
-```bash
-# Instalação automática (Linux/macOS)
-./install_sapiens.sh
+### 🛠️ Instalação e Configuração
 
-# Ou instalação manual
-chmod +x install_sapiens.sh
-./install_sapiens.sh
-```
-
-3. **Instalação manual alternativa**
-```bash
-# Detectar automaticamente python3
-python3 start_sapiens.py --status
-
-# Instalar dependências
-python3 -m pip install -e .
-
-# Ou usar o launcher
-python3 start_sapiens.py
-```
-
-4. **Configure o ambiente**
-```bash
-# Copiar configurações de exemplo
-cp .env.example .env
-
-# Edite o arquivo .env com suas configurações
-nano .env  # ou use seu editor preferido
-```
+Para instruções detalhadas sobre instalação, configuração e deploy, consulte o arquivo [INSTALL.md](INSTALL.md).
 ## 🚀 Como Usar
 
 ### Interface Web (Recomendado)
@@ -138,7 +205,7 @@ python3 start_sapiens.py
 # 4) Sair
 ```
 
-## 📁 Estrutura do Projeto
+## Estrutura do Projeto
 
 ```
 Sapiens_MultiAgente/
@@ -174,17 +241,7 @@ A partir da versão 2.0.0, foram implementadas melhorias significativas de segur
 - **Auditoria Completa**: Sistema de logging estruturado para rastreabilidade
 - **Controle de Acesso**: Validações em múltiplas camadas
 
-#### Configurando a Secret Key
 
-```bash
-# Edite o arquivo .env
-nano .env
-
-# Adicione uma secret key segura:
-FLASK_SECRET_KEY=minha-secret-key-muito-segura-aqui
-```
-
-**IMPORTANTE**: Nunca use a secret key padrão em produção!
 
 ### Características de Segurança
 
@@ -205,29 +262,7 @@ O sistema registra automaticamente:
 
 Logs disponíveis em: `logs/auditoria_academica.jsonl`
 
-## ⚙️ Configuração Avançada
 
-### Variáveis de Ambiente
-
-```bash
-# Configurações básicas
-export SAPIENS_ENV=producao
-export SAPIENS_LOG_LEVEL=INFO
-
-# Configurações de segurança
-export SAPIENS_MAX_FILE_SIZE=100MB
-export SAPIENS_ENABLE_PII_DETECTION=true
-
-# Configurações de modelo
-export OPENAI_API_KEY=sua-chave-aqui
-export SAPIENS_DEFAULT_MODEL=gpt-4
-```
-
-### Arquivos de Configuração
-
-- `config/agents.yaml`: Configurações detalhadas dos agentes
-- `config/logging_config.yaml`: Configurações de auditoria
-- `.env`: Variáveis de ambiente locais
 
 ## 📊 Características Técnicas
 
@@ -250,12 +285,7 @@ export SAPIENS_DEFAULT_MODEL=gpt-4
 - **Auditoria**: Logging estruturado com rotação
 - **Frontend**: Bootstrap 5.3, jQuery
 
-### Requisitos de Sistema
 
-- **Sistema Operacional**: Linux/macOS/Windows
-- **Memória RAM**: Mínimo 2GB, recomendado 4GB+
-- **Armazenamento**: 1GB disponível
-- **Rede**: Conexão para modelos de IA externos
 
 ## 🤝 Suporte e Contribuição
 
@@ -281,187 +311,6 @@ export SAPIENS_DEFAULT_MODEL=gpt-4
 - 📚 **Melhorias na documentação**
 - 🧪 **Testes adicionais**
 - 🎨 **Melhorias na interface**
-
-## 🔧 Troubleshooting
-
-### Problemas Comuns e Soluções
-
-#### ❌ "python: comando não encontrado"
-```bash
-# Use python3 explicitamente
-python3 start_sapiens.py --web
-
-# Ou instale python3-is-python3
-sudo apt-get install python-is-python3  # Ubuntu/Debian
-```
-
-#### ❌ "ModuleNotFoundError"
-```bash
-# Reinstale as dependências
-python3 -m pip install -e .
-
-# Ou use o script de instalação
-./install_sapiens.sh
-```
-
-#### ❌ "Arquivo .env não encontrado"
-```bash
-# Criar arquivo .env automaticamente
-cp .env.example .env
-
-# Configure sua OPENAI_API_KEY no arquivo .env
-```
-
-#### ❌ "Porta já em uso"
-```bash
-# Use uma porta diferente
-python3 start_sapiens.py --web --port 8080
-```
-
-#### ❌ "Erro de permissão"
-```bash
-# Corrija permissões dos scripts
-chmod +x start_sapiens.py install_sapiens.sh
-
-# Execute com sudo se necessário (não recomendado)
-sudo python3 start_sapiens.py --web
-```
-
-#### ❌ "OPENAI_API_KEY não configurada"
-```bash
-# Edite o arquivo .env
-nano .env
-
-# Adicione sua chave:
-# OPENAI_API_KEY=sua-chave-aqui
-```
-
-### Verificar Instalação
-
-```bash
-# Verificar status do sistema
-python3 start_sapiens.py --status
-
-# Verificar dependências Python
-python3 -c "import crewai, flask, pandas; print('✅ OK')"
-
-# Verificar arquivos essenciais
-ls -la src/Sapiens_MultiAgente/
-```
-
-### Obter Ajuda
-
-```bash
-# Ver todas as opções do launcher
-python3 start_sapiens.py --help
-
-# Ver logs detalhados
-tail -f logs/sapiens_academico.log
-## 🚀 Deploy no Vercel (Produção Serverless)
-
-O SAPIENS foi adaptado para funcionar perfeitamente no Vercel como aplicação serverless.
-
-### Pré-requisitos para Vercel
-
-- Conta no [Vercel](https://vercel.com)
-- GitHub conectado ao Vercel
-- OpenAI API Key configurada
-
-### Configuração das Variáveis de Ambiente
-
-Configure estas variáveis no dashboard do Vercel (Project Settings > Environment Variables):
-
-```bash
-# Configurações obrigatórias
-OPENAI_API_KEY=sua-chave-openai-aqui
-FLASK_SECRET_KEY=sua-chave-secreta-muito-segura-aqui
-
-# Configurações de produção
-SAPIENS_ENV=producao
-SAPIENS_DEBUG=false
-FLASK_ENV=producao
-FLASK_DEBUG=false
-
-# Configurações serverless
-UPLOAD_FOLDER=/tmp/uploads
-LOGS_FOLDER=/tmp/logs
-TEMP_FOLDER=/tmp/temp
-```
-
-⚠️ **Importante sobre FLASK_SECRET_KEY:**
-- Gere uma chave secreta forte e única
-- Nunca use a mesma chave em produção e desenvolvimento
-- Se não definida, o sistema gerará uma automaticamente (menos seguro)
-
-### Deploy Automático
-
-1. **Conecte o repositório no Vercel**
-   ```bash
-   # O Vercel detectará automaticamente a configuração
-   # baseada no arquivo vercel.json
-   ```
-
-2. **Configure as variáveis de ambiente**
-   - Acesse o dashboard do Vercel
-   - Vá em Project Settings > Environment Variables
-   - Adicione todas as variáveis listadas acima
-
-3. **Deploy automático**
-   - Faça push das alterações para o GitHub
-   - O Vercel fará deploy automaticamente
-
-### Arquivos Importantes para Vercel
-
-- `vercel.json` - Configuração do build e rotas
-- `api/index.py` - Ponto de entrada serverless
-- `requirements.txt` - Dependências para produção
-- `vercel.env.example` - Exemplo de configuração
-
-### Limitações do Ambiente Serverless
-
-⚠️ **Importante**: Algumas funcionalidades foram adaptadas para funcionar em ambiente serverless:
-
-- **Processamento síncrono**: Análises são processadas imediatamente (não em background)
-- **Armazenamento temporário**: Arquivos são armazenados em `/tmp` (limpeza automática)
-- **Análises simultâneas**: Limitado a 1 análise por vez
-- **Timeout**: Máximo de 10 minutos por análise
-
-### URL da Aplicação
-
-Após o deploy, sua aplicação estará disponível em:
-```
-https://seu-projeto.vercel.app
-```
-
-### Monitoramento e Logs
-
-- Use o comando `vercel logs` para ver logs da aplicação
-- Configure alertas no dashboard do Vercel
-- Monitore uso da API no dashboard do OpenAI
-
-### Solução de Problemas
-
-**Erro comum: Module not found**
-```bash
-# Certifique-se de que o requirements.txt está correto
-# e que todas as dependências estão listadas
-```
-
-**Erro de timeout**
-- Reduza a complexidade da análise
-- Use tópicos de pesquisa mais específicos
-- Considere dividir análises grandes em partes menores
-
-**Problemas de memória**
-- Otimize o tamanho dos arquivos de entrada
-- Use apenas arquivos essenciais para análise
-
-### Suporte
-
-Para problemas específicos do deploy no Vercel:
-1. Verifique os logs: `vercel logs --follow`
-2. Teste localmente: `python3 api/index.py`
-3. Consulte a [documentação do Vercel](https://vercel.com/docs)
 
 ---
 
