@@ -18,7 +18,7 @@ O SAPIENS ajuda a resolver um problema recorrente: a dificuldade de realizar an�
 
 ---
 
-## Objetivo do Produto
+## Objetivo
 
 O objetivo principal é **fortalecer a gestão universitária baseada em evidências** e **acelerar a pesquisa científica**, oferecendo uma ferramenta poderosa, prática e acessível.
 
