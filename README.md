@@ -1,4 +1,4 @@
-# Projeto SAPIENS — Plataforma Acadêmica Multiagente de Análise de Dados
+# Projeto SAPIENS — Plataforma Multiagente de Análise de Dados
 
 ![SAPIENS Logo](https://img.shields.io/badge/SAPIENS-2.0.0-blue)
 ![Python Version](https://img.shields.io/badge/python-3.10+-green)
