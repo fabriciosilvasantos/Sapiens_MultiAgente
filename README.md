@@ -264,7 +264,7 @@ export SAPIENS_DEFAULT_MODEL=gpt-4
 - 📖 **Documentação**: [Wiki do Projeto](https://github.com/seu-repo/wiki)
 - 💬 **Discussões**: [GitHub Discussions](https://github.com/seu-repo/discussions)
 - 🐛 **Reportar Bugs**: [Issues](https://github.com/seu-repo/issues)
-- 📧 **Contato Direto**: fabricio.silva.santos@example.com
+- 📧 **Contato Direto**: fabricio.silva.santos@gmail.com
 
 ### Diretrizes para Contribuição
 
