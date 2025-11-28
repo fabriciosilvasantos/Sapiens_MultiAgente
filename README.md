@@ -109,7 +109,7 @@ Uma clínica pode prever horários de maior demanda e ajustar a escala de atendi
 
 ## Conclusão
 O SAPIENS, ao unir automação, inteligência artificial e análise avançada de dados, transforma qualquer ambiente — acadêmico, industrial, comercial ou de serviços — em um ecossistema orientado por evidências, com decisões mais rápidas, precisas e estratégicas.
-```
+
 
 
 ### Economia de Tempo
