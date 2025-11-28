@@ -32,7 +32,7 @@ Esta seção detalha o valor estratégico que a plataforma SAPIENS entrega à co
 
 ### Aplicações do SAPIENS nos Principais Setores
 
-O SAPIENS foi desenvolvido para atender dois pilares essenciais — **gestão** e **pesquisa** — e sua arquitetura multiagente permite que seja utilizado não apenas no meio acadêmico, mas também em **Indústria**, **Comércio** e **Serviços**, sempre com foco em decisões baseadas em dados.
+O SAPIENS foi desenvolvido para atender dois pilares essenciais — Gestão e Pesquisa — e sua arquitetura multiagente permite que seja utilizado não apenas no meio acadêmico, mas também em Indústria, Comércio e Serviços, sempre com foco em decisões baseadas em dados.
 
 ---
 
