@@ -1,29 +1,29 @@
-# SAPIENS - Plataforma Acadêmica Multiagente de Análise de Dados
+# Projeto SAPIENS — Plataforma Acadêmica Multiagente de Análise de Dados
 
 ![SAPIENS Logo](https://img.shields.io/badge/SAPIENS-2.0.0-blue)
 ![Python Version](https://img.shields.io/badge/python-3.10+-green)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
-O projeto **SAPIENS** (Plataforma Acadêmica Multiagente de Análise de Dados) é uma aplicação sofisticada que utiliza orquestração de agentes de IA para realizar análises de dados complexas (descritiva, diagnóstica, preditiva e prescritiva) com foco acadêmico.
+O **SAPIENS** é uma plataforma avançada que utiliza orquestração de agentes de IA para executar análises de dados complexas — descritivas, diagnósticas, preditivas e prescritivas — com foco acadêmico.
 
+---
 
-### Introdução e Visão Geral
+## Introdução e Visão Geral
 
-A Plataforma Acadêmica Multiagente de Análise de Dados. Concebida como Software Livre, a plataforma será executada em um servidor dedicado para garantir segurança e desempenho, e foi projetada para automatizar e simplificar a extração de insights a partir de dados acadêmicos e de gestão.
+O sistema foi concebido como **Software Livre**, operando em um servidor dedicado para garantir segurança, desempenho e autonomia institucional. Sua arquitetura multiagente foi projetada para automatizar e simplificar todo o processo de extração de insights a partir de dados acadêmicos e administrativos.
 
-O sistema funcionará com uma arquitetura de múltiplos agentes, liderada por um Agente Gerente
-(Orquestrador), que simula a expertise de um Analista de Dados Sênior. O principal problema que este
-produto resolve é a dificuldade de gestores universitários e pesquisadores em realizar análises de dados
-complexas, que são cruciais tanto para a tomada de decisão administrativa quanto para o avanço da
-pesquisa científica.
+No centro da aplicação está um **Agente Gerente (Orquestrador)**, que atua como um Analista de Dados Sênior virtual, coordenando agentes especializados responsáveis por etapas como limpeza, transformação, escolha de metodologias, execução de análises e elaboração de relatórios.
 
-### Objetivo do Produto
+O SAPIENS resolve um problema recorrente nas universidades: a dificuldade de realizar análises de dados robustas e profundas, essenciais para decisões administrativas estratégicas e para o avanço da pesquisa científica.
 
-O objetivo central é potencializar a gestão universitária baseada em evidências e acelerar a pesquisa
-científica, fornecendo uma ferramenta poderosa e acessível. A plataforma permitirá que gestores,
-pesquisadores e alunos obtenham respostas rápidas e confiáveis para suas perguntas, automatizando as
-etapas de limpeza de dados, seleção de metodologia, análise e apresentação de resultados, sem exigir
-profundo conhecimento técnico em ciência de dados.
+---
+
+## Objetivo do Produto
+
+O objetivo principal é **fortalecer a gestão universitária baseada em evidências** e **acelerar a pesquisa científica**, oferecendo uma ferramenta poderosa, prática e acessível.
+
+A plataforma permitirá que gestores, pesquisadores e alunos obtenham respostas rápidas e confiáveis para suas necessidades analíticas, automatizando processos críticos — como preparação de dados, seleção de técnicas, execução de análises e apresentação dos resultados — sem exigir conhecimento avançado em ciência de dados.
+
 
 
 ### Potencial de Uso e Impacto
@@ -78,13 +78,17 @@ humana é insubstituível.
 Esta seção detalha como a plataforma SAPIENS aborda as etapas fundamentais do processo de análise de
 dados.
 
-●**Fazendo a Pergunta**: O usuário insere sua pergunta em linguagem natural.
-●**Coleta dos Dados**: O usuário faz o upload de seus arquivos de dados ou conecta-se a bancos de
+- **Fazendo a Pergunta**: O usuário insere sua pergunta em linguagem natural.
+
+- **Coleta dos Dados**: O usuário faz o upload de seus arquivos de dados ou conecta-se a bancos de
 dados.
-●**Exploração, Preparação e Limpeza**: O Agente Gerente automatiza a limpeza e preparação dos dados.
-●**Análise dos Dados**: O Agente Gerente interpreta a pergunta e delega a tarefa ao Agente Especialista
+
+- **Exploração, Preparação e Limpeza**: O Agente Gerente automatiza a limpeza e preparação dos dados.
+
+- **Análise dos Dados**: O Agente Gerente interpreta a pergunta e delega a tarefa ao Agente Especialista
 apropriado.
-●**Apresentando os Resultados**: O Agente Gerente traduz a análise técnica em uma apresentação clara
+
+- **Apresentando os Resultados**: O Agente Gerente traduz a análise técnica em uma apresentação clara
 e acionável.
 
 
@@ -144,6 +148,7 @@ O projeto segue uma arquitetura modular bem definida, separando a lógica de int
 ### 🛠️ Instalação e Configuração
 
 Para instruções detalhadas sobre instalação, configuração e deploy, consulte o arquivo [INSTALL.md](INSTALL.md).
+
 ## 🚀 Como Usar
 
 ### Interface Web (Recomendado)
@@ -272,7 +277,7 @@ Logs disponíveis em: `logs/auditoria_academica.jsonl`
 |--------|--------------|--------|-------------|
 | **Gerente Orquestrador** | Coordenação geral | Llama 3.3 8B | FileRead, ScrapeWebsite, Validação |
 | **Análise Descritiva** | Estatísticas básicas | Llama 3.3 8B | Statistical, CSV Processor |
-| **Análise Diagnóstica** | Correlações e causas | Nemotron Nano 9B | Statistical, FileRead |
+| **Análise Diagnóstica** | Correlações e causas | Llama 3.3 8B | Statistical, FileRead |
 | **Análise Preditiva** | Previsões futuras | Llama 3.3 8B | Statistical, CSV Processor |
 | **Análise Prescritiva** | Recomendações | Llama 3.3 8B | Statistical, FileRead |
 
