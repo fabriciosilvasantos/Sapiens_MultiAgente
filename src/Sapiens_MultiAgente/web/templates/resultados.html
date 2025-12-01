@@ -38,36 +38,56 @@
 
                 <!-- Navegação por seções -->
                 <div class="card shadow mb-4">
-                    <div class="card-body">
+                    <div class="card-body p-2">
+                        <style>
+                            @media (max-width: 768px) {
+                                .nav-pills-scroll {
+                                    flex-wrap: nowrap;
+                                    overflow-x: auto;
+                                    white-space: nowrap;
+                                    padding-bottom: 5px;
+                                    -webkit-overflow-scrolling: touch;
+                                }
+
+                                .nav-pills-scroll .nav-item {
+                                    display: inline-block;
+                                }
+
+                                .nav-pills-scroll .nav-link {
+                                    display: inline-block;
+                                    margin-right: 10px;
+                                }
+                            }
+                        </style>
                         <nav aria-label="Navegação dos resultados">
-                            <ul class="nav nav-pills nav-fill" id="resultadosTabs" role="tablist">
+                            <ul class="nav nav-pills nav-fill nav-pills-scroll" id="resultadosTabs" role="tablist">
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link active" id="resumo-tab" data-bs-toggle="pill"
-                                            data-bs-target="#resumo" type="button" role="tab">
+                                        data-bs-target="#resumo" type="button" role="tab">
                                         <i class="fas fa-file-alt me-2"></i>Resumo Executivo
                                     </button>
                                 </li>
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link" id="descritiva-tab" data-bs-toggle="pill"
-                                            data-bs-target="#descritiva" type="button" role="tab">
+                                        data-bs-target="#descritiva" type="button" role="tab">
                                         <i class="fas fa-chart-bar me-2"></i>Análise Descritiva
                                     </button>
                                 </li>
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link" id="diagnostica-tab" data-bs-toggle="pill"
-                                            data-bs-target="#diagnostica" type="button" role="tab">
+                                        data-bs-target="#diagnostica" type="button" role="tab">
                                         <i class="fas fa-search me-2"></i>Análise Diagnóstica
                                     </button>
                                 </li>
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link" id="preditiva-tab" data-bs-toggle="pill"
-                                            data-bs-target="#preditiva" type="button" role="tab">
+                                        data-bs-target="#preditiva" type="button" role="tab">
                                         <i class="fas fa-crystal-ball me-2"></i>Análise Preditiva
                                     </button>
                                 </li>
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link" id="prescritiva-tab" data-bs-toggle="pill"
-                                            data-bs-target="#prescritiva" type="button" role="tab">
+                                        data-bs-target="#prescritiva" type="button" role="tab">
                                         <i class="fas fa-lightbulb me-2"></i>Análise Prescritiva
                                     </button>
                                 </li>
@@ -88,16 +108,19 @@
                                 <div class="alert alert-info">
                                     <i class="fas fa-info-circle me-2"></i>
                                     <strong>Nota:</strong> Esta é uma demonstração da interface.
-                                    Em produção, aqui seriam exibidos os resultados reais da análise realizada pelos agentes de IA.
+                                    Em produção, aqui seriam exibidos os resultados reais da análise realizada pelos
+                                    agentes de IA.
                                 </div>
 
                                 <h4>Principais Descobertas</h4>
                                 <ul class="list-group list-group-flush mb-4">
                                     <li class="list-group-item">
-                                        <strong>Métricas Principais:</strong> Os dados analisados mostram tendências significativas...
+                                        <strong>Métricas Principais:</strong> Os dados analisados mostram tendências
+                                        significativas...
                                     </li>
                                     <li class="list-group-item">
-                                        <strong>Padrões Identificados:</strong> Foram observados comportamentos consistentes...
+                                        <strong>Padrões Identificados:</strong> Foram observados comportamentos
+                                        consistentes...
                                     </li>
                                     <li class="list-group-item">
                                         <strong>Correlações Importantes:</strong> Existe relação significativa entre...
@@ -145,7 +168,10 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <h5>Métricas Principais</h5>
-                                        <div class="table-responsive">
+                                        <h5>Métricas Principais</h5>
+
+                                        <!-- Visualização Tabela (Desktop) -->
+                                        <div class="table-responsive d-none d-md-block">
                                             <table class="table table-striped">
                                                 <tbody>
                                                     <tr>
@@ -166,6 +192,34 @@
                                                     </tr>
                                                 </tbody>
                                             </table>
+                                        </div>
+
+                                        <!-- Visualização Cards (Mobile) -->
+                                        <div class="d-md-none">
+                                            <div class="card mb-2 border-start border-4 border-primary">
+                                                <div class="card-body p-3">
+                                                    <h6 class="card-subtitle mb-2 text-muted">Total de Registros</h6>
+                                                    <h4 class="card-title mb-0">N/A</h4>
+                                                </div>
+                                            </div>
+                                            <div class="card mb-2 border-start border-4 border-info">
+                                                <div class="card-body p-3">
+                                                    <h6 class="card-subtitle mb-2 text-muted">Média</h6>
+                                                    <h4 class="card-title mb-0">N/A</h4>
+                                                </div>
+                                            </div>
+                                            <div class="card mb-2 border-start border-4 border-success">
+                                                <div class="card-body p-3">
+                                                    <h6 class="card-subtitle mb-2 text-muted">Mediana</h6>
+                                                    <h4 class="card-title mb-0">N/A</h4>
+                                                </div>
+                                            </div>
+                                            <div class="card mb-2 border-start border-4 border-warning">
+                                                <div class="card-body p-3">
+                                                    <h6 class="card-subtitle mb-2 text-muted">Desvio Padrão</h6>
+                                                    <h4 class="card-title mb-0">N/A</h4>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
@@ -282,12 +336,12 @@
 </section>
 
 <script>
-// Inicializar tooltips
-document.addEventListener('DOMContentLoaded', function () {
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
+    // Inicializar tooltips
+    document.addEventListener('DOMContentLoaded', function () {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
     });
-});
 </script>
 {% endblock %}

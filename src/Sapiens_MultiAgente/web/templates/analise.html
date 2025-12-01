@@ -71,16 +71,12 @@
                             <label for="topico_pesquisa" class="form-label">
                                 <i class="fas fa-question-circle me-2"></i>Tópico de Pesquisa
                             </label>
-                            <textarea
-                                class="form-control"
-                                id="topico_pesquisa"
-                                name="topico_pesquisa"
-                                rows="3"
+                            <textarea class="form-control" id="topico_pesquisa" name="topico_pesquisa" rows="3"
                                 placeholder="Descreva em detalhes qual análise você precisa realizar. Exemplo: 'Analisar a correlação entre notas dos alunos e frequência às aulas no semestre passado'"
-                                required
-                            ></textarea>
+                                required></textarea>
                             <div class="form-text">
-                                Seja específico sobre o tipo de análise desejada (descritiva, diagnóstica, preditiva ou prescritiva)
+                                Seja específico sobre o tipo de análise desejada (descritiva, diagnóstica, preditiva ou
+                                prescritiva)
                             </div>
                         </div>
 
@@ -89,25 +85,50 @@
                             <label class="form-label">
                                 <i class="fas fa-file-upload me-2"></i>Arquivos de Dados (Opcional)
                             </label>
-                    
+
+                            <style>
+                                @media (max-width: 768px) {
+                                    .file-upload-area {
+                                        padding: 20px !important;
+                                    }
+
+                                    .file-upload-area i.fa-3x {
+                                        font-size: 1.5em;
+                                    }
+                                }
+                            </style>
+
                             <div class="file-upload-area" id="uploadArea">
                                 <div class="text-center">
-                                    <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
-                                    <h5>Arraste e solte seus arquivos aqui</h5>
-                                    <p class="text-muted">ou clique para selecionar</p>
-                                    <input type="file" id="fileInput" multiple accept=".csv,.xlsx,.xls,.pdf,.docx,.txt" style="display: none;">
-                                    <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('fileInput').click()">
-                                        <i class="fas fa-folder-open me-2"></i>Selecionar Arquivos
-                                    </button>
+                                    <div class="d-none d-md-block">
+                                        <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                        <h5>Arraste e solte seus arquivos aqui</h5>
+                                        <p class="text-muted">ou clique para selecionar</p>
+                                    </div>
+                                    <div class="d-md-none mb-3">
+                                        <i class="fas fa-camera fa-2x text-muted mb-2"></i>
+                                        <h5>Toque para adicionar arquivos</h5>
+                                    </div>
+
+                                    <input type="file" id="fileInput" multiple
+                                        accept=".csv,.xlsx,.xls,.pdf,.docx,.txt,image/*" capture="environment"
+                                        style="display: none;">
+
+                                    <div class="d-grid gap-2 col-md-6 mx-auto">
+                                        <button type="button" class="btn btn-outline-primary"
+                                            onclick="document.getElementById('fileInput').click()">
+                                            <i class="fas fa-folder-open me-2"></i>Selecionar / Câmera
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                    
+
                             <!-- Lista de arquivos -->
                             <div id="fileList" class="mt-3" style="display: none;">
                                 <h6>Arquivos selecionados:</h6>
                                 <div id="filesContainer"></div>
                             </div>
-                    
+
                             <div class="form-text">
                                 <i class="fas fa-info-circle me-1"></i>
                                 Formatos aceitos: CSV, Excel (.xlsx, .xls), PDF, Word (.docx), TXT
@@ -115,25 +136,20 @@
                                 Tamanho máximo: 100MB por arquivo
                             </div>
                         </div>
-                    
+
                         <!-- Links de Sites (Novo campo) -->
                         <div class="mb-4">
                             <label for="links_sites" class="form-label">
                                 <i class="fas fa-link me-2"></i>Links de Sites (Opcional)
                             </label>
-                            <textarea
-                                class="form-control"
-                                id="links_sites"
-                                name="links_sites"
-                                rows="3"
-                                placeholder="Insira os URLs dos sites para análise (um por linha). Exemplo:
+                            <textarea class="form-control" id="links_sites" name="links_sites" rows="3" placeholder="Insira os URLs dos sites para análise (um por linha). Exemplo:
                     https://example.com/relatorio.pdf
                     https://siteacademico.edu.br/dados.csv
-                    https://universidade.edu.br/pesquisa.docx"
-                            ></textarea>
+                    https://universidade.edu.br/pesquisa.docx"></textarea>
                             <div class="form-text">
                                 <i class="fas fa-info-circle me-1"></i>
-                                Adicione um URL por linha. A plataforma irá baixar e analisar o conteúdo dos sites automaticamente.
+                                Adicione um URL por linha. A plataforma irá baixar e analisar o conteúdo dos sites
+                                automaticamente.
                                 <br>
                                 Formatos suportados: PDF, CSV, DOCX, TXT
                             </div>
@@ -143,7 +159,9 @@
                         <div class="alert alert-info mb-4">
                             <i class="fas fa-info-circle me-2"></i>
                             <strong>Análise Inteligente Automática</strong><br>
-                            <small class="text-muted">O sistema analisará automaticamente o tópico de pesquisa e determinará o tipo de análise mais adequado (descritiva, diagnóstica, preditiva ou prescritiva).</small>
+                            <small class="text-muted">O sistema analisará automaticamente o tópico de pesquisa e
+                                determinará o tipo de análise mais adequado (descritiva, diagnóstica, preditiva ou
+                                prescritiva).</small>
                         </div>
 
                         <!-- Botão de Submissão -->
@@ -162,117 +180,117 @@
 
 {% block extra_scripts %}
 <script>
-let uploadedFiles = [];
+    let uploadedFiles = [];
 
-document.addEventListener('DOMContentLoaded', function() {
-    const uploadArea = document.getElementById('uploadArea');
-    const fileInput = document.getElementById('fileInput');
-    const fileList = document.getElementById('fileList');
-    const filesContainer = document.getElementById('filesContainer');
-    const form = document.getElementById('analiseForm');
+    document.addEventListener('DOMContentLoaded', function () {
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const filesContainer = document.getElementById('filesContainer');
+        const form = document.getElementById('analiseForm');
 
-    // Área de drag and drop
-    uploadArea.addEventListener('click', () => fileInput.click());
+        // Área de drag and drop
+        uploadArea.addEventListener('click', () => fileInput.click());
 
-    uploadArea.addEventListener('dragover', function(e) {
-        e.preventDefault();
-        this.classList.add('dragover');
-    });
-
-    uploadArea.addEventListener('dragleave', function(e) {
-        e.preventDefault();
-        this.classList.remove('dragover');
-    });
-
-    uploadArea.addEventListener('drop', function(e) {
-        e.preventDefault();
-        this.classList.remove('dragover');
-
-        const files = Array.from(e.dataTransfer.files);
-        handleFiles(files);
-    });
-
-    // Input de arquivo
-    fileInput.addEventListener('change', function(e) {
-        const files = Array.from(e.target.files);
-        handleFiles(files);
-    });
-
-    // Manipulação de arquivos
-    function handleFiles(files) {
-        files.forEach(file => {
-            if (validateFile(file)) {
-                uploadFile(file);
-            }
+        uploadArea.addEventListener('dragover', function (e) {
+            e.preventDefault();
+            this.classList.add('dragover');
         });
-    }
 
-    function validateFile(file) {
-        const maxSize = 100 * 1024 * 1024; // 100MB
-        const allowedTypes = [
-            'text/csv',
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'application/vnd.ms-excel',
-            'application/pdf',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'text/plain'
-        ];
+        uploadArea.addEventListener('dragleave', function (e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+        });
 
-        if (file.size > maxSize) {
-            alert(`Arquivo ${file.name} é muito grande. Tamanho máximo: 100MB`);
-            return false;
-        }
+        uploadArea.addEventListener('drop', function (e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
 
-        if (!allowedTypes.includes(file.type)) {
-            alert(`Tipo de arquivo não suportado: ${file.name}`);
-            return false;
-        }
+            const files = Array.from(e.dataTransfer.files);
+            handleFiles(files);
+        });
 
-        return true;
-    }
+        // Input de arquivo
+        fileInput.addEventListener('change', function (e) {
+            const files = Array.from(e.target.files);
+            handleFiles(files);
+        });
 
-    async function uploadFile(file) {
-        const formData = new FormData();
-        formData.append('arquivo', file);
-
-        try {
-            const response = await fetch('/upload', {
-                method: 'POST',
-                body: formData
+        // Manipulação de arquivos
+        function handleFiles(files) {
+            files.forEach(file => {
+                if (validateFile(file)) {
+                    uploadFile(file);
+                }
             });
+        }
 
-            const result = await response.json();
+        function validateFile(file) {
+            const maxSize = 100 * 1024 * 1024; // 100MB
+            const allowedTypes = [
+                'text/csv',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'application/vnd.ms-excel',
+                'application/pdf',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'text/plain'
+            ];
 
-            if (result.success) {
-                uploadedFiles.push({
-                    file: file,
-                    serverName: result.filename,
-                    validation: result.validacao
+            if (file.size > maxSize) {
+                alert(`Arquivo ${file.name} é muito grande. Tamanho máximo: 100MB`);
+                return false;
+            }
+
+            if (!allowedTypes.includes(file.type)) {
+                alert(`Tipo de arquivo não suportado: ${file.name}`);
+                return false;
+            }
+
+            return true;
+        }
+
+        async function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('arquivo', file);
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
                 });
 
-                displayFiles();
-            } else {
-                alert(`Erro no upload de ${file.name}: ${result.error}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    uploadedFiles.push({
+                        file: file,
+                        serverName: result.filename,
+                        validation: result.validacao
+                    });
+
+                    displayFiles();
+                } else {
+                    alert(`Erro no upload de ${file.name}: ${result.error}`);
+                }
+            } catch (error) {
+                alert(`Erro no upload de ${file.name}: ${error.message}`);
             }
-        } catch (error) {
-            alert(`Erro no upload de ${file.name}: ${error.message}`);
-        }
-    }
-
-    function displayFiles() {
-        if (uploadedFiles.length === 0) {
-            fileList.style.display = 'none';
-            return;
         }
 
-        fileList.style.display = 'block';
+        function displayFiles() {
+            if (uploadedFiles.length === 0) {
+                fileList.style.display = 'none';
+                return;
+            }
 
-        filesContainer.innerHTML = '';
+            fileList.style.display = 'block';
 
-        uploadedFiles.forEach((item, index) => {
-            const fileDiv = document.createElement('div');
-            fileDiv.className = 'file-item';
-            fileDiv.innerHTML = `
+            filesContainer.innerHTML = '';
+
+            uploadedFiles.forEach((item, index) => {
+                const fileDiv = document.createElement('div');
+                fileDiv.className = 'file-item';
+                fileDiv.innerHTML = `
                 <div class="d-flex justify-content-between align-items-center">
                     <div class="flex-grow-1">
                         <div class="d-flex align-items-center">
@@ -296,53 +314,53 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `;
 
-            filesContainer.appendChild(fileDiv);
-        });
-    }
-
-    window.removeFile = function(index) {
-        uploadedFiles.splice(index, 1);
-        displayFiles();
-    };
-
-    // Intercepta submissão do formulário
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-
-        // Verifica se o tópico foi preenchido (obrigatório)
-        const topico = document.getElementById('topico_pesquisa').value.trim();
-        if (!topico) {
-            alert('O tópico de pesquisa é obrigatório.');
-            return;
+                filesContainer.appendChild(fileDiv);
+            });
         }
 
-        // Cria FormData
-        const formData = new FormData(form);
-        
-        // Adiciona links se fornecidos
-        const links = document.getElementById('links_sites').value.trim();
-        if (links) {
-            formData.append('links_sites', links);
-        }
+        window.removeFile = function (index) {
+            uploadedFiles.splice(index, 1);
+            displayFiles();
+        };
 
-        // Adiciona arquivos se fornecidos
-        uploadedFiles.forEach(item => {
-            formData.append('arquivos', item.file);
-        });
+        // Intercepta submissão do formulário
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
 
-        // Submete formulário (sem check de arquivos - opcional)
-        fetch('/analise', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.text())
-        .then(html => {
-            document.body.innerHTML = html;
-        })
-        .catch(error => {
-            alert(`Erro ao iniciar análise: ${error.message}`);
+            // Verifica se o tópico foi preenchido (obrigatório)
+            const topico = document.getElementById('topico_pesquisa').value.trim();
+            if (!topico) {
+                alert('O tópico de pesquisa é obrigatório.');
+                return;
+            }
+
+            // Cria FormData
+            const formData = new FormData(form);
+
+            // Adiciona links se fornecidos
+            const links = document.getElementById('links_sites').value.trim();
+            if (links) {
+                formData.append('links_sites', links);
+            }
+
+            // Adiciona arquivos se fornecidos
+            uploadedFiles.forEach(item => {
+                formData.append('arquivos', item.file);
+            });
+
+            // Submete formulário (sem check de arquivos - opcional)
+            fetch('/analise', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.text())
+                .then(html => {
+                    document.body.innerHTML = html;
+                })
+                .catch(error => {
+                    alert(`Erro ao iniciar análise: ${error.message}`);
+                });
         });
     });
-});
 </script>
 {% endblock %}
