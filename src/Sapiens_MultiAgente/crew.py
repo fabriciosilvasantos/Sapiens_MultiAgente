@@ -14,6 +14,7 @@ from .tools.statistical_analysis_tool import StatisticalAnalysisTool
 from .tools.pdf_search_tool import PDFSearchTool
 from .tools.docx_search_tool import DOCXSearchTool
 from .tools.csv_search_tool import CSVSearchTool
+from .tools.chart_generator_tool import ChartGeneratorTool
 
 
 
@@ -41,7 +42,8 @@ class SapiensAcademicMultiAgentDataAnalysisPlatformCrew:
             config=self.agents_config["especialista_em_analise_descritiva"],
             tools=[
                 FileReadTool(),
-                StatisticalAnalysisTool()
+                StatisticalAnalysisTool(),
+                ChartGeneratorTool()
             ]
         )
 
@@ -92,26 +94,31 @@ class SapiensAcademicMultiAgentDataAnalysisPlatformCrew:
 
     @task
     def executar_analise_descritiva(self) -> Task:
+        # async_execution=True: roda em paralelo com as outras análises
         return Task(
             config=self.tasks_config["executar_analise_descritiva"],
+            async_execution=True,
         )
 
     @task
     def executar_analise_diagnostica(self) -> Task:
         return Task(
             config=self.tasks_config["executar_analise_diagnostica"],
+            async_execution=True,
         )
 
     @task
     def executar_analise_preditiva(self) -> Task:
         return Task(
             config=self.tasks_config["executar_analise_preditiva"],
+            async_execution=True,
         )
 
     @task
     def executar_analise_prescritiva(self) -> Task:
         return Task(
             config=self.tasks_config["executar_analise_prescritiva"],
+            async_execution=True,
         )
 
     @task

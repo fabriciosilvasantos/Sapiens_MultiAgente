@@ -31,18 +31,20 @@ def test_import_crew():
 
 def test_import_tools():
     """Testa se as ferramentas podem ser importadas"""
-    tools_to_test = [
-        'DataValidationTool',
-        'CSVProcessorTool',
-        'StatisticalAnalysisTool',
-        'PDFSearchTool',
-        'DOCXSearchTool',
-        'CSVSearchTool'
-    ]
+    # mapeamento explícito classe → módulo (evita erro de conversão camelCase→snake_case)
+    tools_to_test = {
+        'DataValidationTool':     'data_validation_tool',
+        'CSVProcessorTool':       'csv_processor_tool',
+        'StatisticalAnalysisTool':'statistical_analysis_tool',
+        'PDFSearchTool':          'pdf_search_tool',
+        'DOCXSearchTool':         'docx_search_tool',
+        'CSVSearchTool':          'csv_search_tool',
+        'ChartGeneratorTool':     'chart_generator_tool',
+    }
 
-    for tool_name in tools_to_test:
+    for tool_name, module_name in tools_to_test.items():
         try:
-            module = __import__(f'Sapiens_MultiAgente.tools.{tool_name.lower()}_tool',
+            module = __import__(f'Sapiens_MultiAgente.tools.{module_name}',
                               fromlist=[tool_name])
             tool_class = getattr(module, tool_name)
             assert tool_class is not None

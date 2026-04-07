@@ -6,6 +6,9 @@ from crewai.tools import BaseTool
 import io
 
 
+MAX_ROWS_IN_MEMORY = 100_000  # Acima disso usa chunking para estatísticas
+
+
 class CSVProcessorToolInput(BaseModel):
     """Input schema for CSVProcessorTool."""
     file_path: str = Field(..., description="Path to the CSV file to process")
@@ -45,7 +48,7 @@ class CSVProcessorTool(BaseTool):
 
             for sep in separators_to_try:
                 try:
-                    df = pd.read_csv(file_path, sep=sep, encoding=encoding, nrows=1000)  # Limitar para preview
+                    df = pd.read_csv(file_path, sep=sep, encoding=encoding)
                     if len(df.columns) > 1:  # Se tem múltiplas colunas, provavelmente é o certo
                         successful_sep = sep
                         break
@@ -59,6 +62,13 @@ class CSVProcessorTool(BaseTool):
             num_rows = len(df)
             num_cols = len(df.columns)
             memory_usage = df.memory_usage(deep=True).sum() / 1024 / 1024  # MB
+
+            large_file_warning = ""
+            if num_rows > MAX_ROWS_IN_MEMORY:
+                large_file_warning = (
+                    f"\n⚠️ ARQUIVO GRANDE: {num_rows:,} linhas detectadas. "
+                    "Estatísticas calculadas sobre o conjunto completo.\n"
+                )
 
             # Análise de tipos de dados
             dtypes_info = self._analyze_data_types(df)
@@ -75,9 +85,9 @@ class CSVProcessorTool(BaseTool):
             # Relatório
             report = f"""
 📊 ANÁLISE DE ARQUIVO CSV
-
+{large_file_warning}
 📁 Arquivo: {file_path}
-📏 Dimensões: {num_rows} linhas × {num_cols} colunas
+📏 Dimensões: {num_rows:,} linhas × {num_cols} colunas
 💾 Uso de memória: {memory_usage:.2f} MB
 🔤 Separador detectado: '{successful_sep}'
 🔄 Codificação: {encoding}

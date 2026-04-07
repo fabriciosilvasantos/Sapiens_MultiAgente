@@ -15,6 +15,8 @@ class DOCXSearchToolInput(BaseModel):
     file_path: str = Field(..., description="Path to the DOCX file to search")
     search_query: Optional[str] = Field(default=None, description="Text to search for (case-insensitive)")
     extract_text: bool = Field(default=False, description="Extract all text from the DOCX")
+    extract_images: bool = Field(default=False, description="Extract images embedded in the DOCX and save to a directory")
+    output_dir: Optional[str] = Field(default=None, description="Directory to save extracted images (defaults to temp dir)")
     paragraph_limit: Optional[int] = Field(default=None, description="Limit number of paragraphs to extract")
 
 
@@ -28,7 +30,8 @@ class DOCXSearchTool(BaseTool):
     args_schema: Type[BaseModel] = DOCXSearchToolInput
 
     def _run(self, file_path: str, search_query: Optional[str] = None,
-             extract_text: bool = False, paragraph_limit: Optional[int] = None) -> str:
+             extract_text: bool = False, extract_images: bool = False,
+             output_dir: Optional[str] = None, paragraph_limit: Optional[int] = None) -> str:
         """
         Busca ou extrai texto de um arquivo DOCX.
 
@@ -50,6 +53,10 @@ class DOCXSearchTool(BaseTool):
         try:
             # Abrir documento DOCX
             doc = Document(file_path)
+
+            # Extrair imagens se solicitado
+            if extract_images:
+                return self._extract_images(file_path, output_dir)
 
             # Extrair texto se solicitado
             if extract_text:
@@ -205,3 +212,58 @@ class DOCXSearchTool(BaseTool):
             info += "\n👀 Preview não disponível."
 
         return info
+
+    def _extract_images(self, file_path: str, output_dir: Optional[str]) -> str:
+        """Extrai imagens embutidas no DOCX e salva em disco."""
+        import zipfile
+        import tempfile
+
+        dest = output_dir or tempfile.mkdtemp(prefix='sapiens_docx_imgs_')
+        os.makedirs(dest, exist_ok=True)
+
+        # DOCX é um ZIP — imagens ficam em word/media/
+        saved = []
+        errors = []
+
+        try:
+            with zipfile.ZipFile(file_path, 'r') as zf:
+                media_files = [
+                    name for name in zf.namelist()
+                    if name.startswith('word/media/')
+                    and not name.endswith('/')
+                ]
+
+                if not media_files:
+                    return (
+                        f"🖼️ EXTRAÇÃO DE IMAGENS DO DOCX\n"
+                        f"ℹ️ Nenhuma imagem encontrada em '{os.path.basename(file_path)}'."
+                    )
+
+                for media_path in media_files:
+                    fname = os.path.basename(media_path)
+                    fpath = os.path.join(dest, fname)
+                    try:
+                        with zf.open(media_path) as src, open(fpath, 'wb') as dst:
+                            dst.write(src.read())
+                        size = os.path.getsize(fpath)
+                        saved.append(f"• {fname} ({size:,} bytes)")
+                    except Exception as e:
+                        errors.append(f"  {fname}: {e}")
+
+        except zipfile.BadZipFile:
+            return f"❌ ERRO: '{os.path.basename(file_path)}' não é um arquivo DOCX válido."
+        except Exception as e:
+            return f"❌ ERRO ao extrair imagens: {e}"
+
+        report = f"🖼️ EXTRAÇÃO DE IMAGENS DO DOCX\n"
+        report += f"📁 Destino: {dest}\n\n"
+
+        if saved:
+            report += f"✅ {len(saved)} imagem(ns) extraída(s):\n" + "\n".join(saved) + "\n"
+        else:
+            report += "ℹ️ Nenhuma imagem foi extraída.\n"
+
+        if errors:
+            report += f"\n⚠️ {len(errors)} erro(s):\n" + "\n".join(errors) + "\n"
+
+        return report

@@ -1,10 +1,18 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from flask_login import login_required, login_user, logout_user, current_user
+from flask_wtf.csrf import CSRFProtect
+from flasgger import Swagger
 from werkzeug.utils import secure_filename
 import os
 import json
 import uuid
 import tempfile
+import ipaddress
+import sqlite3
 import requests
+from urllib.parse import urlparse
 from datetime import datetime
 from pathlib import Path
 
@@ -12,17 +20,51 @@ from pathlib import Path
 try:
     from ..tools.academic_logger import get_auditor
     from ..tools.security_validator import AcademicSecurityValidator
+    from .auth import login_manager, init_auth_db, Usuario
 except ImportError:
     # Fallback para import direto
     import sys
     import os
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'src', 'Sapiens_MultiAgente'))
     from tools.academic_logger import get_auditor
     from tools.security_validator import AcademicSecurityValidator
+    from web.auth import login_manager, init_auth_db, Usuario
+
+
+DB_PATH = os.getenv('SAPIENS_DB_PATH', 'sapiens.db')
+
+
+def _get_db():
+    """Retorna conexão SQLite com row_factory configurado."""
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def _init_db():
+    """Cria tabelas do banco se não existirem."""
+    with _get_db() as conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS analises (
+                id          TEXT PRIMARY KEY,
+                usuario_id  TEXT NOT NULL DEFAULT 'sistema',
+                topico      TEXT NOT NULL,
+                status      TEXT NOT NULL DEFAULT 'processando',
+                progresso   INTEGER NOT NULL DEFAULT 0,
+                arquivos    TEXT NOT NULL DEFAULT '[]',
+                resultados  TEXT,
+                erro        TEXT,
+                criado_em   TEXT NOT NULL,
+                atualizado_em TEXT,
+                concluido_em  TEXT
+            )
+        """)
+        conn.commit()
 
 
 class SapiensWebInterface:
-    """Interface web básica para SAPIENS"""
+    """Interface web para SAPIENS"""
 
     def __init__(self, host='127.0.0.1', port=5000, debug=False):
         self.host = host
@@ -36,15 +78,89 @@ class SapiensWebInterface:
             'ALLOWED_EXTENSIONS': {'csv', 'xlsx', 'xls', 'pdf', 'docx', 'txt'}
         }
 
-        # Cria diretório de uploads
+        # Cria diretório de uploads e inicializa bancos
         os.makedirs(self.upload_config['UPLOAD_FOLDER'], exist_ok=True)
+        _init_db()
+        init_auth_db()
 
         # Inicializa componentes
         self.auditor = get_auditor()
         self.security_validator = AcademicSecurityValidator()
 
-        # Estado das análises
-        self.analises_ativas = {}
+        # Cache em memória para análises ativas (sincronizado com o banco)
+        self.analises_ativas = self._carregar_analises_ativas()
+
+    # ------------------------------------------------------------------
+    # Persistência SQLite
+    # ------------------------------------------------------------------
+
+    def _carregar_analises_ativas(self) -> dict:
+        """Carrega do banco as análises não concluídas para o cache em memória."""
+        cache = {}
+        try:
+            with _get_db() as conn:
+                rows = conn.execute(
+                    "SELECT * FROM analises WHERE status NOT IN ('concluida', 'erro')"
+                ).fetchall()
+            for row in rows:
+                cache[row['id']] = self._row_para_dict(row)
+        except Exception:
+            pass
+        return cache
+
+    def _row_para_dict(self, row) -> dict:
+        d = dict(row)
+        d['arquivos'] = json.loads(d.get('arquivos') or '[]')
+        return d
+
+    def _salvar_analise(self, analise_id: str):
+        """Persiste o estado atual da análise no banco."""
+        info = self.analises_ativas.get(analise_id)
+        if not info:
+            return
+        with _get_db() as conn:
+            conn.execute("""
+                INSERT INTO analises
+                    (id, usuario_id, topico, status, progresso, arquivos, resultados, erro, criado_em, atualizado_em, concluido_em)
+                VALUES
+                    (:id, :usuario_id, :topico, :status, :progresso, :arquivos, :resultados, :erro, :criado_em, :atualizado_em, :concluido_em)
+                ON CONFLICT(id) DO UPDATE SET
+                    status        = excluded.status,
+                    progresso     = excluded.progresso,
+                    arquivos      = excluded.arquivos,
+                    resultados    = excluded.resultados,
+                    erro          = excluded.erro,
+                    atualizado_em = excluded.atualizado_em,
+                    concluido_em  = excluded.concluido_em
+            """, {
+                'id': analise_id,
+                'usuario_id': info.get('usuario_id', 'sistema'),
+                'topico': info.get('topico_pesquisa', ''),
+                'status': info.get('status', 'processando'),
+                'progresso': info.get('progresso', 0),
+                'arquivos': json.dumps(info.get('arquivos', []), ensure_ascii=False),
+                'resultados': info.get('resultados'),
+                'erro': info.get('erro'),
+                'criado_em': info.get('timestamp_inicio'),
+                'atualizado_em': info.get('timestamp_atualizacao'),
+                'concluido_em': info.get('timestamp_fim'),
+            })
+            conn.commit()
+
+    def _buscar_analise(self, analise_id: str) -> dict | None:
+        """Busca análise no cache ou no banco."""
+        if analise_id in self.analises_ativas:
+            return self.analises_ativas[analise_id]
+        try:
+            with _get_db() as conn:
+                row = conn.execute(
+                    "SELECT * FROM analises WHERE id = ?", (analise_id,)
+                ).fetchone()
+            if row:
+                return self._row_para_dict(row)
+        except Exception:
+            pass
+        return None
 
     def create_app(self):
         """Cria aplicação Flask"""
@@ -55,8 +171,82 @@ class SapiensWebInterface:
         # Carrega secret key de variável de ambiente
         app.secret_key = os.getenv('FLASK_SECRET_KEY', 'dev-secret-key-change-in-production')
 
-        # Rotas principais
+        # Autenticação
+        login_manager.init_app(app)
+
+        # Proteção CSRF
+        csrf = CSRFProtect(app)
+
+        # Documentação Swagger
+        swagger_config = {
+            'headers': [],
+            'specs': [{
+                'endpoint': 'apispec',
+                'route': '/api/v1/spec.json',
+                'rule_filter': lambda rule: rule.startswith('/api/'),
+                'model_filter': lambda tag: True,
+            }],
+            'static_url_path': '/flasgger_static',
+            'swagger_ui': True,
+            'specs_route': '/api/docs',
+        }
+        swagger_template = {
+            'info': {
+                'title': 'SAPIENS API',
+                'description': 'API REST da Plataforma Acadêmica Multiagente de Análise de Dados',
+                'version': '1.0.0',
+                'contact': {'name': 'SAPIENS', 'email': 'suporte@sapiens.edu.br'},
+            },
+            'securityDefinitions': {
+                'cookieAuth': {'type': 'apiKey', 'in': 'cookie', 'name': 'session'}
+            },
+        }
+        Swagger(app, config=swagger_config, template=swagger_template)
+
+        # Rate limiting
+        limiter = Limiter(
+            get_remote_address,
+            app=app,
+            default_limits=["200 per hour", "50 per minute"],
+            storage_uri="memory://"
+        )
+
+        # Limites específicos por endpoint
+        limiter.limit("10 per minute")(self._get_analise_status)
+        limiter.limit("5 per minute")(self._handle_upload)
+
+        # ------------------------------------------------------------------
+        # Autenticação
+        # ------------------------------------------------------------------
+
+        @app.route('/login', methods=['GET', 'POST'])
+        def login():
+            if current_user.is_authenticated:
+                return redirect(url_for('index'))
+            if request.method == 'POST':
+                username = request.form.get('username', '').strip()
+                senha = request.form.get('senha', '')
+                usuario, msg_erro = Usuario.autenticar(username, senha)
+                if usuario:
+                    login_user(usuario)
+                    next_page = request.args.get('next')
+                    return redirect(next_page or url_for('index'))
+                flash(msg_erro or 'Usuário ou senha incorretos.', 'error')
+            return render_template('login.html')
+
+        @app.route('/logout')
+        @login_required
+        def logout():
+            logout_user()
+            flash('Sessão encerrada com sucesso.', 'success')
+            return redirect(url_for('login'))
+
+        # ------------------------------------------------------------------
+        # Rotas principais (protegidas por login)
+        # ------------------------------------------------------------------
+
         @app.route('/')
+        @login_required
         def index():
             """Página inicial"""
             return render_template('index.html')
@@ -67,6 +257,7 @@ class SapiensWebInterface:
             return render_template('sobre.html')
 
         @app.route('/analise', methods=['GET', 'POST'])
+        @login_required
         def analise():
             """Página de análise de dados"""
             if request.method == 'POST':
@@ -74,23 +265,90 @@ class SapiensWebInterface:
             return render_template('analise.html')
 
         @app.route('/upload', methods=['POST'])
+        @login_required
         def upload_arquivo():
             """Endpoint para upload de arquivos"""
             return self._handle_upload(app)
 
         @app.route('/status/<analise_id>')
+        @login_required
         def status_analise(analise_id):
             """Verifica status de análise"""
             return self._get_analise_status(analise_id)
 
         @app.route('/resultados/<analise_id>')
+        @login_required
         def resultados_analise(analise_id):
             """Exibe resultados da análise"""
             return self._get_analise_resultados(analise_id)
 
+        @app.route('/historico')
+        @login_required
+        def historico():
+            """Listagem de análises anteriores."""
+            return self._get_historico(current_user.id)
+
+        @app.route('/stream/<analise_id>')
+        def stream_progresso(analise_id):
+            """Server-Sent Events: envia progresso em tempo real."""
+            from flask import Response
+            import time
+
+            def event_generator():
+                ultimo_progresso = -1
+                while True:
+                    info = self._buscar_analise(analise_id)
+                    if not info:
+                        yield "data: {\"erro\": \"Análise não encontrada\"}\n\n"
+                        break
+
+                    progresso = info.get('progresso', 0)
+                    status = info.get('status', '')
+
+                    if progresso != ultimo_progresso:
+                        payload = json.dumps({
+                            'progresso': progresso,
+                            'status': status,
+                            'timestamp': datetime.now().isoformat()
+                        }, ensure_ascii=False)
+                        yield f"data: {payload}\n\n"
+                        ultimo_progresso = progresso
+
+                    if status in ('concluida', 'erro'):
+                        break
+
+                    time.sleep(1)
+
+            return Response(event_generator(), mimetype='text/event-stream',
+                            headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'})
+
+        @app.route('/export/<analise_id>/<formato>')
+        def export_analise(analise_id, formato):
+            """Exporta resultados nos formatos: pdf, txt"""
+            return self._exportar_analise(analise_id, formato)
+
         @app.route('/api/health')
         def health_check():
-            """Health check para monitoramento"""
+            """Health check do sistema.
+            ---
+            tags:
+              - Sistema
+            responses:
+              200:
+                description: Sistema saudável
+                schema:
+                  type: object
+                  properties:
+                    status:
+                      type: string
+                      example: healthy
+                    timestamp:
+                      type: string
+                      example: "2025-01-01T12:00:00"
+                    versao:
+                      type: string
+                      example: "2.0.0"
+            """
             return jsonify({
                 'status': 'healthy',
                 'timestamp': datetime.now().isoformat(),
@@ -98,12 +356,243 @@ class SapiensWebInterface:
                 'versao': '2.0.0'
             })
 
+        # ------------------------------------------------------------------
+        # API REST v1
+        # ------------------------------------------------------------------
+
+        @app.route('/api/v1/analises', methods=['GET'])
+        @login_required
+        def api_listar_analises():
+            """Lista análises do usuário autenticado.
+            ---
+            tags:
+              - Análises
+            parameters:
+              - name: status
+                in: query
+                type: string
+                required: false
+                description: "Filtrar por status: processando, concluida, erro"
+              - name: limit
+                in: query
+                type: integer
+                required: false
+                default: 50
+                description: Número máximo de resultados (máx 200)
+            responses:
+              200:
+                description: Lista de análises
+                schema:
+                  type: object
+                  properties:
+                    analises:
+                      type: array
+                    total:
+                      type: integer
+              401:
+                description: Não autenticado
+            """
+            filtro_status = request.args.get('status')
+            limit = min(int(request.args.get('limit', 50)), 200)
+            usuario_id = current_user.id
+
+            try:
+                with _get_db() as conn:
+                    query = "SELECT * FROM analises WHERE usuario_id = ?"
+                    params = [usuario_id]
+                    if filtro_status:
+                        query += " AND status = ?"
+                        params.append(filtro_status)
+                    query += " ORDER BY criado_em DESC LIMIT ?"
+                    params.append(limit)
+                    rows = conn.execute(query, params).fetchall()
+                analises = [self._row_para_dict(r) for r in rows]
+                return jsonify({'analises': analises, 'total': len(analises)})
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+
+        @app.route('/api/v1/analises', methods=['POST'])
+        @login_required
+        def api_iniciar_analise():
+            """Inicia nova análise via API.
+            ---
+            tags:
+              - Análises
+            parameters:
+              - in: body
+                name: body
+                required: true
+                schema:
+                  type: object
+                  required: [topico_pesquisa]
+                  properties:
+                    topico_pesquisa:
+                      type: string
+                      example: "Análise de desempenho acadêmico 2024"
+            responses:
+              202:
+                description: Análise iniciada com sucesso
+                schema:
+                  type: object
+                  properties:
+                    analise_id:
+                      type: string
+                    status:
+                      type: string
+                    links:
+                      type: object
+              400:
+                description: Dados inválidos
+              401:
+                description: Não autenticado
+            """
+            data = request.get_json(silent=True)
+            if not data or not data.get('topico_pesquisa'):
+                return jsonify({'error': 'Campo topico_pesquisa é obrigatório'}), 400
+
+            topico_pesquisa = str(data['topico_pesquisa']).strip()
+            analise_id = str(uuid.uuid4())
+            analise_info = {
+                'id': analise_id,
+                'usuario_id': current_user.id,
+                'topico_pesquisa': topico_pesquisa,
+                'status': 'processando',
+                'arquivos': [],
+                'timestamp_inicio': datetime.now().isoformat(),
+                'progresso': 0
+            }
+            self.analises_ativas[analise_id] = analise_info
+            self._salvar_analise(analise_id)
+            self._executar_analise(analise_id)
+
+            return jsonify({
+                'analise_id': analise_id,
+                'status': 'processando',
+                'links': {
+                    'status': f'/api/v1/analises/{analise_id}',
+                    'resultados': f'/api/v1/analises/{analise_id}/resultados',
+                    'stream': f'/stream/{analise_id}'
+                }
+            }), 202
+
+        @app.route('/api/v1/analises/<analise_id>', methods=['GET'])
+        @login_required
+        def api_status_analise(analise_id):
+            """Retorna status detalhado de uma análise.
+            ---
+            tags:
+              - Análises
+            parameters:
+              - name: analise_id
+                in: path
+                type: string
+                required: true
+            responses:
+              200:
+                description: Dados da análise
+              403:
+                description: Sem permissão
+              404:
+                description: Análise não encontrada
+            """
+            info = self._buscar_analise(analise_id)
+            if not info:
+                return jsonify({'error': 'Análise não encontrada'}), 404
+            if info.get('usuario_id') != current_user.id and not current_user.admin:
+                return jsonify({'error': 'Sem permissão'}), 403
+            return jsonify(info)
+
+        @app.route('/api/v1/analises/<analise_id>/resultados', methods=['GET'])
+        @login_required
+        def api_resultados_analise(analise_id):
+            """Retorna resultados completos de uma análise concluída.
+            ---
+            tags:
+              - Análises
+            parameters:
+              - name: analise_id
+                in: path
+                type: string
+                required: true
+            responses:
+              200:
+                description: Resultados da análise
+                schema:
+                  type: object
+                  properties:
+                    analise_id:
+                      type: string
+                    topico_pesquisa:
+                      type: string
+                    resultados:
+                      type: string
+                    concluido_em:
+                      type: string
+              403:
+                description: Sem permissão
+              404:
+                description: Análise não encontrada
+              409:
+                description: Análise ainda não concluída
+            """
+            info = self._buscar_analise(analise_id)
+            if not info:
+                return jsonify({'error': 'Análise não encontrada'}), 404
+            if info.get('usuario_id') != current_user.id and not current_user.admin:
+                return jsonify({'error': 'Sem permissão'}), 403
+            if info.get('status') != 'concluida':
+                return jsonify({
+                    'error': 'Análise não concluída',
+                    'status': info.get('status'),
+                    'progresso': info.get('progresso')
+                }), 409
+            return jsonify({
+                'analise_id': analise_id,
+                'topico_pesquisa': info.get('topico_pesquisa'),
+                'resultados': info.get('resultados'),
+                'concluido_em': info.get('concluido_em') or info.get('timestamp_fim')
+            })
+
         return app
 
-    def run(self, host='127.0.0.1', port=5000, debug=False):
-        """Executa a aplicação Flask"""
-        app = self.create_app()
-        app.run(host=host, port=port, debug=debug)
+    def _validar_url(self, url: str) -> tuple[bool, str]:
+        """Valida URL para evitar SSRF. Retorna (valido, motivo)."""
+        try:
+            parsed = urlparse(url)
+
+            # Apenas http e https são permitidos
+            if parsed.scheme not in ('http', 'https'):
+                return False, f"Esquema não permitido: '{parsed.scheme}'. Use http ou https."
+
+            hostname = parsed.hostname
+            if not hostname:
+                return False, "URL sem hostname válido."
+
+            # Bloquear hostnames internos/reservados
+            blocked_hostnames = {
+                'localhost', 'localhost.localdomain',
+            }
+            if hostname.lower() in blocked_hostnames:
+                return False, "Acesso a endereços internos não é permitido."
+
+            # Bloquear IPs privados/reservados
+            try:
+                addr = ipaddress.ip_address(hostname)
+                if addr.is_private or addr.is_loopback or addr.is_link_local or addr.is_reserved:
+                    return False, "Acesso a endereços IP internos não é permitido."
+            except ValueError:
+                # hostname é um nome de domínio, não IP — ok
+                pass
+
+            # Bloquear metadata de cloud (AWS, GCP, Azure)
+            blocked_prefixes = ('169.254.', '100.64.')
+            if any(hostname.startswith(p) for p in blocked_prefixes):
+                return False, "Acesso a endereços de metadata de cloud não é permitido."
+
+            return True, "URL válida."
+
+        except Exception as e:
+            return False, f"URL inválida: {str(e)}"
 
     def _allowed_file(self, filename):
         """Verifica se extensão é permitida"""
@@ -126,6 +615,7 @@ class SapiensWebInterface:
             analise_id = str(uuid.uuid4())
             analise_info = {
                 'id': analise_id,
+                'usuario_id': current_user.id if current_user.is_authenticated else 'sistema',
                 'topico_pesquisa': topico_pesquisa,
                 'status': 'processando',
                 'arquivos': [],
@@ -139,6 +629,10 @@ class SapiensWebInterface:
                 for link in links_sites.split('\n'):
                     link = link.strip()
                     if link:
+                        url_valida, motivo = self._validar_url(link)
+                        if not url_valida:
+                            flash(f'Link rejeitado ({motivo}): {link}', 'warning')
+                            continue
                         try:
                             response = requests.get(link, timeout=10)
                             if response.status_code == 200:
@@ -215,6 +709,7 @@ class SapiensWebInterface:
             analise_info['status'] = 'arquivos_validados'
             analise_info['progresso'] = 25
             self.analises_ativas[analise_id] = analise_info
+            self._salvar_analise(analise_id)
 
             # Simula processamento (em produção, isso seria assíncrono)
             self._executar_analise(analise_id)
@@ -270,46 +765,44 @@ class SapiensWebInterface:
     def _executar_analise(self, analise_id: str):
         """Executa análise usando CrewAI"""
         import threading
-        from crew import SapiensAcademicMultiAgentDataAnalysisPlatformCrew
+
+        def _atualizar_status(updates: dict):
+            if analise_id in self.analises_ativas:
+                self.analises_ativas[analise_id].update(updates)
+                self._salvar_analise(analise_id)
 
         def analise_worker():
             try:
                 # Atualiza status inicial
-                if analise_id in self.analises_ativas:
-                    self.analises_ativas[analise_id].update({
-                        'status': 'executando_analise',
-                        'progresso': 25,
-                        'timestamp_atualizacao': datetime.now().isoformat()
-                    })
+                _atualizar_status({
+                    'status': 'executando_analise',
+                    'progresso': 25,
+                    'timestamp_atualizacao': datetime.now().isoformat()
+                })
 
                 # Obtém dados da análise
                 analise_info = self.analises_ativas.get(analise_id, {})
                 topico_pesquisa = analise_info.get('topico_pesquisa', '')
 
                 # Prepara caminhos dos arquivos para o crew
-                arquivos_paths = []
-                if 'arquivos' in analise_info:
-                    for arquivo in analise_info['arquivos']:
-                        arquivos_paths.append(arquivo['caminho'])
+                arquivos_paths = [a['caminho'] for a in analise_info.get('arquivos', [])]
 
                 # Atualiza progresso
-                if analise_id in self.analises_ativas:
-                    self.analises_ativas[analise_id].update({
-                        'status': 'processando_dados',
-                        'progresso': 50,
-                        'timestamp_atualizacao': datetime.now().isoformat()
-                    })
+                _atualizar_status({
+                    'status': 'processando_dados',
+                    'progresso': 50,
+                    'timestamp_atualizacao': datetime.now().isoformat()
+                })
 
                 # Executa análise com CrewAI
                 try:
                     from ..crew import SapiensAcademicMultiAgentDataAnalysisPlatformCrew
                 except ImportError:
-                    # Fallback para import direto
+                    # Fallback: adiciona 'src' ao path para import absoluto
                     import sys
-                    import os
-                    sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-                    from crew import SapiensAcademicMultiAgentDataAnalysisPlatformCrew
-        
+                    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+                    from Sapiens_MultiAgente.crew import SapiensAcademicMultiAgentDataAnalysisPlatformCrew
+
                 crew_instance = SapiensAcademicMultiAgentDataAnalysisPlatformCrew()
                 crew = crew_instance.crew()
 
@@ -319,75 +812,224 @@ class SapiensWebInterface:
                     'arquivos_analisados': arquivos_paths
                 }
 
-                # Executa análise
-                resultados = crew.kickoff(inputs=inputs)
+                # Executa análise com timeout configurável
+                import concurrent.futures
+                crew_timeout = int(os.getenv('SAPIENS_CREW_TIMEOUT', str(2 * 60 * 60)))  # 2h padrão
+                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                    future = executor.submit(crew.kickoff, inputs=inputs)
+                    try:
+                        resultados = future.result(timeout=crew_timeout)
+                    except concurrent.futures.TimeoutError:
+                        future.cancel()
+                        raise TimeoutError(
+                            f"Análise excedeu o tempo limite de {crew_timeout}s. "
+                            "Ajuste SAPIENS_CREW_TIMEOUT se necessário."
+                        )
 
                 # Atualiza progresso final
-                if analise_id in self.analises_ativas:
-                    self.analises_ativas[analise_id].update({
-                        'status': 'gerando_relatorio',
-                        'progresso': 90,
-                        'resultados': str(resultados),  # Armazena resultados
-                        'timestamp_atualizacao': datetime.now().isoformat()
-                    })
-
-                # Simula tempo de geração de relatório
-                import time
-                time.sleep(2)
+                _atualizar_status({
+                    'status': 'gerando_relatorio',
+                    'progresso': 90,
+                    'resultados': str(resultados),
+                    'timestamp_atualizacao': datetime.now().isoformat()
+                })
 
                 # Finaliza análise
-                if analise_id in self.analises_ativas:
-                    self.analises_ativas[analise_id].update({
-                        'status': 'concluida',
-                        'progresso': 100,
-                        'timestamp_fim': datetime.now().isoformat()
-                    })
+                _atualizar_status({
+                    'status': 'concluida',
+                    'progresso': 100,
+                    'timestamp_fim': datetime.now().isoformat()
+                })
 
-                    # Registra finalização na auditoria
-                    self.auditor.finalizar_analise(True, {
-                        'analise_id': analise_id,
-                        'progresso_final': 100,
-                        'resultados_crew': str(resultados)
-                    })
+                # Registra finalização na auditoria
+                self.auditor.finalizar_analise(True, {
+                    'analise_id': analise_id,
+                    'progresso_final': 100,
+                    'resultados_crew': str(resultados)
+                })
+
+                # Remove arquivos de upload após análise concluída
+                self._limpar_arquivos_analise(analise_id)
 
             except Exception as e:
                 # Registra erro
                 self.auditor.registrar_erro(e, f'analise_{analise_id}')
 
                 # Atualiza status para erro
-                if analise_id in self.analises_ativas:
-                    self.analises_ativas[analise_id].update({
-                        'status': 'erro',
-                        'erro': str(e),
-                        'timestamp_atualizacao': datetime.now().isoformat()
-                    })
+                _atualizar_status({
+                    'status': 'erro',
+                    'erro': str(e),
+                    'timestamp_atualizacao': datetime.now().isoformat()
+                })
+
+                # Remove arquivos mesmo em caso de erro
+                self._limpar_arquivos_analise(analise_id)
 
         # Executa em background
         thread = threading.Thread(target=analise_worker)
         thread.daemon = True
         thread.start()
 
-    def _get_analise_status(self, analise_id):
-        """Retorna status da análise"""
-        if analise_id not in self.analises_ativas:
-            return jsonify({'error': 'Análise não encontrada'}), 404
+    def _limpar_arquivos_analise(self, analise_id: str):
+        """Remove arquivos de upload de uma análise específica e libera cache."""
+        analise_info = self.analises_ativas.get(analise_id, {})
+        for arquivo in analise_info.get('arquivos', []):
+            caminho = arquivo.get('caminho', '')
+            if caminho and os.path.exists(caminho):
+                try:
+                    os.remove(caminho)
+                except Exception:
+                    pass
+        # Remove entrada do cache para evitar vazamento de memória
+        self.analises_ativas.pop(analise_id, None)
 
-        return jsonify(self.analises_ativas[analise_id])
+    def _limpar_uploads_orfaos(self, max_idade_horas: int = 24):
+        """Remove arquivos de upload sem análise associada com mais de max_idade_horas."""
+        import time
+        pasta = self.upload_config['UPLOAD_FOLDER']
+        if not os.path.isdir(pasta):
+            return
+        agora = time.time()
+        limite = max_idade_horas * 3600
+        arquivos_ativos = {
+            arquivo.get('caminho', '')
+            for analise in self.analises_ativas.values()
+            for arquivo in analise.get('arquivos', [])
+        }
+        for nome in os.listdir(pasta):
+            caminho = os.path.join(pasta, nome)
+            if caminho in arquivos_ativos:
+                continue
+            try:
+                if os.path.isfile(caminho) and (agora - os.path.getmtime(caminho)) > limite:
+                    os.remove(caminho)
+            except Exception:
+                pass
+
+    def _get_analise_status(self, analise_id):
+        """Retorna status da análise (cache ou banco)."""
+        analise_info = self._buscar_analise(analise_id)
+        if not analise_info:
+            return jsonify({'error': 'Análise não encontrada'}), 404
+        return jsonify(analise_info)
 
     def _get_analise_resultados(self, analise_id):
-        """Retorna página de resultados"""
-        if analise_id not in self.analises_ativas:
+        """Retorna página de resultados (cache ou banco)."""
+        analise_info = self._buscar_analise(analise_id)
+        if not analise_info:
             flash('Análise não encontrada', 'error')
             return redirect(url_for('index'))
 
-        analise_info = self.analises_ativas[analise_id]
-
         if analise_info['status'] == 'concluida':
-            # Em produção, aqui seriam exibidos os resultados reais
             return render_template('resultados.html', analise=analise_info)
         else:
-            # Mostra página de progresso
             return render_template('progresso.html', analise=analise_info)
+
+    def _get_historico(self, usuario_id: str = None):
+        """Retorna página com análises do usuário atual (ou todas se admin)."""
+        try:
+            with _get_db() as conn:
+                if usuario_id and not current_user.admin:
+                    rows = conn.execute(
+                        "SELECT * FROM analises WHERE usuario_id = ? ORDER BY criado_em DESC LIMIT 100",
+                        (usuario_id,)
+                    ).fetchall()
+                else:
+                    rows = conn.execute(
+                        "SELECT * FROM analises ORDER BY criado_em DESC LIMIT 100"
+                    ).fetchall()
+            analises = [self._row_para_dict(r) for r in rows]
+        except Exception:
+            analises = []
+        return render_template('historico.html', analises=analises)
+
+    def _exportar_analise(self, analise_id: str, formato: str):
+        """Exporta resultados da análise em PDF ou TXT."""
+        from flask import make_response
+
+        analise_info = self._buscar_analise(analise_id)
+        if not analise_info or analise_info.get('status') != 'concluida':
+            return jsonify({'error': 'Análise não encontrada ou não concluída'}), 404
+
+        topico = analise_info.get('topico_pesquisa', 'Análise SAPIENS')
+        resultados = analise_info.get('resultados', 'Sem resultados disponíveis.')
+        timestamp = analise_info.get('timestamp_fim', datetime.now().isoformat())
+
+        if formato == 'txt':
+            conteudo = (
+                f"SAPIENS - Relatório de Análise\n"
+                f"{'=' * 60}\n"
+                f"Tópico: {topico}\n"
+                f"ID: {analise_id}\n"
+                f"Concluído em: {timestamp}\n"
+                f"{'=' * 60}\n\n"
+                f"{resultados}\n"
+            )
+            response = make_response(conteudo)
+            response.headers['Content-Type'] = 'text/plain; charset=utf-8'
+            response.headers['Content-Disposition'] = (
+                f'attachment; filename="sapiens_{analise_id[:8]}.txt"'
+            )
+            return response
+
+        elif formato == 'pdf':
+            try:
+                from reportlab.lib.pagesizes import A4
+                from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+                from reportlab.lib.units import cm
+                from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+                from reportlab.lib import colors
+                import io
+
+                buf = io.BytesIO()
+                doc = SimpleDocTemplate(buf, pagesize=A4,
+                                        leftMargin=2*cm, rightMargin=2*cm,
+                                        topMargin=2*cm, bottomMargin=2*cm)
+                styles = getSampleStyleSheet()
+                title_style = ParagraphStyle(
+                    'SapiensTitle', parent=styles['Heading1'],
+                    fontSize=16, textColor=colors.HexColor('#1a3a5c'), spaceAfter=12
+                )
+                body_style = ParagraphStyle(
+                    'SapiensBody', parent=styles['Normal'],
+                    fontSize=10, leading=14, spaceAfter=6
+                )
+
+                story = [
+                    Paragraph("SAPIENS — Relatório de Análise", title_style),
+                    Paragraph(f"<b>Tópico:</b> {topico}", body_style),
+                    Paragraph(f"<b>ID:</b> {analise_id}", body_style),
+                    Paragraph(f"<b>Concluído em:</b> {timestamp}", body_style),
+                    Spacer(1, 0.5*cm),
+                    Paragraph("<b>Resultados</b>", styles['Heading2']),
+                    Spacer(1, 0.3*cm),
+                ]
+
+                # Quebra o texto em parágrafos para o PDF
+                for linha in resultados.split('\n'):
+                    texto = linha.strip()
+                    if texto:
+                        story.append(Paragraph(texto.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;'), body_style))
+                    else:
+                        story.append(Spacer(1, 0.2*cm))
+
+                doc.build(story)
+                buf.seek(0)
+
+                response = make_response(buf.read())
+                response.headers['Content-Type'] = 'application/pdf'
+                response.headers['Content-Disposition'] = (
+                    f'attachment; filename="sapiens_{analise_id[:8]}.pdf"'
+                )
+                return response
+
+            except ImportError:
+                return jsonify({'error': 'reportlab não instalado. Execute: pip install reportlab'}), 500
+            except Exception as e:
+                return jsonify({'error': f'Erro ao gerar PDF: {str(e)}'}), 500
+
+        else:
+            return jsonify({'error': f"Formato '{formato}' não suportado. Use 'pdf' ou 'txt'."}), 400
 
     def run(self):
         """Executa interface web"""

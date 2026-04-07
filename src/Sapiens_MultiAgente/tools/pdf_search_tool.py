@@ -4,9 +4,8 @@ from pydantic import BaseModel, Field
 from crewai.tools import BaseTool
 import re
 try:
-    from PyPDF2 import PdfReader
+    from pypdf import PdfReader
 except ImportError:
-    # Fallback se PyPDF2 não estiver disponível
     PdfReader = None
 
 
@@ -16,6 +15,8 @@ class PDFSearchToolInput(BaseModel):
     search_query: Optional[str] = Field(default=None, description="Text to search for (case-insensitive)")
     page_range: Optional[str] = Field(default=None, description="Page range to search (e.g., '1-5' or 'all')")
     extract_text: bool = Field(default=False, description="Extract all text from the PDF")
+    extract_images: bool = Field(default=False, description="Extract images embedded in the PDF and save to a directory")
+    output_dir: Optional[str] = Field(default=None, description="Directory to save extracted images (defaults to temp dir)")
 
 
 class PDFSearchTool(BaseTool):
@@ -28,7 +29,8 @@ class PDFSearchTool(BaseTool):
     args_schema: Type[BaseModel] = PDFSearchToolInput
 
     def _run(self, file_path: str, search_query: Optional[str] = None,
-             page_range: Optional[str] = None, extract_text: bool = False) -> str:
+             page_range: Optional[str] = None, extract_text: bool = False,
+             extract_images: bool = False, output_dir: Optional[str] = None) -> str:
         """
         Busca ou extrai texto de um arquivo PDF.
 
@@ -45,7 +47,7 @@ class PDFSearchTool(BaseTool):
             return f"❌ ERRO: Arquivo PDF não encontrado: {file_path}"
 
         if PdfReader is None:
-            return "❌ ERRO: Biblioteca PyPDF2 não está instalada. Instale com: pip install PyPDF2"
+            return "❌ ERRO: Biblioteca pypdf não está instalada. Instale com: pip install pypdf"
 
         try:
             # Abrir PDF
@@ -54,6 +56,10 @@ class PDFSearchTool(BaseTool):
 
             # Processar intervalo de páginas
             pages_to_process = self._parse_page_range(page_range, num_pages)
+
+            # Extrair imagens se solicitado
+            if extract_images:
+                return self._extract_images(reader, file_path, output_dir, pages_to_process)
 
             # Extrair texto se solicitado
             if extract_text:
@@ -185,3 +191,75 @@ class PDFSearchTool(BaseTool):
             info += "\n👀 Preview não disponível.\n"
 
         return info
+
+    def _extract_images(self, reader: 'PdfReader', file_path: str,
+                        output_dir: Optional[str], pages: List[int]) -> str:
+        """Extrai imagens embutidas no PDF e salva em disco."""
+        import tempfile
+
+        dest = output_dir or tempfile.mkdtemp(prefix='sapiens_pdf_imgs_')
+        os.makedirs(dest, exist_ok=True)
+
+        saved = []
+        errors = []
+        img_counter = 0
+
+        for page_num in pages:
+            try:
+                page = reader.pages[page_num]
+                resources = page.get('/Resources')
+                if not resources:
+                    continue
+                x_objects = resources.get('/XObject')
+                if not x_objects:
+                    continue
+
+                for obj_name, obj_ref in x_objects.items():
+                    try:
+                        obj = obj_ref.get_object()
+                        if obj.get('/Subtype') != '/Image':
+                            continue
+
+                        img_counter += 1
+                        width = obj.get('/Width', 0)
+                        height = obj.get('/Height', 0)
+                        color_space = obj.get('/ColorSpace', 'unknown')
+
+                        # Determina extensão pela codificação
+                        filters = obj.get('/Filter')
+                        if filters == '/DCTDecode' or filters == ['/DCTDecode']:
+                            ext = 'jpg'
+                        elif filters == '/FlateDecode' or filters == ['/FlateDecode']:
+                            ext = 'png'
+                        elif filters == '/JPXDecode':
+                            ext = 'jp2'
+                        else:
+                            ext = 'bin'
+
+                        fname = f'pg{page_num + 1}_img{img_counter}.{ext}'
+                        fpath = os.path.join(dest, fname)
+
+                        with open(fpath, 'wb') as f:
+                            f.write(obj.get_data())
+
+                        saved.append(
+                            f"• {fname} ({width}×{height}px, cor={color_space}, filtro={filters})"
+                        )
+                    except Exception as e:
+                        errors.append(f"  Página {page_num + 1}, objeto {obj_name}: {e}")
+            except Exception as e:
+                errors.append(f"Página {page_num + 1}: {e}")
+
+        report = f"🖼️ EXTRAÇÃO DE IMAGENS DO PDF\n"
+        report += f"📁 Destino: {dest}\n"
+        report += f"📄 Páginas processadas: {len(pages)}\n\n"
+
+        if saved:
+            report += f"✅ {len(saved)} imagem(ns) extraída(s):\n" + "\n".join(saved) + "\n"
+        else:
+            report += "ℹ️ Nenhuma imagem encontrada nas páginas selecionadas.\n"
+
+        if errors:
+            report += f"\n⚠️ {len(errors)} erro(s):\n" + "\n".join(errors) + "\n"
+
+        return report

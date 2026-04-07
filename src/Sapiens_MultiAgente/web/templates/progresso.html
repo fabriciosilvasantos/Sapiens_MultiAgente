@@ -180,11 +180,60 @@
 </section>
 
 <script>
-// Atualizar automaticamente a cada 5 segundos se não estiver concluída
-{% if analise.status != 'concluida' %}
-setInterval(function() {
-    location.reload();
-}, 5000);
+{% if analise.status not in ('concluida', 'erro') %}
+(function () {
+    const analiseId = "{{ analise.id }}";
+    const progressBar = document.querySelector('.progress-bar');
+    const progressText = document.querySelectorAll('.progress-bar')[0]?.closest('.mb-4')?.querySelector('span:last-child');
+    const statusBadge = document.querySelector('.badge');
+
+    const statusLabels = {
+        processando: 'Processando',
+        arquivos_validados: 'Arquivos Validados',
+        executando_analise: 'Executando Análise',
+        processando_dados: 'Processando Dados',
+        gerando_relatorio: 'Gerando Relatório',
+        concluida: 'Concluída',
+        erro: 'Erro'
+    };
+
+    const source = new EventSource(`/stream/${analiseId}`);
+
+    source.onmessage = function (event) {
+        const data = JSON.parse(event.data);
+
+        if (data.erro) {
+            source.close();
+            return;
+        }
+
+        const pct = data.progresso || 0;
+        const status = data.status || '';
+
+        if (progressBar) {
+            progressBar.style.width = pct + '%';
+            progressBar.setAttribute('aria-valuenow', pct);
+        }
+        if (progressText) progressText.textContent = pct + '%';
+        if (statusBadge) statusBadge.textContent = statusLabels[status] || status;
+
+        if (status === 'concluida') {
+            source.close();
+            setTimeout(() => {
+                window.location.href = `/resultados/${analiseId}`;
+            }, 800);
+        } else if (status === 'erro') {
+            source.close();
+            window.location.reload();
+        }
+    };
+
+    source.onerror = function () {
+        source.close();
+        // Fallback: reload após 5s se SSE falhar
+        setTimeout(() => window.location.reload(), 5000);
+    };
+})();
 {% endif %}
 </script>
 {% endblock %}

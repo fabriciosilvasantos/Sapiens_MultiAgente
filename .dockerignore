@@ -1,0 +1,17 @@
+.venv
+venv
+.env
+.env.backup
+__pycache__
+*.pyc
+*.pyo
+*.egg-info
+.pytest_cache
+uploads/*
+logs/*
+sapiens.db
+.git
+.gitignore
+Projeto_*.pdf
+publish_to_github.sh
+tests/
