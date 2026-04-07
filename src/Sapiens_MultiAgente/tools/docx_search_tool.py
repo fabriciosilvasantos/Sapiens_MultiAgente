@@ -87,7 +87,7 @@ class DOCXSearchTool(BaseTool):
         if not paragraphs:
             return "❌ NENHUM TEXTO EXTRAÍDO do DOCX. O documento pode estar vazio."
 
-        result = f"📄 TEXTO EXTRAÍDO DO DOCUMENTO DOCX\n\n"
+        result = "📄 TEXTO EXTRAÍDO DO DOCUMENTO DOCX\n\n"
         result += f"📊 Total de parágrafos processados: {len(paragraphs)}\n\n"
         result += "\n\n".join(paragraphs)
 
@@ -98,7 +98,7 @@ class DOCXSearchTool(BaseTool):
                 try:
                     rows, cols = len(table.rows), len(table.columns)
                     result += f"\n• Tabela {i+1}: {rows} linhas × {cols} colunas"
-                except:
+                except Exception:
                     result += f"\n• Tabela {i+1}: erro ao processar"
 
         return result
@@ -149,7 +149,7 @@ class DOCXSearchTool(BaseTool):
                         text = cell.text
                         if text and query_lower in text.lower():
                             results.append(f"📍 TABELA {table_idx+1}, LINHA {row_idx+1}, CÉLULA {cell_idx+1}:\n• {text.strip()}")
-            except:
+            except Exception:
                 continue
 
         return results
@@ -168,7 +168,7 @@ class DOCXSearchTool(BaseTool):
                 try:
                     rows, cols = len(table.rows), len(table.columns)
                     table_info += f"\n• Tabela {i+1}: {rows}×{cols}"
-                except:
+                except Exception:
                     table_info += f"\n• Tabela {i+1}: erro ao processar"
 
         # Tentar obter propriedades do documento
@@ -186,7 +186,7 @@ class DOCXSearchTool(BaseTool):
                     core_props += f"\n• Criado em: {props.created}"
                 if props.modified:
                     core_props += f"\n• Modificado em: {props.modified}"
-        except:
+        except Exception:
             pass
 
         info = f"""
@@ -207,8 +207,8 @@ class DOCXSearchTool(BaseTool):
                     preview_paragraphs.append(text[:200] + "..." if len(text) > 200 else text)
 
             if preview_paragraphs:
-                info += f"\n👀 PREVIEW DO DOCUMENTO:\n" + "\n\n".join(f"§{i+1}: {text}" for i, text in enumerate(preview_paragraphs))
-        except:
+                info += "\n👀 PREVIEW DO DOCUMENTO:\n" + "\n\n".join(f"§{i+1}: {text}" for i, text in enumerate(preview_paragraphs))
+        except Exception:
             info += "\n👀 Preview não disponível."
 
         return info
@@ -255,7 +255,7 @@ class DOCXSearchTool(BaseTool):
         except Exception as e:
             return f"❌ ERRO ao extrair imagens: {e}"
 
-        report = f"🖼️ EXTRAÇÃO DE IMAGENS DO DOCX\n"
+        report = "🖼️ EXTRAÇÃO DE IMAGENS DO DOCX\n"
         report += f"📁 Destino: {dest}\n\n"
 
         if saved:

@@ -232,7 +232,7 @@ class AcademicAuditor:
             fim = datetime.fromisoformat(ultimo_evento.replace('Z', '+00:00'))
             diferenca = fim - inicio
             return diferenca.total_seconds() / 60
-        except:
+        except Exception:
             return 0.0
 
     def exportar_auditoria_json(self, arquivo_path: str = None):

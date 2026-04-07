@@ -14,7 +14,6 @@ import sqlite3
 import requests
 from urllib.parse import urlparse
 from datetime import datetime
-from pathlib import Path
 
 # Importações do sistema SAPIENS
 try:
@@ -24,7 +23,6 @@ try:
 except ImportError:
     # Fallback para import direto
     import sys
-    import os
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
     sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'src', 'Sapiens_MultiAgente'))
     from tools.academic_logger import get_auditor
@@ -175,7 +173,7 @@ class SapiensWebInterface:
         login_manager.init_app(app)
 
         # Proteção CSRF
-        csrf = CSRFProtect(app)
+        CSRFProtect(app)
 
         # Documentação Swagger
         swagger_config = {
@@ -694,9 +692,6 @@ class SapiensWebInterface:
                         # Remove arquivo inválido
                         os.remove(file_path)
                         flash(f'Arquivo {arquivo.filename} rejeitado: {validacao["erros"][0]}', 'warning')
-
-            # Combina arquivos locais e de links
-            todos_arquivos = arquivos_processados
 
             # Registra análise na auditoria
             self.auditor.iniciar_analise(topico_pesquisa, {

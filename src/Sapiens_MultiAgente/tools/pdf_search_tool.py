@@ -2,7 +2,6 @@ import os
 from typing import Type, Optional, List
 from pydantic import BaseModel, Field
 from crewai.tools import BaseTool
-import re
 try:
     from pypdf import PdfReader
 except ImportError:
@@ -89,7 +88,7 @@ class PDFSearchTool(BaseTool):
             else:
                 page = int(page_range) - 1  # 0-based
                 return [max(0, min(page, total_pages - 1))]
-        except:
+        except Exception:
             return list(range(total_pages))
 
     def _extract_full_text(self, reader: PdfReader, pages: List[int]) -> str:
@@ -108,7 +107,7 @@ class PDFSearchTool(BaseTool):
         if not extracted_text:
             return "❌ NENHUM TEXTO EXTRAÍDO do PDF. O arquivo pode conter apenas imagens ou estar protegido."
 
-        return f"📄 TEXTO EXTRAÍDO DO PDF\n\n" + "\n\n".join(extracted_text)
+        return "📄 TEXTO EXTRAÍDO DO PDF\n\n" + "\n\n".join(extracted_text)
 
     def _search_text(self, reader: PdfReader, query: str, pages: List[int]) -> str:
         """Busca por termo específico no PDF."""
@@ -162,7 +161,7 @@ class PDFSearchTool(BaseTool):
                     'data_criacao': reader.metadata.creation_date,
                     'data_modificacao': reader.metadata.modification_date
                 }
-        except:
+        except Exception:
             pass
 
         info = f"""
@@ -187,7 +186,7 @@ class PDFSearchTool(BaseTool):
             first_page_text = first_page.extract_text()[:500]  # Primeiros 500 caracteres
             if first_page_text.strip():
                 info += f"\n👀 PREVIEW DA PRIMEIRA PÁGINA:\n{first_page_text}...\n"
-        except:
+        except Exception:
             info += "\n👀 Preview não disponível.\n"
 
         return info
@@ -250,7 +249,7 @@ class PDFSearchTool(BaseTool):
             except Exception as e:
                 errors.append(f"Página {page_num + 1}: {e}")
 
-        report = f"🖼️ EXTRAÇÃO DE IMAGENS DO PDF\n"
+        report = "🖼️ EXTRAÇÃO DE IMAGENS DO PDF\n"
         report += f"📁 Destino: {dest}\n"
         report += f"📄 Páginas processadas: {len(pages)}\n\n"
 

@@ -3,9 +3,8 @@ import re
 import magic
 import hashlib
 import pandas as pd
-from typing import Dict, List, Tuple, Optional, Any
+from typing import Dict, List, Any
 from pathlib import Path
-import json
 import logging
 from datetime import datetime
 

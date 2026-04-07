@@ -1,7 +1,7 @@
 import json
 import base64
 import io
-from typing import Type, Optional, List
+from typing import Type, Optional
 from pydantic import BaseModel, Field
 from crewai.tools import BaseTool
 import pandas as pd

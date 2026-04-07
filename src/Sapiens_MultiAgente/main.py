@@ -7,6 +7,7 @@ from .crew import SapiensAcademicMultiAgentDataAnalysisPlatformCrew
 # Replace with inputs you want to test with, it will automatically
 # interpolate any tasks and agents information
 
+
 def run():
     """
     Run the crew.
@@ -30,6 +31,7 @@ def train():
     except Exception as e:
         raise Exception(f"An error occurred while training the crew: {e}")
 
+
 def replay():
     """
     Replay the crew execution from a specific task.
@@ -39,6 +41,7 @@ def replay():
 
     except Exception as e:
         raise Exception(f"An error occurred while replaying the crew: {e}")
+
 
 def test():
     """
@@ -52,6 +55,7 @@ def test():
 
     except Exception as e:
         raise Exception(f"An error occurred while testing the crew: {e}")
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:

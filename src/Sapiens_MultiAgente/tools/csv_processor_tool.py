@@ -1,9 +1,8 @@
 import pandas as pd
 import numpy as np
-from typing import Type, Optional, Dict, Any
+from typing import Type
 from pydantic import BaseModel, Field
 from crewai.tools import BaseTool
-import io
 
 
 MAX_ROWS_IN_MEMORY = 100_000  # Acima disso usa chunking para estatísticas
@@ -52,7 +51,7 @@ class CSVProcessorTool(BaseTool):
                     if len(df.columns) > 1:  # Se tem múltiplas colunas, provavelmente é o certo
                         successful_sep = sep
                         break
-                except:
+                except Exception:
                     continue
 
             if df is None or df.empty:

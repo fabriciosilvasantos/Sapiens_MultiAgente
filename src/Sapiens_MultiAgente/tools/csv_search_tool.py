@@ -1,9 +1,8 @@
 import pandas as pd
 import os
-from typing import Type, Optional, List, Dict, Any
+from typing import Type, Optional, Dict, Any
 from pydantic import BaseModel, Field
 from crewai.tools import BaseTool
-import re
 
 
 class CSVSearchToolInput(BaseModel):
@@ -181,8 +180,8 @@ class CSVSearchTool(BaseTool):
         return df[mask]
 
     def _format_filters(self, search_query: Optional[str],
-                       column_filters: Optional[Dict[str, Any]],
-                       numeric_filters: Optional[Dict[str, str]]) -> str:
+                        column_filters: Optional[Dict[str, Any]],
+                        numeric_filters: Optional[Dict[str, str]]) -> str:
         """Formata os filtros aplicados para exibição."""
         filters_desc = []
 

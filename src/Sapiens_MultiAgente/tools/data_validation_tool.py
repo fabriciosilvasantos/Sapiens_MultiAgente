@@ -87,7 +87,7 @@ class DataValidationTool(BaseTool):
 """
 
             if pii_warnings:
-                report += f"\n⚠️ AVISOS DE PII:\n" + "\n".join(pii_warnings)
+                report += "\n⚠️ AVISOS DE PII:\n" + "\n".join(pii_warnings)
 
             return report
 

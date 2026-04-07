@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from scipy import stats
-from typing import Type, Optional, Dict, Any, List
+from typing import Type, Optional, List
 from pydantic import BaseModel, Field
 from crewai.tools import BaseTool
 import json
@@ -111,7 +111,7 @@ class StatisticalAnalysisTool(BaseTool):
                     stat, p_value = stats.shapiro(df[col].dropna())
                     normality = "Normal" if p_value > 0.05 else "Não normal"
                     report += f"• {col}: {normality} (p={p_value:.3f})\n"
-                except:
+                except Exception:
                     report += f"• {col}: Não foi possível testar\n"
             report += "\n"
 
