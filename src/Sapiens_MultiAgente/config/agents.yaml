@@ -57,7 +57,7 @@ agente_gerente_orquestrador:
   max_iterations: 25
   timeout_minutos: 30
   temperatura_modelo: 0.7
-  modelo_llm: "openai/meta-llama/llama-3.3-8b-instruct:free"
+  modelo_llm: "openrouter/meta-llama/llama-3.3-8b-instruct"
 
   # Ferramentas disponíveis
   ferramentas:
@@ -91,7 +91,7 @@ especialista_em_analise_descritiva:
   max_iterations: 25
   timeout_minutos: 25
   temperatura_modelo: 0.7
-  modelo_llm: "openai/meta-llama/llama-3.3-8b-instruct:free"
+  modelo_llm: "openrouter/meta-llama/llama-3.3-8b-instruct"
 
   ferramentas:
     - FileReadTool
@@ -121,7 +121,7 @@ especialista_em_analise_diagnostica:
   max_iterations: 25
   timeout_minutos: 25
   temperatura_modelo: 0.7
-  modelo_llm: "openai/nvidia/nemotron-nano-9b-v2:free"
+  modelo_llm: "openrouter/meta-llama/llama-3.3-8b-instruct"
 
   ferramentas:
     - FileReadTool
@@ -151,7 +151,7 @@ especialista_em_analise_preditiva:
   max_iterations: 25
   timeout_minutos: 25
   temperatura_modelo: 0.7
-  modelo_llm: "openai/meta-llama/llama-3.3-8b-instruct:free"
+  modelo_llm: "openrouter/meta-llama/llama-3.3-8b-instruct"
 
   ferramentas:
     - FileReadTool
@@ -182,7 +182,7 @@ especialista_em_analise_prescritiva:
   max_iterations: 25
   timeout_minutos: 25
   temperatura_modelo: 0.7
-  modelo_llm: "openai/meta-llama/llama-3.3-8b-instruct:free"
+  modelo_llm: "openrouter/meta-llama/llama-3.3-8b-instruct"
 
   ferramentas:
     - FileReadTool
