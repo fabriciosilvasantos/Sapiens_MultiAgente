@@ -272,11 +272,6 @@ class AcademicSecurityValidator:
             elif percentual_vazio > 20:
                 resultado["avisos"].append(f"Dados faltantes significativos: {percentual_vazio:.1f}%")
 
-            # Verifica colunas duplicadas
-            colunas_duplicadas = df.columns[df.columns.duplicated()].tolist()
-            if colunas_duplicadas:
-                resultado["avisos"].append(f"Colunas duplicadas encontradas: {colunas_duplicadas}")
-
         except Exception as e:
             resultado["valido"] = False
             resultado["erros"].append(f"Erro na validação de conteúdo: {str(e)}")

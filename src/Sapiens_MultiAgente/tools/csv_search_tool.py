@@ -137,19 +137,19 @@ class CSVSearchTool(BaseTool):
                     if not pd.api.types.is_numeric_dtype(df[column]):
                         df[column] = pd.to_numeric(df[column], errors='coerce')
 
-                    # Aplicar condição
-                    if condition.startswith('>'):
-                        threshold = float(condition[1:])
-                        df = df[df[column] > threshold]
-                    elif condition.startswith('<'):
-                        threshold = float(condition[1:])
-                        df = df[df[column] < threshold]
-                    elif condition.startswith('>='):
+                    # Aplicar condição (>= e <= devem ser verificados antes de > e <)
+                    if condition.startswith('>='):
                         threshold = float(condition[2:])
                         df = df[df[column] >= threshold]
                     elif condition.startswith('<='):
                         threshold = float(condition[2:])
                         df = df[df[column] <= threshold]
+                    elif condition.startswith('>'):
+                        threshold = float(condition[1:])
+                        df = df[df[column] > threshold]
+                    elif condition.startswith('<'):
+                        threshold = float(condition[1:])
+                        df = df[df[column] < threshold]
                     elif condition.startswith('=='):
                         threshold = float(condition[2:])
                         df = df[df[column] == threshold]
