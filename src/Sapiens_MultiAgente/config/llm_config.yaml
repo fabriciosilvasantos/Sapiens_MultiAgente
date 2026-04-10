@@ -29,10 +29,10 @@ agentes:
 # ------------------------------------------------------------------
 modelos:
   deepseek_r1:
-    nome: DeepSeek R1 (gratuito)
-    model_id: openrouter/deepseek/deepseek-r1:free
+    nome: Qwen QwQ 32B (gratuito)
+    model_id: openrouter/qwen/qwq-32b:free
     temperatura: 0.6
-    groq_fallback: groq/deepseek-r1-distill-llama-70b
+    groq_fallback: groq/qwen-qwq-32b
     descricao: "Raciocínio chain-of-thought — melhor para diagnóstica, preditiva e revisão científica"
 
   llama_33_70b:
