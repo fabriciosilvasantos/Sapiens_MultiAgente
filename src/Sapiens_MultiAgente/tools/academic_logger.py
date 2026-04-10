@@ -81,12 +81,15 @@ class AcademicAuditor:
         auditoria_handler.setLevel(logging.INFO)
 
         # Formatação JSON para auditoria
+        _sessao_id = self.sessao_id
+        _usuario_id = self.usuario_id
+
         class JsonFormatter(logging.Formatter):
             def format(self, record):
                 log_entry = {
                     "timestamp": datetime.now(timezone.utc).isoformat(),
-                    "sessao_id": getattr(record, 'sessao_id', self.sessao_id),
-                    "usuario_id": getattr(record, 'usuario_id', self.usuario_id),
+                    "sessao_id": getattr(record, 'sessao_id', _sessao_id),
+                    "usuario_id": getattr(record, 'usuario_id', _usuario_id),
                     "nivel": record.levelname,
                     "evento": record.getMessage(),
                     "componente": record.name,
