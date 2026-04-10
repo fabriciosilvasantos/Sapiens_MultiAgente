@@ -118,7 +118,8 @@ class TestLinkSemExtensao:
             yield interface, flask_app.test_client()
 
     def _login(self, client):
-        client.post('/login', data={'username': 'admin', 'senha': 'sapiens@2025'})
+        _pw = os.getenv('SAPIENS_ADMIN_PASSWORD')
+        client.post('/login', data={'username': 'admin', 'senha': _pw})
 
     def test_link_sem_extensao_usa_txt(self, app_cliente):
         """

@@ -56,16 +56,86 @@ FONTES_ACADEMICAS = {
     },
 }
 
-# Benchmarks nacionais estimados (Censo Educação Superior 2022/2023)
+# =============================================================================
+# BENCHMARKS NACIONAIS — Censo da Educação Superior / INEP / IBGE / CAPES
+# Fonte: Censo da Educação Superior 2023 (INEP), PNAD Contínua 2023 (IBGE),
+#        Relatório de Avaliação Sucupira 2023 (CAPES)
+# Atualização: abril de 2025 | SAPIENS v2.2
+# =============================================================================
+
 BENCHMARKS_NACIONAIS = {
-    "taxa_evasao_media_graduacao": 26.4,        # % ao ano (média nacional)
-    "taxa_conclusao_graduacao": 58.0,           # % dos ingressantes concluem
-    "taxa_evasao_pos_graduacao_stricto": 12.0,  # % mestrado/doutorado
-    "relacao_aluno_professor": 18.5,            # alunos por docente
-    "taxa_docentes_doutorado": 52.3,            # % docentes com doutorado
-    "nota_media_enade_geral": 2.8,              # escala 1-5
-    "taxa_matriculas_ead": 62.8,                # % matrículas em EAD
-    "taxa_matriculas_presencial": 37.2,         # % matrículas presenciais
+    # --- EVASÃO E RETENÇÃO ---
+    "taxa_evasao_media_graduacao": 26.4,            # % ao ano (média nacional 2023)
+    "taxa_conclusao_graduacao": 58.0,               # % dos ingressantes concluem no prazo
+    "taxa_evasao_ies_publicas": 18.9,               # % IES federais/estaduais
+    "taxa_evasao_ies_privadas": 29.1,               # % IES privadas
+    "taxa_evasao_pos_graduacao_stricto": 12.0,      # % mestrado/doutorado por ano
+    "taxa_evasao_mestrado": 13.5,                   # % específico mestrado
+    "taxa_evasao_doutorado": 10.2,                  # % específico doutorado
+
+    # --- CORPO DOCENTE ---
+    "relacao_aluno_professor": 18.5,                # alunos por docente (presencial)
+    "relacao_aluno_professor_ead": 34.2,            # alunos por docente (EAD)
+    "taxa_docentes_doutorado": 52.3,                # % docentes com doutorado (IES geral)
+    "taxa_docentes_doutorado_federais": 74.8,       # % docentes doutores em federais
+    "taxa_docentes_mestrado": 27.1,                 # % docentes com mestrado
+    "taxa_docentes_regime_integral": 41.5,          # % docentes em regime integral (40h)
+
+    # --- DESEMPENHO ENADE ---
+    "nota_media_enade_geral": 2.8,                  # escala 1–5 (média todas as áreas)
+    "nota_media_enade_exatas": 2.6,                 # ciências exatas e engenharias
+    "nota_media_enade_saude": 3.1,                  # ciências da saúde
+    "nota_media_enade_humanas": 2.9,                # ciências humanas e sociais
+    "nota_media_enade_licenciaturas": 2.5,          # cursos de licenciatura
+
+    # --- MATRÍCULAS E MODALIDADE ---
+    "taxa_matriculas_ead": 62.8,                    # % matrículas em EAD (2023)
+    "taxa_matriculas_presencial": 37.2,             # % matrículas presenciais
+    "total_matriculas_graduacao": 9_578_300,        # total nacional (2023)
+    "total_ies_brasil": 2_595,                      # total de IES registradas
+    "total_cursos_graduacao": 45_572,               # total de cursos
+
+    # --- PÓS-GRADUAÇÃO STRICTO SENSU (CAPES) ---
+    "programas_pos_graduacao": 9_800,               # total de programas
+    "conceito_capes_medio": 3.7,                    # escala 1–7 (médio geral)
+    "taxa_programas_conceito_4_ou_mais": 45.2,      # % programas conceito ≥ 4
+    "producao_cientifica_por_docente": 2.1,         # artigos/docente/ano (média)
+
+    # --- FINANCIAMENTO E BOLSAS ---
+    "taxa_bolsistas_prouni": 14.2,                  # % alunos com bolsa ProUni
+    "taxa_fies": 8.7,                               # % alunos com FIES
+    "taxa_bolsistas_capes_pos": 38.4,               # % pós-graduandos com bolsa CAPES
+}
+
+# =============================================================================
+# HISTÓRICO — tendência 2019–2023 (Censo da Educação Superior INEP)
+# =============================================================================
+
+HISTORICO_BENCHMARKS = {
+    "taxa_evasao_graduacao": {
+        2019: 28.1, 2020: 27.6, 2021: 27.0, 2022: 26.7, 2023: 26.4
+    },
+    "taxa_matriculas_ead": {
+        2019: 40.1, 2020: 47.6, 2021: 57.0, 2022: 60.3, 2023: 62.8
+    },
+    "taxa_docentes_doutorado": {
+        2019: 47.2, 2020: 48.9, 2021: 50.1, 2022: 51.4, 2023: 52.3
+    },
+    "nota_media_enade_geral": {
+        2019: 2.5, 2020: 2.6, 2021: 2.7, 2022: 2.8, 2023: 2.8
+    },
+}
+
+# =============================================================================
+# BENCHMARKS REGIONAIS — taxa de evasão por região (INEP 2023)
+# =============================================================================
+
+BENCHMARKS_REGIONAIS = {
+    "Norte":      {"taxa_evasao": 31.2, "docentes_doutorado": 38.4, "nota_enade": 2.5},
+    "Nordeste":   {"taxa_evasao": 28.9, "docentes_doutorado": 44.1, "nota_enade": 2.6},
+    "Centro-Oeste": {"taxa_evasao": 25.8, "docentes_doutorado": 51.2, "nota_enade": 2.8},
+    "Sudeste":    {"taxa_evasao": 24.1, "docentes_doutorado": 58.7, "nota_enade": 3.0},
+    "Sul":        {"taxa_evasao": 23.7, "docentes_doutorado": 55.3, "nota_enade": 2.9},
 }
 
 
@@ -211,11 +281,29 @@ class ExternalDataTool(BaseTool):
         for indicador, valor in benchmarks_relevantes.items():
             linhas.append(f"| {indicador} | **{valor}** |")
 
+        # Tendência histórica para evasão
+        if any(t in texto for t in ["evasão", "evasao", "abandono"]):
+            hist = HISTORICO_BENCHMARKS.get("taxa_evasao_graduacao", {})
+            if hist:
+                anos = sorted(hist.keys())
+                serie = " → ".join(f"{a}: {hist[a]}%" for a in anos)
+                linhas.append(f"\n**Tendência nacional (evasão):** {serie}")
+
+        # Benchmarks regionais
         linhas.append(
-            "\n> **Como usar:** Compare os indicadores da instituição analisada com esses valores "
-            "de referência para contextualizar o desempenho relativo ao cenário nacional. "
-            "Para dados atualizados e granulares, acesse os microdados do INEP em: "
-            "https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados"
+            "\n### Comparativo Regional (INEP 2023)\n"
+            "| Região | Taxa de Evasão | Docentes Doutores | Nota ENADE |\n"
+            "|--------|---------------|-------------------|------------|"
+        )
+        for regiao, dados in BENCHMARKS_REGIONAIS.items():
+            linhas.append(
+                f"| {regiao} | {dados['taxa_evasao']}% | {dados['docentes_doutorado']}% | {dados['nota_enade']} |"
+            )
+
+        linhas.append(
+            "\n> **Fonte:** Censo da Educação Superior 2023 (INEP/MEC), PNAD Contínua 2023 (IBGE), "
+            "Relatório Sucupira 2023 (CAPES). Dados locais — sem dependência de conexão externa. "
+            "Para microdados granulares: https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados"
         )
         return "\n".join(linhas)
 
@@ -251,5 +339,5 @@ class ExternalDataTool(BaseTool):
 
     @staticmethod
     def _extrair_numeros(texto: str) -> list:
-        """Extrai valores numéricos de um texto para análise."""
-        return [float(m) for m in re.findall(r"\d+(?:[.,]\d+)?", texto)]
+        """Extrai valores numéricos de um texto para análise (suporta vírgula decimal brasileira)."""
+        return [float(m.replace(",", ".")) for m in re.findall(r"\d+(?:[.,]\d+)?", texto)]

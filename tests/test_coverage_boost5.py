@@ -526,7 +526,8 @@ class TestWebAppMoreBranches:
             flask_app.config['WTF_CSRF_ENABLED'] = False
             flask_app.config['UPLOAD_FOLDER'] = upload_folder
             client = flask_app.test_client()
-            client.post('/login', data={'username': 'admin', 'senha': 'sapiens@2025'})
+            _pw = os.getenv('SAPIENS_ADMIN_PASSWORD')
+            client.post('/login', data={'username': 'admin', 'senha': _pw})
             yield interface, client, db_path
 
     def _inserir_analise(self, db_path, status='concluida', usuario_id='1', analise_id=None):

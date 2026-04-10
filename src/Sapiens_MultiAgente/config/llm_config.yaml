@@ -1,0 +1,85 @@
+# =============================================================================
+# CONFIGURAÇÃO DE LLM — SAPIENS
+# =============================================================================
+# "ativo" define o modelo padrão (fallback para agentes sem config específica).
+# "agentes" permite atribuir modelos individuais por agente.
+# Via API: POST /api/config/llm  {"modelo": "<chave>"}
+#          POST /api/config/llm  {"agente": "<nome>", "modelo": "<chave>"}
+#
+# groq_fallback: modelo Groq ativado automaticamente se OpenRouter falhar.
+# Configure GROQ_API_KEY no .env para habilitar o fallback.
+
+ativo: gemma_4_moe
+
+# ------------------------------------------------------------------
+# MODELO POR AGENTE (otimizado por tipo de tarefa)
+# ------------------------------------------------------------------
+agentes:
+  agente_gerente_orquestrador: llama_33_70b
+  especialista_em_analise_descritiva: gemma_free
+  especialista_em_analise_diagnostica: deepseek_r1
+  especialista_em_analise_preditiva: deepseek_r1
+  especialista_em_analise_prescritiva: llama_33_70b
+  especialista_em_fontes_externas: gemma_4_moe
+  especialista_em_analise_textual: gemma_free
+  revisor_de_qualidade_cientifica: deepseek_r1
+
+# ------------------------------------------------------------------
+# CATÁLOGO DE MODELOS
+# ------------------------------------------------------------------
+modelos:
+  deepseek_r1:
+    nome: DeepSeek R1 (gratuito)
+    model_id: openrouter/deepseek/deepseek-r1:free
+    temperatura: 0.6
+    groq_fallback: groq/deepseek-r1-distill-llama-70b
+    descricao: "Raciocínio chain-of-thought — melhor para diagnóstica, preditiva e revisão científica"
+
+  llama_33_70b:
+    nome: Llama 3.3 70B (gratuito)
+    model_id: openrouter/meta-llama/llama-3.3-70b-instruct:free
+    temperatura: 0.7
+    groq_fallback: groq/llama-3.3-70b-versatile
+    descricao: "Melhor instruction following — orquestração, prescrição e relatório final. 86% MMLU"
+
+  gemma_free:
+    nome: Gemma 4 31B (gratuito)
+    model_id: openrouter/google/gemma-4-31b-it:free
+    temperatura: 0.7
+    groq_fallback: groq/llama-3.3-70b-versatile
+    descricao: "140+ idiomas, 256K contexto — descritiva e análise textual em português"
+
+  gemma_4_moe:
+    nome: Gemma 4 26B MoE (gratuito)
+    model_id: openrouter/google/gemma-4-26b-a4b-it:free
+    temperatura: 0.7
+    groq_fallback: groq/llama-3.3-70b-versatile
+    descricao: "MoE rápido — fontes externas (lookup), fallback padrão. 256K contexto"
+
+  mistral_small3:
+    nome: Mistral Small 3 24B (gratuito)
+    model_id: openrouter/mistral/mistral-small-24b-instruct-2501:free
+    temperatura: 0.7
+    groq_fallback: groq/llama-3.3-70b-versatile
+    descricao: "81% MMLU — boa alternativa geral, 32K contexto"
+
+  llama_33_8b:
+    nome: Llama 3.3 8B (gratuito)
+    model_id: openrouter/meta-llama/llama-3.3-8b-instruct:free
+    temperatura: 0.7
+    groq_fallback: groq/llama-3.1-8b-instant
+    descricao: "Opção leve e rápida — 73% MMLU, 128K contexto"
+
+  llama_31_8b:
+    nome: Llama 3.1 8B (gratuito)
+    model_id: openrouter/meta-llama/llama-3.1-8b-instruct:free
+    temperatura: 0.7
+    groq_fallback: groq/llama-3.1-8b-instant
+    descricao: "Fallback leve — 66.7% MMLU, 128K contexto"
+
+  auto:
+    nome: OpenRouter Auto
+    model_id: openrouter/auto
+    temperatura: 0.7
+    groq_fallback: groq/llama-3.3-70b-versatile
+    descricao: "Roteamento automático ao melhor modelo disponível (pode ter custo)"

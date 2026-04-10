@@ -43,7 +43,6 @@ agente_gerente_orquestrador:
   max_iterations: 10
   timeout_minutos: 30
   temperatura_modelo: 0.7
-  modelo_llm: "openrouter/meta-llama/llama-3.3-8b-instruct"
   ferramentas:
     - FileReadTool
     - DataValidationTool
@@ -67,7 +66,6 @@ especialista_em_analise_descritiva:
   max_iterations: 10
   timeout_minutos: 20
   temperatura_modelo: 0.7
-  modelo_llm: "openrouter/meta-llama/llama-3.3-8b-instruct"
   ferramentas:
     - FileReadTool
     - StatisticalAnalysisTool
@@ -87,7 +85,6 @@ especialista_em_analise_diagnostica:
   max_iterations: 10
   timeout_minutos: 20
   temperatura_modelo: 0.7
-  modelo_llm: "openrouter/meta-llama/llama-3.3-8b-instruct"
   ferramentas:
     - FileReadTool
     - StatisticalAnalysisTool
@@ -106,7 +103,6 @@ especialista_em_analise_preditiva:
   max_iterations: 10
   timeout_minutos: 20
   temperatura_modelo: 0.7
-  modelo_llm: "openrouter/meta-llama/llama-3.3-8b-instruct"
   ferramentas:
     - FileReadTool
     - StatisticalAnalysisTool
@@ -125,7 +121,6 @@ especialista_em_analise_prescritiva:
   max_iterations: 10
   timeout_minutos: 20
   temperatura_modelo: 0.7
-  modelo_llm: "openrouter/meta-llama/llama-3.3-8b-instruct"
   ferramentas:
     - FileReadTool
     - StatisticalAnalysisTool
@@ -145,7 +140,6 @@ especialista_em_fontes_externas:
   max_iterations: 8
   timeout_minutos: 15
   temperatura_modelo: 0.6
-  modelo_llm: "openrouter/meta-llama/llama-3.3-8b-instruct"
   ferramentas:
     - ExternalDataTool
     - ScrapeWebsiteTool
@@ -165,7 +159,6 @@ especialista_em_analise_textual:
   max_iterations: 8
   timeout_minutos: 15
   temperatura_modelo: 0.6
-  modelo_llm: "openrouter/meta-llama/llama-3.3-8b-instruct"
   ferramentas:
     - TextAnalysisTool
     - FileReadTool
@@ -188,7 +181,6 @@ revisor_de_qualidade_cientifica:
   max_iterations: 8
   timeout_minutos: 15
   temperatura_modelo: 0.5
-  modelo_llm: "openrouter/meta-llama/llama-3.3-8b-instruct"
   ferramentas:
     - QualityReviewTool
   formato_saida:

@@ -113,7 +113,8 @@ def setup(tmp_path):
 
         client = flask_app.test_client()
         # Autentica como admin
-        client.post('/login', data={'username': 'admin', 'senha': 'sapiens@2025'})
+        _pw = os.getenv('SAPIENS_ADMIN_PASSWORD')
+        client.post('/login', data={'username': 'admin', 'senha': _pw})
 
         yield interface, flask_app, client
 

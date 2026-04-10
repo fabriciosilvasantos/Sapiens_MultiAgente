@@ -129,7 +129,7 @@ class TestMainModule:
 class TestWebRotasAutenticadas:
     """
     Testa rotas que requerem login usando o fluxo real de autenticação.
-    O admin padrão (admin / sapiens@2025) é criado por init_auth_db().
+    O admin padrão é criado por init_auth_db() com senha definida via SAPIENS_ADMIN_PASSWORD.
     """
 
     @pytest.fixture
@@ -151,7 +151,9 @@ class TestWebRotasAutenticadas:
     @pytest.fixture
     def auth_client(self, client):
         """Cliente com sessão autenticada como admin."""
-        client.post('/login', data={'username': 'admin', 'senha': 'sapiens@2025'})
+        import os
+        senha = os.getenv('SAPIENS_ADMIN_PASSWORD')
+        client.post('/login', data={'username': 'admin', 'senha': senha})
         return client
 
     # Rotas públicas
@@ -176,9 +178,11 @@ class TestWebRotasAutenticadas:
         assert resp.status_code == 200
 
     def test_login_com_credenciais_corretas(self, client):
+        import os
+        senha = os.getenv('SAPIENS_ADMIN_PASSWORD')
         resp = client.post(
             '/login',
-            data={'username': 'admin', 'senha': 'sapiens@2025'},
+            data={'username': 'admin', 'senha': senha},
             follow_redirects=False,
         )
         assert resp.status_code == 302

@@ -182,7 +182,8 @@ class TestLinkDownload:
             yield interface, flask_app.test_client()
 
     def _login(self, client):
-        client.post('/login', data={'username': 'admin', 'senha': 'sapiens@2025'})
+        _pw = os.getenv('SAPIENS_ADMIN_PASSWORD')
+        client.post('/login', data={'username': 'admin', 'senha': _pw})
 
     def test_link_200_valido_processado(self, app_cliente):
         """requests.get → 200, segurança válida → arquivo adicionado (634-656)."""

@@ -101,7 +101,15 @@ def init_auth_db():
         # Cria admin padrão se não existir nenhum usuário
         existe = conn.execute("SELECT 1 FROM usuarios LIMIT 1").fetchone()
         if not existe:
-            senha_padrao = os.getenv('SAPIENS_ADMIN_PASSWORD', 'sapiens@2025')
+            senha_padrao = os.getenv('SAPIENS_ADMIN_PASSWORD')
+            if not senha_padrao:
+                import logging
+                senha_padrao = secrets.token_urlsafe(16)
+                logging.getLogger(__name__).warning(
+                    "SAPIENS_ADMIN_PASSWORD não definida. "
+                    "Senha gerada: %s  — altere após o primeiro login!",
+                    senha_padrao,
+                )
             novo_salt = secrets.token_hex(32)
             conn.execute("""
                 INSERT INTO usuarios (username, senha_hash, salt, nome, admin, criado_em)

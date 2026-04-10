@@ -1,10 +1,13 @@
-from crewai import Agent, Crew, Process, Task
+import os
+from crewai import Agent, Crew, LLM, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import (
     FileReadTool,
     ScrapeWebsiteTool,
 )
 
+from .config.llm_settings import get_model_for_agent
+from .config.llm_fallback import build_llm
 from .tools.data_validation_tool import DataValidationTool
 from .tools.csv_processor_tool import CSVProcessorTool
 from .tools.statistical_analysis_tool import StatisticalAnalysisTool
@@ -21,6 +24,16 @@ from .tools.text_analysis_tool import TextAnalysisTool
 class SapiensAcademicMultiAgentDataAnalysisPlatformCrew:
     """SapiensAcademicMultiAgentDataAnalysisPlatform crew"""
 
+    def _get_llm(self, agent_name: str = "") -> LLM:
+        """Retorna LLM otimizado para o agente, com fallback Groq se GROQ_API_KEY estiver definida."""
+        m = get_model_for_agent(agent_name)
+        return build_llm(
+            model_cfg=m,
+            openrouter_api_key=os.environ.get("OPENAI_API_KEY", ""),
+            openrouter_base_url=os.environ.get("OPENAI_API_BASE", "https://openrouter.ai/api/v1"),
+            groq_api_key=os.environ.get("GROQ_API_KEY") or None,
+        )
+
     @agent
     def agente_gerente_orquestrador(self) -> Agent:
         return Agent(
@@ -30,6 +43,7 @@ class SapiensAcademicMultiAgentDataAnalysisPlatformCrew:
                 DataValidationTool(),
                 CSVProcessorTool(),
             ],
+            llm=self._get_llm("agente_gerente_orquestrador"),
         )
 
     @agent
@@ -41,6 +55,7 @@ class SapiensAcademicMultiAgentDataAnalysisPlatformCrew:
                 StatisticalAnalysisTool(),
                 ChartGeneratorTool(),  # único agente com geração de gráficos
             ],
+            llm=self._get_llm("especialista_em_analise_descritiva"),
         )
 
     @agent
@@ -51,6 +66,7 @@ class SapiensAcademicMultiAgentDataAnalysisPlatformCrew:
                 FileReadTool(),
                 StatisticalAnalysisTool(),
             ],
+            llm=self._get_llm("especialista_em_analise_diagnostica"),
         )
 
     @agent
@@ -61,6 +77,7 @@ class SapiensAcademicMultiAgentDataAnalysisPlatformCrew:
                 FileReadTool(),
                 StatisticalAnalysisTool(),
             ],
+            llm=self._get_llm("especialista_em_analise_preditiva"),
         )
 
     @agent
@@ -72,6 +89,7 @@ class SapiensAcademicMultiAgentDataAnalysisPlatformCrew:
                 StatisticalAnalysisTool(),
                 CSVSearchTool(),
             ],
+            llm=self._get_llm("especialista_em_analise_prescritiva"),
         )
 
     @agent
@@ -82,6 +100,7 @@ class SapiensAcademicMultiAgentDataAnalysisPlatformCrew:
                 ExternalDataTool(),
                 ScrapeWebsiteTool(),
             ],
+            llm=self._get_llm("especialista_em_fontes_externas"),
         )
 
     @agent
@@ -94,6 +113,7 @@ class SapiensAcademicMultiAgentDataAnalysisPlatformCrew:
                 PDFSearchTool(),
                 DOCXSearchTool(),
             ],
+            llm=self._get_llm("especialista_em_analise_textual"),
         )
 
     @agent
@@ -103,6 +123,7 @@ class SapiensAcademicMultiAgentDataAnalysisPlatformCrew:
             tools=[
                 QualityReviewTool(),
             ],
+            llm=self._get_llm("revisor_de_qualidade_cientifica"),
         )
 
     @task

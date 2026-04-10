@@ -340,7 +340,8 @@ class TestWebExportPDFLinhaVazia:
 
         with flask_app.test_client() as client:
             # Autentica
-            client.post('/login', data={'username': 'admin', 'senha': 'sapiens@2025'})
+            _pw = os.getenv('SAPIENS_ADMIN_PASSWORD')
+            client.post('/login', data={'username': 'admin', 'senha': _pw})
 
             # Exporta como PDF
             resp = client.get(f'/export/{analise_id}/pdf')

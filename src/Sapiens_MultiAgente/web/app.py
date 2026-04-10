@@ -423,6 +423,37 @@ class SapiensWebInterface:
             data['history'] = self.monitor.history(last_n=20)
             return jsonify(data)
 
+        @app.route('/api/config/llm', methods=['GET'])
+        @login_required
+        def api_llm_config_get():
+            """Retorna configuração atual de LLM e modelos disponíveis."""
+            from ..config.llm_settings import load_llm_config
+            return jsonify(load_llm_config())
+
+        @app.route('/api/config/llm', methods=['POST'])
+        @login_required
+        def api_llm_config_set():
+            """Altera modelo padrão ou modelo de agente específico.
+
+            Trocar modelo padrão (todos):  {"modelo": "deepseek_r1"}
+            Trocar modelo de um agente:    {"agente": "revisor_de_qualidade_cientifica", "modelo": "deepseek_r1"}
+            A troca é efetivada na próxima análise iniciada.
+            """
+            from ..config.llm_settings import set_active_model, set_agent_model
+            data = request.get_json(silent=True) or {}
+            chave = data.get("modelo", "").strip()
+            agente = data.get("agente", "").strip()
+            if not chave:
+                return jsonify({"ok": False, "erro": "Campo 'modelo' obrigatório"}), 400
+            try:
+                if agente:
+                    modelo = set_agent_model(agente, chave)
+                    return jsonify({"ok": True, "agente": agente, "modelo": modelo})
+                modelo = set_active_model(chave)
+                return jsonify({"ok": True, "modelo_ativo": modelo})
+            except ValueError as e:
+                return jsonify({"ok": False, "erro": str(e)}), 400
+
         # ------------------------------------------------------------------
         # API REST v1
         # ------------------------------------------------------------------

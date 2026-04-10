@@ -421,7 +421,8 @@ class TestWebMetodosInternos:
             flask_app.config['TESTING'] = True
             flask_app.config['WTF_CSRF_ENABLED'] = False
             client = flask_app.test_client()
-            client.post('/login', data={'username': 'admin', 'senha': 'sapiens@2025'})
+            _pw = os.getenv('SAPIENS_ADMIN_PASSWORD')
+            client.post('/login', data={'username': 'admin', 'senha': _pw})
             yield interface, client
 
     # _validar_url

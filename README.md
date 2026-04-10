@@ -1,296 +1,263 @@
-# SAPIENS — Plataforma Acadêmica Multiagente de Análise de Dados
+# SAPIENS — Plataforma de Análise de Dados Acadêmicos
 
 ![Versão](https://img.shields.io/badge/SAPIENS-1.0.0-blue)
 ![Python](https://img.shields.io/badge/python-3.10+-green)
 ![Testes](https://img.shields.io/badge/testes-423%20passando-brightgreen)
 ![Licença](https://img.shields.io/badge/licença-MIT-lightgrey)
 
-O **SAPIENS** é uma plataforma de código aberto que utiliza orquestração de agentes de IA para executar análises acadêmicas completas — descritivas, diagnósticas, preditivas, prescritivas, textuais e comparativas com benchmarks nacionais — com rigor científico e interface web acessível.
+> Transforme dados acadêmicos em relatórios completos com um clique — sem precisar saber programação.
 
-Desenvolvido na **Universidade Estadual do Norte Fluminense Darcy Ribeiro (UENF)**, o SAPIENS foi concebido para fortalecer a gestão universitária baseada em evidências e acelerar a pesquisa científica.
-
----
-
-## Visão Geral
-
-O sistema resolve um problema recorrente em instituições acadêmicas: a dificuldade de realizar análises de dados robustas sem exigir conhecimento avançado em ciência de dados. Um **Agente Gerente Orquestrador** coordena equipes de agentes especializados que trabalham em paralelo, entregando um relatório final consolidado com qualidade metodológica verificada.
+Desenvolvido na **Universidade Estadual do Norte Fluminense Darcy Ribeiro (UENF)**, o SAPIENS foi criado para que gestores, professores e pesquisadores possam obter análises aprofundadas de dados institucionais de forma simples, rápida e confiável.
 
 ---
 
-## Pipeline Multiagente
+## O que é o SAPIENS?
+
+O SAPIENS é uma plataforma que usa **inteligência artificial** para analisar dados acadêmicos automaticamente. Você carrega um arquivo com seus dados (planilha, PDF ou documento), faz uma pergunta e o sistema entrega um relatório completo com:
+
+- O que aconteceu nos seus dados
+- Por que aconteceu
+- O que pode acontecer no futuro
+- O que você deve fazer
+- Como sua instituição se compara com a média nacional (INEP/MEC)
+
+Tudo isso sem precisar conhecer estatística ou programação.
+
+---
+
+## Para quem é o SAPIENS?
+
+| Perfil | Como o SAPIENS ajuda |
+|--------|----------------------|
+| **Reitores e diretores** | Relatórios prontos para tomada de decisão estratégica |
+| **Coordenadores de curso** | Entender evasão, reprovação e desempenho dos alunos |
+| **Professores pesquisadores** | Análises estatísticas com rigor metodológico |
+| **Servidores da área acadêmica** | Processar grandes volumes de dados sem esforço manual |
+| **Gestores de políticas educacionais** | Comparar indicadores com benchmarks nacionais |
+
+---
+
+## Como funciona?
+
+O SAPIENS funciona como uma equipe de especialistas virtuais trabalhando ao mesmo tempo:
 
 ```
-Validação → Processamento →
-
-  [ Descritiva | Diagnóstica | Preditiva | Prescritiva | Fontes Externas | Textual ]
-                              (execução paralela)
-                                        ↓
-                          Revisor de Qualidade Científica
-                                        ↓
-                              Relatório Final
+Você envia os dados e a pergunta
+          ↓
+  O sistema valida e processa os dados
+          ↓
+  ┌─────────────────────────────────────────────┐
+  │  Descritiva  │  Diagnóstica  │  Preditiva   │
+  │  Prescritiva │  Benchmarks   │  Análise de  │
+  │              │  Nacionais    │  Documentos  │
+  └─────────────────────────────────────────────┘
+      (todos trabalhando ao mesmo tempo)
+          ↓
+  Revisão de qualidade científica
+          ↓
+  Relatório final consolidado
 ```
 
-| Etapa | Agente | Pergunta respondida |
-|-------|--------|-------------------|
-| Validação + Processamento | Gerente Orquestrador | Dados reais disponíveis? |
-| Análise Descritiva | Especialista Descritivo | O que aconteceu? |
-| Análise Diagnóstica | Especialista Diagnóstico | Por que aconteceu? |
-| Análise Preditiva | Especialista Preditivo | O que pode acontecer? |
-| Análise Prescritiva | Especialista Prescritivo | O que devemos fazer? |
-| Fontes Externas | Especialista em Benchmarks | Como estamos vs o Brasil? |
-| Análise Textual | Especialista em NLP | O que dizem os documentos? |
-| Revisão de Qualidade | Revisor Científico | A análise tem rigor metodológico? |
-| Relatório Final | Gerente Orquestrador | — |
+O sistema conta com **8 especialistas virtuais** — cada um responde uma pergunta diferente:
 
----
-
-## Ferramentas Disponíveis
-
-| Tool | Descrição |
-|------|-----------|
-| `DataValidationTool` | Valida arquivos e dados de entrada |
-| `CSVProcessorTool` | Processa e limpa arquivos CSV/Excel |
-| `StatisticalAnalysisTool` | Análises estatísticas (descritiva, correlação, regressão, ANOVA) |
-| `ChartGeneratorTool` | Gera gráficos em base64 e PNG |
-| `PDFSearchTool` | Lê e pesquisa em PDFs |
-| `DOCXSearchTool` | Lê e pesquisa em arquivos DOCX |
-| `CSVSearchTool` | Pesquisa em CSVs |
-| `ExternalDataTool` | Benchmarks nacionais INEP/IBGE/CAPES/MEC |
-| `TextAnalysisTool` | NLP: palavras-chave, entidades, temas |
-| `QualityReviewTool` | Revisão metodológica científica (pontuação 0–100) |
-
----
-
-## Características Principais
-
-- **8 agentes especializados** com papéis distintos e ferramentas dedicadas
-- **Execução paralela** dos 6 especialistas, seguida de revisão sequencial
-- **Revisão de qualidade científica** integrada — detecta generalizações, causalidade sem suporte, p-valor sem tamanho de efeito
-- **Benchmarks nacionais** automáticos via INEP, IBGE, CAPES e MEC
-- **Análise textual (NLP)** de PDFs, DOCX e relatórios narrativos
-- **Interface web Flask** com SSE para progresso em tempo real
-- **Monitor de plataforma** com métricas de CPU, memória e análises via `/api/monitoring`
-- **Segurança**: PBKDF2-SHA256, validação MIME, CSRF, rate limiting, auditoria JSONL
-- **Suporte PT/EN** nas ferramentas estatísticas
-- **423 testes automatizados** passando
-
----
-
-## Arquitetura e Tecnologias
-
-### Backend
-| Tecnologia | Versão | Função |
-|---|---|---|
-| **Python** | 3.10+ | Linguagem principal |
-| **CrewAI** | 0.177+ | Orquestração dos agentes |
-| **Flask** | 3.0+ | Interface web |
-| **Flask-Login / WTF / Limiter** | — | Autenticação, CSRF, rate limiting |
-| **Pandas / NumPy / SciPy** | — | Análises estatísticas |
-| **Matplotlib** | — | Geração de gráficos |
-| **pypdf / python-docx** | — | Leitura de PDF e DOCX |
-| **psutil** | — | Monitoramento de recursos |
-| **SQLite** | — | Persistência de análises |
-| **OpenRouter** | — | Provedor LLM |
-| **Llama 3.3 8B** | — | Modelo de linguagem dos agentes |
-
-### Frontend
-| Tecnologia | Função |
+| Especialista | Pergunta respondida |
 |---|---|
-| **Bootstrap 5.3** | Layout responsivo |
-| **Font Awesome 6.4** | Ícones |
-| **Server-Sent Events (SSE)** | Progresso em tempo real |
+| Gerente Orquestrador | Os dados são válidos? O que precisa ser analisado? |
+| Análise Descritiva | O que aconteceu nos dados? |
+| Análise Diagnóstica | Por que aconteceu? |
+| Análise Preditiva | O que pode acontecer? |
+| Análise Prescritiva | O que devemos fazer? |
+| Benchmarks Nacionais | Como estamos em relação ao Brasil? (INEP/IBGE/MEC) |
+| Análise de Documentos | O que dizem os textos e relatórios? |
+| Revisor de Qualidade | A análise tem embasamento científico? (nota 0–100) |
 
 ---
 
-## Instalação
+## Exemplo real — UENF 2020 a 2025
+
+**Dados:** Planilha com registros de 132 alunos, 12 cursos, 5 centros.
+
+**Pergunta feita:** *"Analise a evasão estudantil por curso no período 2020–2025."*
+
+**Resultado obtido em minutos:**
+
+- A evasão caiu **50%** (de 212 para 106 alunos evadidos por semestre)
+- A principal causa identificada: expansão das bolsas de assistência estudantil (+45%)
+- O CCT concentra **59,6%** de toda a evasão da UENF
+- A UENF **superou a média nacional** de evasão: 18,9% vs 26,4% (INEP 2023)
+- Projeção para 2026: taxa abaixo de **15%** se a tendência continuar
+- Recomendações práticas priorizadas por urgência
+
+---
+
+## Principais funcionalidades
+
+- **Upload simples** — aceita planilhas (.csv, .xlsx), PDFs e documentos Word
+- **Relatório em português** — linguagem clara, tabelas e gráficos incluídos
+- **Comparação nacional** — benchmarks automáticos do INEP, IBGE, CAPES e MEC
+- **Análise de documentos** — extrai informações de relatórios e textos
+- **Gráficos automáticos** — visualizações geradas junto com o relatório
+- **Revisão metodológica** — o sistema avalia a própria qualidade da análise (nota 0–100)
+- **Progresso em tempo real** — acompanhe cada etapa enquanto ela acontece
+- **Troca de modelo de IA** — escolha entre diferentes modelos gratuitos via painel
+- **Histórico de análises** — todas as análises ficam salvas para consulta posterior
+
+---
+
+## Como usar
+
+### 1. Acesse o sistema
+Abra o navegador e acesse o endereço fornecido pelo seu administrador (ex: `http://servidor:4000`).
+
+### 2. Faça login
+Entre com as credenciais fornecidas pelo administrador do sistema.
+
+### 3. Inicie uma análise
+1. Clique em **"Nova Análise"**
+2. Escreva o tópico de pesquisa (ex: *"Evasão estudantil 2020–2024"*)
+3. Faça o upload do arquivo de dados
+4. Clique em **"Iniciar Análise"**
+
+### 4. Acompanhe o progresso
+O painel mostra em tempo real quais especialistas já terminaram o trabalho.
+
+### 5. Baixe o relatório
+Quando concluído, o relatório completo fica disponível para download.
+
+---
+
+## Formatos de arquivo aceitos
+
+| Formato | Extensão | Uso |
+|---------|----------|-----|
+| Planilha Excel | `.xlsx`, `.xls` | Dados tabulares (alunos, notas, matrículas) |
+| CSV | `.csv` | Dados exportados de sistemas acadêmicos |
+| PDF | `.pdf` | Relatórios, atas, documentos institucionais |
+| Word | `.docx` | Relatórios e documentos de texto |
+
+---
+
+## Segurança e privacidade
+
+- Acesso protegido por **login e senha**
+- Senhas armazenadas com **criptografia** (não são salvas em texto simples)
+- Registro completo de todas as ações em **log de auditoria**
+- Proteção contra upload de arquivos maliciosos
+- Os dados ficam armazenados **apenas no seu servidor institucional**
+
+---
+
+## Instalação (para o administrador de TI)
 
 ### Pré-requisitos
-- Python 3.10+
-- [uv](https://github.com/astral-sh/uv) (gerenciador de pacotes recomendado)
-- Conta no [OpenRouter](https://openrouter.ai) com chave de API
+- Python 3.10 ou superior
+- Servidor Linux/Windows com acesso à internet
+- Chave de API do [OpenRouter](https://openrouter.ai) (gratuita)
 
 ### Passos
 
 ```bash
-# 1. Clonar o repositório
+# 1. Baixar o projeto
 git clone https://github.com/fabriciosilvasantos/Sapiens_MultiAgente.git
 cd Sapiens_MultiAgente
 
-# 2. Criar e ativar ambiente virtual
+# 2. Criar ambiente virtual e instalar dependências
 python -m venv .venv
-source .venv/bin/activate   # Linux/macOS
-# .venv\Scripts\activate    # Windows
+source .venv/bin/activate        # Linux/macOS
+# .venv\Scripts\activate         # Windows
+pip install -e .
 
-# 3. Instalar dependências
-uv pip install -e .
-
-# 4. Configurar variáveis de ambiente
+# 3. Configurar o ambiente
 cp .env.example .env
-# Editar .env com suas chaves
-```
+# Editar .env com sua chave de API e senha do administrador
 
-### Variáveis de Ambiente (`.env`)
-
-```env
-# Obrigatórias
-OPENAI_API_KEY=sua-chave-openrouter
-OPENAI_API_BASE=https://openrouter.ai/api/v1
-FLASK_SECRET_KEY=sua-chave-secreta-flask
-
-# Opcionais
-SAPIENS_ADMIN_PASSWORD=sapiens@2025
-SAPIENS_DB_PATH=sapiens.db
-SAPIENS_CREW_TIMEOUT=7200
-WEB_HOST=127.0.0.1
-WEB_PORT=4000
-```
-
----
-
-## Como Usar
-
-### Interface Web (recomendado)
-
-```bash
-source .venv/bin/activate
+# 4. Iniciar o servidor
 python -m Sapiens_MultiAgente.web.app
 ```
 
 Acesse: `http://127.0.0.1:4000`
 
-1. Faça login com as credenciais configuradas
-2. Faça upload do arquivo de dados (CSV, Excel, PDF, DOCX)
-3. Descreva o tópico de pesquisa
-4. Acompanhe o progresso em tempo real
-5. Baixe o relatório final
+### Variáveis de ambiente essenciais (`.env`)
 
-### Linha de Comando
-
-```bash
-source .venv/bin/activate
-python -m Sapiens_MultiAgente.main run
+```
+OPENAI_API_KEY=sua-chave-openrouter    # Chave da API de IA (gratuita no OpenRouter)
+OPENAI_API_BASE=https://openrouter.ai/api/v1
+FLASK_SECRET_KEY=uma-senha-segreta-qualquer
+SAPIENS_ADMIN_PASSWORD=senha-do-admin
 ```
 
 ---
 
-## Estrutura do Projeto
+## Modelos de IA disponíveis
 
-```
-Sapiens_MultiAgente/
-├── pyproject.toml
-├── CLAUDE.md                          # Guia para Claude Code
-├── src/Sapiens_MultiAgente/
-│   ├── crew.py                        # Definição de agentes e tarefas
-│   ├── main.py                        # CLI
-│   ├── config/
-│   │   ├── agents.yaml                # Configuração dos 8 agentes
-│   │   └── tasks.yaml                 # Definição das 10 tarefas
-│   ├── tools/
-│   │   ├── data_validation_tool.py
-│   │   ├── csv_processor_tool.py
-│   │   ├── statistical_analysis_tool.py
-│   │   ├── chart_generator_tool.py
-│   │   ├── pdf_search_tool.py
-│   │   ├── docx_search_tool.py
-│   │   ├── csv_search_tool.py
-│   │   ├── external_data_tool.py      # Benchmarks INEP/IBGE/CAPES/MEC
-│   │   ├── text_analysis_tool.py      # NLP acadêmico
-│   │   └── quality_review_tool.py     # Revisão metodológica
-│   └── web/
-│       ├── app.py                     # Flask + SSE + rotas
-│       ├── auth.py                    # Autenticação PBKDF2-SHA256
-│       ├── monitoring.py              # SapiensMonitor (CPU/mem/análises)
-│       └── templates/                 # Templates HTML
-├── tests/                             # 423 testes automatizados
-└── data/                              # Datasets e relatórios de exemplo
-```
+O SAPIENS usa modelos de linguagem do [OpenRouter](https://openrouter.ai). O modelo pode ser trocado pelo administrador sem reiniciar o sistema — cada especialista pode usar um modelo diferente, otimizado para o seu tipo de tarefa:
+
+| Modelo | Custo | Indicado para |
+|--------|-------|---------------|
+| **DeepSeek R1** | **Gratuito** | Raciocínio científico — diagnóstica, preditiva, revisão |
+| **Llama 3.3 70B** | **Gratuito** | Orquestração e relatório final (86% MMLU) |
+| **Gemma 4 31B** (Google) | **Gratuito** | Análise textual em português (256K contexto) |
+| **Gemma 4 26B MoE** (Google) | **Gratuito** | Padrão — rápido, fontes externas |
+| **Mistral Small 3 24B** | **Gratuito** | Alternativa geral (81% MMLU) |
+| **Llama 3.3 8B** | **Gratuito** | Opção leve e rápida |
+| OpenRouter Auto | Pode ter custo | Melhor modelo disponível automaticamente |
+
+Para trocar o modelo, acesse `POST /api/config/llm` ou edite `config/llm_config.yaml`.
+
+### Disponibilidade garantida
+
+Se o OpenRouter estiver indisponível (sobrecarga, manutenção), o SAPIENS ativa automaticamente o **Groq** como fallback — 10× mais rápido e sem interrupção para o usuário. Configure `GROQ_API_KEY` no `.env` para habilitar.
 
 ---
 
-## Executar Testes
+## Monitoramento da plataforma
 
-```bash
-source .venv/bin/activate
-pytest tests/ -v --tb=short --cov=src/Sapiens_MultiAgente --cov-report=term-missing
-```
-
----
-
-## Monitoramento
-
-A plataforma expõe métricas em tempo real via `/api/monitoring` (requer login):
-
-```json
-{
-  "cpu_pct": 12.4,
-  "mem_pct": 34.2,
-  "disk_pct": 58.0,
-  "analises_total": 47,
-  "analises_ok": 44,
-  "taxa_sucesso": 93.6
-}
-```
-
-Visualização disponível em `/status`.
+O painel `/status` exibe em tempo real:
+- Uso de CPU e memória do servidor
+- Total de análises realizadas / concluídas / com erro
+- Taxa de sucesso histórica
 
 ---
 
-## Exemplo de Análise
+## Perguntas frequentes
 
-**Dataset:** Alunos da UENF 2020–2025 (132 registros, 12 cursos, 5 centros)
+**O SAPIENS precisa de conexão com a internet?**
+Sim, para acessar os modelos de IA do OpenRouter. Os seus dados nunca saem do servidor institucional — apenas o texto das perguntas e respostas é enviado à API.
 
-**Pergunta:** *"Analise a evasão estudantil por curso no período 2020–2025."*
+**Qual o tamanho máximo de arquivo?**
+100 MB por padrão (configurável pelo administrador).
 
-**Resultado obtido:**
-- Evasão caiu **50%** (212 → 106 evadidos/semestre)
-- Correlação evasão × reprovações: **r = 0,907**
-- CCT concentra **59,6%** de toda a evasão institucional
-- UENF superou a média nacional (18,9% vs 26,4% — INEP 2023)
-- Projeção 2026: taxa abaixo de **15%** se tendência mantida
+**Quantas análises posso fazer ao mesmo tempo?**
+Até 3 análises simultâneas por padrão (configurável).
 
----
+**Os relatórios ficam salvos?**
+Sim, todas as análises ficam registradas no banco de dados do sistema e podem ser consultadas a qualquer momento pelo usuário que as criou.
 
-## Segurança
-
-- Senhas com **PBKDF2-SHA256** + salt único por usuário
-- Validação de **tipo MIME** em todos os uploads
-- **Rate limiting** nas rotas de análise
-- Proteção **CSRF** em formulários
-- **Auditoria** completa em `logs/auditoria_academica.jsonl`
-- Timeout configurável via `SAPIENS_CREW_TIMEOUT`
-
----
-
-## Contribuição
-
-1. Faça fork do projeto
-2. Crie uma branch: `git checkout -b feature/minha-feature`
-3. Commit: `git commit -m 'feat: descrição da feature'`
-4. Push: `git push origin feature/minha-feature`
-5. Abra um Pull Request
+**O sistema é gratuito?**
+O SAPIENS é open-source (MIT). Os modelos de IA no tier gratuito do OpenRouter também são gratuitos, sem custo por análise.
 
 ---
 
 ## Suporte
 
-- **Bugs / Issues:** [github.com/fabriciosilvasantos/Sapiens_MultiAgente/issues](https://github.com/fabriciosilvasantos/Sapiens_MultiAgente/issues)
+- **Problemas / sugestões:** [github.com/fabriciosilvasantos/Sapiens_MultiAgente/issues](https://github.com/fabriciosilvasantos/Sapiens_MultiAgente/issues)
 - **Contato:** fabricio@uenf.br
 
 ---
 
 ## Licença
 
-MIT License — veja o arquivo `LICENSE` para detalhes.
+MIT License — uso livre para fins acadêmicos, institucionais e comerciais.
 
 ---
 
 ## Agradecimentos
 
-- **CrewAI Team** — framework de orquestração de agentes
-- **Meta** — modelo Llama 3.3
-- **OpenRouter** — infraestrutura de acesso a LLMs
-- **INEP / IBGE / CAPES / MEC** — dados públicos de referência
-- **Comunidade acadêmica da UENF** — inspiração e feedback
+- **CrewAI** — framework de orquestração de agentes de IA
+- **Meta / Google / Mistral** — modelos de linguagem open-source
+- **OpenRouter** — infraestrutura de acesso a modelos de IA
+- **INEP / IBGE / CAPES / MEC** — dados públicos educacionais brasileiros
+- **Comunidade acadêmica da UENF** — inspiração, testes e feedback
 
 ---
 
