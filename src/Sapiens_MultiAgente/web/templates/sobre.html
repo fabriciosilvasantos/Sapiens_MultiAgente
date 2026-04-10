@@ -3,99 +3,213 @@
 {% block title %}Sobre o SAPIENS{% endblock %}
 
 {% block content %}
-<section class="py-5">
+
+<!-- Hero -->
+<section style="background:var(--navy);padding:4rem 0 3rem;position:relative;overflow:hidden;">
+    <div style="position:absolute;inset:0;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='104'%3E%3Cpath d='M30 0 L60 17 L60 51 L30 68 L0 51 L0 17Z' fill='none' stroke='rgba(232,160,32,.07)' stroke-width='1'/%3E%3Cpath d='M30 36 L60 53 L60 87 L30 104 L0 87 L0 53Z' fill='none' stroke='rgba(232,160,32,.07)' stroke-width='1'/%3E%3C/svg%3E\");background-size:60px 104px;"></div>
+    <div class="container text-center fade-up" style="position:relative;">
+        <div class="hero-badge" style="display:inline-flex;margin:0 auto .75rem;">
+            <i class="fas fa-graduation-cap" style="font-size:.7rem;"></i>
+            Sobre a Plataforma
+        </div>
+        <h1 style="font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,4vw,3rem);color:var(--white);margin-bottom:.75rem;">SAPIENS</h1>
+        <p style="color:rgba(255,255,255,.6);max-width:500px;margin:0 auto;font-size:1rem;line-height:1.7;">
+            Plataforma Acadêmica Multiagente de Análise de Dados, desenvolvida para transformar dados em conhecimento.
+        </p>
+    </div>
+</section>
+
+<!-- O que é -->
+<section class="py-5 bg-white">
     <div class="container">
-        <div class="row">
-            <div class="col-12 text-center mb-5">
-                <h1 class="display-4 fw-bold">Sobre o SAPIENS</h1>
-                <p class="lead text-muted">
-                    Conheça nossa plataforma acadêmica multiagente
+        <div class="row justify-content-center">
+            <div class="col-lg-8 fade-up">
+                <span class="section-label">Missão</span>
+                <h2 class="mt-2" style="font-size:clamp(1.6rem,3vw,2.2rem);margin-bottom:1rem;">O que é o SAPIENS?</h2>
+                <p style="color:var(--text-muted);line-height:1.85;font-size:.97rem;margin-bottom:1.25rem;">
+                    O SAPIENS é uma plataforma acadêmica avançada que utiliza inteligência artificial multiagente para realizar análises de dados complexas. Desenvolvida especificamente para pesquisadores, gestores universitários e estudantes, a plataforma opera com rigor científico: trabalha exclusivamente com dados reais fornecidos pelo usuário — nunca gera simulações ou dados fictícios sem aviso explícito.
                 </p>
-            </div>
-        </div>
-
-        <div class="row mb-5">
-            <div class="col-lg-8 mx-auto">
-                <div class="card shadow-sm">
-                    <div class="card-body p-4">
-                        <h2 class="h3 mb-4">O que é o SAPIENS?</h2>
-                        <p class="mb-4">
-                            O SAPIENS é uma plataforma acadêmica avançada que utiliza inteligência artificial
-                            multiagente para realizar análises de dados complexas. Desenvolvida especificamente
-                            para pesquisadores, gestores universitários e estudantes, nossa plataforma oferece
-                            quatro tipos distintos de análise: descritiva, diagnóstica, preditiva e prescritiva.
-                        </p>
-
-                        <h3 class="h4 mb-3">Características Principais</h3>
-                        <ul class="list-unstyled">
-                            <li class="mb-2">
-                                <i class="fas fa-check-circle text-success me-2"></i>
-                                <strong>Análise Multiagente:</strong> 5 agentes especializados trabalhando em conjunto
-                            </li>
-                            <li class="mb-2">
-                                <i class="fas fa-check-circle text-success me-2"></i>
-                                <strong>Segurança Avançada:</strong> Validação rigorosa de arquivos e auditoria completa
-                            </li>
-                            <li class="mb-2">
-                                <i class="fas fa-check-circle text-success me-2"></i>
-                                <strong>Interface Web Moderna:</strong> Fácil de usar e responsiva
-                            </li>
-                            <li class="mb-2">
-                                <i class="fas fa-check-circle text-success me-2"></i>
-                                <strong>Suporte a Múltiplos Formatos:</strong> CSV, Excel, PDF, DOCX
-                            </li>
-                            <li class="mb-2">
-                                <i class="fas fa-check-circle text-success me-2"></i>
-                                <strong>Auditoria Completa:</strong> Rastreamento de todas as ações realizadas
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row mb-5">
-            <div class="col-md-6 mb-4">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body text-center p-4">
-                        <div class="mb-3">
-                            <i class="fas fa-cogs fa-3x text-primary"></i>
-                        </div>
-                        <h4>Tecnologia</h4>
-                        <p class="text-muted">
-                            Desenvolvido com CrewAI, Flask, Pandas, NumPy e outras tecnologias modernas
-                            para garantir performance e confiabilidade.
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6 mb-4">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body text-center p-4">
-                        <div class="mb-3">
-                            <i class="fas fa-graduation-cap fa-3x text-success"></i>
-                        </div>
-                        <h4>Para a Comunidade Acadêmica</h4>
-                        <p class="text-muted">
-                            Criado especificamente para atender às necessidades de pesquisadores,
-                            professores e estudantes em suas atividades acadêmicas.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-12 text-center">
-                <a href="{{ url_for('analise') }}" class="btn btn-sapiens btn-lg">
-                    <i class="fas fa-play me-2"></i>Experimentar Agora
-                </a>
-                <a href="{{ url_for('index') }}" class="btn btn-outline-primary btn-lg ms-2">
-                    <i class="fas fa-home me-2"></i>Voltar ao Início
-                </a>
+                <p style="color:var(--text-muted);line-height:1.85;font-size:.97rem;">
+                    Ao receber uma solicitação, uma equipe de <strong>5 agentes especializados</strong> é acionada. O processo começa pela validação dos dados, passa pelas quatro dimensões de análise em paralelo e culmina em um relatório final consolidado — acessível para gestores não técnicos, mas com rigor estatístico completo.
+                </p>
             </div>
         </div>
     </div>
 </section>
+
+<!-- Tipos de Análise -->
+<section class="py-5 bg-cream">
+    <div class="container">
+        <div class="text-center mb-5 fade-up">
+            <span class="section-label">Metodologia</span>
+            <h2 class="mt-2" style="font-size:clamp(1.6rem,3vw,2.2rem);">As Quatro Dimensões de Análise</h2>
+            <p class="text-muted" style="max-width:540px;margin:0 auto;">
+                Cada dimensão responde a uma pergunta específica, formando um ciclo completo de inteligência acadêmica.
+            </p>
+        </div>
+        <div class="row g-4">
+            {% set analises = [
+                ('fa-chart-bar', '#0ea5e9', '01', 'Análise Descritiva', 'O que aconteceu?',
+                 'Gera resumos estatísticos completos, identifica tendências históricas e cria visualizações claras dos dados acadêmicos. Responde perguntas como: Quais são as médias? Como os dados se distribuem? Quais padrões se repetem? Entrega métricas principais, tabelas comparativas e análises de distribuição em linguagem acessível para gestores.'),
+                ('fa-search-plus', '#10b981', '02', 'Análise Diagnóstica', 'Por que aconteceu?',
+                 'Investiga causas raízes e correlações nos dados. Utiliza testes de hipóteses, análise de correlação e estatística inferencial para explicar por que determinados padrões existem. Opera com nível de significância de 0,05 e entrega evidências estatísticas que sustentam cada conclusão.'),
+                ('fa-chart-line', 'var(--gold)', '03', 'Análise Preditiva', 'O que pode acontecer?',
+                 'Constrói modelos de previsão para antecipar tendências e cenários futuros. Utiliza séries temporais, modelagem preditiva e machine learning básico para gerar projeções com intervalos de confiança. Auxilia no planejamento estratégico universitário com base em dados históricos.'),
+                ('fa-lightbulb', '#8b5cf6', '04', 'Análise Prescritiva', 'O que devemos fazer?',
+                 'Traduz todos os insights anteriores em planos de ação concretos e priorizados. Gera recomendações acionáveis passo a passo, avalia riscos, sugere alocação de recursos e apresenta estratégias de otimização implementáveis por gestores e pesquisadores.')
+            ] %}
+            {% for icon, color, num, title, subtitle, desc in analises %}
+            <div class="col-md-6 fade-up fade-up-{{ loop.index }}">
+                <div class="card h-100" style="border-radius:16px;border-left:4px solid {{ color }};box-shadow:var(--shadow-sm);">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div style="width:48px;height:48px;background:{{ color }}1a;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                <i class="fas {{ icon }}" style="color:{{ color }};font-size:1.1rem;"></i>
+                            </div>
+                            <div>
+                                <div style="font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:{{ color }};">{{ subtitle }}</div>
+                                <h5 style="margin:0;font-weight:700;">{{ title }}</h5>
+                            </div>
+                        </div>
+                        <p style="color:var(--text-muted);font-size:.88rem;line-height:1.7;margin:0;">{{ desc }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Agentes -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <div class="text-center mb-5 fade-up">
+            <span class="section-label">Equipe de IA</span>
+            <h2 class="mt-2" style="font-size:clamp(1.6rem,3vw,2.2rem);">Os 5 Agentes Especializados</h2>
+            <p class="text-muted" style="max-width:540px;margin:0 auto;">
+                Cada agente possui um papel específico dentro do fluxo de análise, com ferramentas e especialidades próprias.
+            </p>
+        </div>
+
+        <!-- Agente 1: Orquestrador -->
+        <div class="row mb-4 fade-up">
+            <div class="col-12">
+                <div class="card" style="border-radius:16px;border-top:3px solid var(--gold);box-shadow:var(--shadow);">
+                    <div class="card-body p-4">
+                        <div class="row align-items-center">
+                            <div class="col-md-3 mb-3 mb-md-0">
+                                <div style="display:flex;align-items:center;gap:.75rem;">
+                                    <div style="width:52px;height:52px;background:var(--gold-pale);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                        <i class="fas fa-sitemap" style="color:var(--gold);font-size:1.2rem;"></i>
+                                    </div>
+                                    <div>
+                                        <div style="font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);">Agente 1</div>
+                                        <h6 style="margin:0;font-weight:700;font-size:.95rem;">Gerente Orquestrador</h6>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <p style="font-size:.88rem;color:var(--text-muted);line-height:1.65;margin:0;">
+                                    Coordena todo o fluxo de análise. É responsável por validar se os dados fornecidos são reais e adequados ao tópico de pesquisa — recusando fabricar informações. Também compila o relatório final consolidando os resultados de todos os outros agentes.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Agentes 2-5 -->
+        <div class="row g-4">
+            {% set agentes = [
+                ('fa-chart-bar', '#0ea5e9', 'Agente 2', 'Especialista Descritivo',
+                 'Realiza a análise estatística descritiva. Especialista em criar resumos claros, tabelas comparativas e métricas acessíveis para gestores universitários.',
+                 ['StatisticalAnalysis', 'CSVProcessor', 'FileReadTool']),
+                ('fa-search', '#10b981', 'Agente 3', 'Especialista Diagnóstico',
+                 'Conduz a análise causal. Aplica testes de hipóteses e correlação para identificar por que determinados padrões ocorrem nos dados acadêmicos.',
+                 ['StatisticalAnalysis', 'FileReadTool']),
+                ('fa-chart-line', 'var(--gold)', 'Agente 4', 'Especialista Preditivo',
+                 'Constrói os modelos de previsão. Trabalha com séries temporais e modelagem preditiva para projetar cenários futuros com intervalos de confiança.',
+                 ['StatisticalAnalysis', 'CSVProcessor', 'FileReadTool']),
+                ('fa-lightbulb', '#8b5cf6', 'Agente 5', 'Especialista Prescritivo',
+                 'Gera as recomendações finais. Traduz todos os insights das análises anteriores em planos de ação priorizados e implementáveis.',
+                 ['StatisticalAnalysis', 'FileReadTool'])
+            ] %}
+            {% for icon, color, num, title, desc, tools in agentes %}
+            <div class="col-md-6 fade-up fade-up-{{ loop.index }}">
+                <div class="card h-100" style="border-radius:14px;border-left:3px solid {{ color }};">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div style="width:44px;height:44px;background:{{ color }}1a;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                <i class="fas {{ icon }}" style="color:{{ color }};font-size:1rem;"></i>
+                            </div>
+                            <div>
+                                <div style="font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:{{ color }};">{{ num }}</div>
+                                <h6 style="margin:0;font-weight:700;">{{ title }}</h6>
+                            </div>
+                        </div>
+                        <p style="font-size:.87rem;color:var(--text-muted);line-height:1.65;margin-bottom:.75rem;">{{ desc }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
+</section>
+
+<!-- Características -->
+<section class="py-5 bg-cream">
+    <div class="container">
+        <div class="text-center mb-5 fade-up">
+            <span class="section-label">Diferenciais</span>
+            <h2 class="mt-2" style="font-size:clamp(1.6rem,3vw,2.2rem);">Características Principais</h2>
+        </div>
+        <div class="row g-4 justify-content-center">
+            {% set features = [
+                ('fa-users-cog', 'var(--navy)', 'Análise Multiagente', '5 agentes especializados trabalhando em conjunto para análises mais precisas e abrangentes.'),
+                ('fa-shield-alt', '#0ea5e9', 'Segurança Avançada', 'Validação rigorosa de arquivos, auditoria completa e rastreabilidade de todas as ações.'),
+                ('fa-mobile-alt', '#10b981', 'Interface Responsiva', 'Acesse de qualquer dispositivo. Interface otimizada para desktop e mobile.'),
+                ('fa-file-import', 'var(--gold)', 'Múltiplos Formatos', 'Suporte completo a CSV, Excel, PDF, DOCX e links externos de sites.'),
+                ('fa-history', '#8b5cf6', 'Auditoria Completa', 'Rastreamento detalhado de todas as análises realizadas com histórico permanente.'),
+                ('fa-robot', '#ef4444', 'IA de Ponta', 'Alimentado por modelos de linguagem de última geração via OpenRouter.')
+            ] %}
+            {% for icon, color, title, desc in features %}
+            <div class="col-md-6 col-lg-4 fade-up fade-up-{{ loop.index }}">
+                <div class="card card-hover h-100" style="border-radius:16px;">
+                    <div class="card-body p-4">
+                        <div style="width:48px;height:48px;background:{{ color }}1a;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:1rem;">
+                            <i class="fas {{ icon }}" style="color:{{ color }};font-size:1.2rem;"></i>
+                        </div>
+                        <h6 style="font-weight:700;margin-bottom:.5rem;">{{ title }}</h6>
+                        <p class="text-muted" style="font-size:.87rem;line-height:1.65;margin:0;">{{ desc }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+
+<!-- CTA -->
+<section style="background:var(--navy);padding:4rem 0;">
+    <div class="container text-center fade-up">
+        <h2 style="font-family:'Cormorant Garamond',serif;font-size:clamp(1.8rem,3vw,2.5rem);color:var(--white);margin-bottom:1rem;">
+            Pronto para experimentar?
+        </h2>
+        <p style="color:rgba(255,255,255,.6);max-width:420px;margin:0 auto 2rem;">
+            Comece a utilizar o SAPIENS gratuitamente e descubra o poder da análise multiagente.
+        </p>
+        <div class="d-flex flex-wrap justify-content-center gap-3">
+            <a href="{{ url_for('analise') }}" class="btn btn-gold btn-lg">
+                <i class="fas fa-play me-2"></i>Experimentar Agora
+            </a>
+            <a href="{{ url_for('index') }}" class="btn btn-sapiens-outline btn-lg" style="border-color:rgba(255,255,255,.35);color:var(--white);">
+                <i class="fas fa-home me-2"></i>Página Inicial
+            </a>
+        </div>
+    </div>
+</section>
+
 {% endblock %}

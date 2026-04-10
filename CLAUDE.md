@@ -85,12 +85,31 @@ print('Resultado:', '✅ Ambiente OK' if ok else '❌ Configure as variáveis fa
 ## Arquitetura dos agentes
 
 ```
-agente_gerente_orquestrador          → valida dados e orquestra
+agente_gerente_orquestrador             → valida dados e orquestra
   ↓
-especialista_em_analise_descritiva   ┐
-especialista_em_analise_diagnostica  ├ async_execution=True (paralelas)
-especialista_em_analise_preditiva    ┤
-especialista_em_analise_prescritiva  ┘
+especialista_em_analise_descritiva      ┐
+especialista_em_analise_diagnostica     │
+especialista_em_analise_preditiva       ├ async_execution=True (paralelas)
+especialista_em_analise_prescritiva     │
+especialista_em_fontes_externas         │ (INEP/IBGE benchmarks)
+especialista_em_analise_textual         ┘ (NLP documentos)
   ↓ (todas concluídas)
+revisor_de_qualidade_cientifica         → revisão metodológica (sequencial)
+  ↓
 compilacao_e_apresentacao_do_relatorio_final
 ```
+
+## Tools disponíveis
+
+| Tool | Descrição |
+|------|-----------|
+| `DataValidationTool` | Valida arquivos e dados de entrada |
+| `CSVProcessorTool` | Processa e limpa arquivos CSV |
+| `StatisticalAnalysisTool` | Análises estatísticas (descritiva, correlação, regressão) |
+| `ChartGeneratorTool` | Gera gráficos em base64 |
+| `PDFSearchTool` | Lê e pesquisa em PDFs |
+| `DOCXSearchTool` | Lê e pesquisa em arquivos DOCX |
+| `CSVSearchTool` | Pesquisa em CSVs |
+| `ExternalDataTool` | Benchmarks INEP/IBGE/CAPES/MEC |
+| `QualityReviewTool` | Revisão metodológica científica |
+| `TextAnalysisTool` | Análise textual NLP (palavras-chave, entidades, temas) |

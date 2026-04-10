@@ -14,6 +14,9 @@ import sqlite3
 import requests
 from urllib.parse import urlparse
 from datetime import datetime
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Importações do sistema SAPIENS
 try:
@@ -58,13 +61,16 @@ def _init_db():
                 concluido_em  TEXT
             )
         """)
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_analises_usuario ON analises (usuario_id)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_analises_criado ON analises (criado_em DESC)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_analises_status ON analises (status)")
         conn.commit()
 
 
 class SapiensWebInterface:
     """Interface web para SAPIENS"""
 
-    def __init__(self, host='127.0.0.1', port=5000, debug=False):
+    def __init__(self, host='127.0.0.1', port=4000, debug=False):
         self.host = host
         self.port = port
         self.debug = debug
@@ -88,23 +94,31 @@ class SapiensWebInterface:
         # Cache em memória para análises ativas (sincronizado com o banco)
         self.analises_ativas = self._carregar_analises_ativas()
 
+        # Monitor de métricas da plataforma
+        from .monitoring import SapiensMonitor
+        self.monitor = SapiensMonitor(DB_PATH)
+        self.monitor.start()
+
     # ------------------------------------------------------------------
     # Persistência SQLite
     # ------------------------------------------------------------------
 
     def _carregar_analises_ativas(self) -> dict:
-        """Carrega do banco as análises não concluídas para o cache em memória."""
-        cache = {}
+        """Marca análises órfãs como erro e retorna cache vazio (workers não sobrevivem a reinícios)."""
         try:
             with _get_db() as conn:
-                rows = conn.execute(
-                    "SELECT * FROM analises WHERE status NOT IN ('concluida', 'erro')"
-                ).fetchall()
-            for row in rows:
-                cache[row['id']] = self._row_para_dict(row)
+                conn.execute(
+                    """UPDATE analises
+                       SET status = 'erro',
+                           erro = 'Análise interrompida (servidor reiniciado)',
+                           atualizado_em = ?
+                       WHERE status NOT IN ('concluida', 'erro')""",
+                    (datetime.now().isoformat(),)
+                )
+                conn.commit()
         except Exception:
             pass
-        return cache
+        return {}
 
     def _row_para_dict(self, row) -> dict:
         d = dict(row)
@@ -209,9 +223,20 @@ class SapiensWebInterface:
             storage_uri="memory://"
         )
 
-        # Limites específicos por endpoint
-        limiter.limit("10 per minute")(self._get_analise_status)
-        limiter.limit("5 per minute")(self._handle_upload)
+        # Limites específicos — aplicados nas rotas abaixo via limiter.limit()
+
+        # Filtro de data amigável para os templates
+        @app.template_filter('fmt_dt')
+        def fmt_dt(value):
+            if not value:
+                return ''
+            s = str(value)[:19].replace('T', ' ')
+            try:
+                from datetime import datetime
+                dt = datetime.strptime(s, '%Y-%m-%d %H:%M:%S')
+                return dt.strftime('%d/%m/%Y %H:%M')
+            except Exception:
+                return s
 
         # ------------------------------------------------------------------
         # Autenticação
@@ -264,12 +289,14 @@ class SapiensWebInterface:
 
         @app.route('/upload', methods=['POST'])
         @login_required
+        @limiter.limit("5 per minute")
         def upload_arquivo():
             """Endpoint para upload de arquivos"""
             return self._handle_upload(app)
 
         @app.route('/status/<analise_id>')
         @login_required
+        @limiter.limit("10 per minute")
         def status_analise(analise_id):
             """Verifica status de análise"""
             return self._get_analise_status(analise_id)
@@ -325,7 +352,9 @@ class SapiensWebInterface:
             """Exporta resultados nos formatos: pdf, txt"""
             return self._exportar_analise(analise_id, formato)
 
-        @app.route('/api/health')
+        @app.route('/status')
+        @app.route('/api/health')  # mantido para compatibilidade com API
+        @login_required
         def health_check():
             """Health check do sistema.
             ---
@@ -347,12 +376,52 @@ class SapiensWebInterface:
                       type: string
                       example: "2.0.0"
             """
-            return jsonify({
+            import sqlite3 as _sqlite3
+
+            # Verifica banco de dados
+            db_ok = False
+            total_analises = 0
+            try:
+                with _sqlite3.connect(DB_PATH) as conn:
+                    total_analises = conn.execute("SELECT COUNT(*) FROM analises").fetchone()[0]
+                    db_ok = True
+            except Exception:
+                pass
+
+            # Verifica pasta de uploads
+            upload_folder = app.config.get('UPLOAD_FOLDER', 'uploads')
+            upload_ok = os.path.isdir(upload_folder)
+
+            analises_em_andamento = sum(
+                1 for a in self.analises_ativas.values()
+                if a.get('status') not in ('concluida', 'erro')
+            )
+
+            payload = {
                 'status': 'healthy',
                 'timestamp': datetime.now().isoformat(),
                 'sistema': 'SAPIENS Web Interface',
-                'versao': '2.0.0'
-            })
+                'versao': '2.1.0',
+                'banco_dados': 'ok' if db_ok else 'erro',
+                'uploads': 'ok' if upload_ok else 'erro',
+                'total_analises': total_analises,
+                'analises_em_andamento': analises_em_andamento,
+            }
+
+            # Retorna HTML para browsers, JSON para clientes API
+            accept = request.headers.get('Accept', '')
+            if 'text/html' in accept:
+                monitor_data = self.monitor.summary()
+                return render_template('status.html', **payload, monitor=monitor_data)
+            return jsonify(payload)
+
+        @app.route('/api/monitoring')
+        @login_required
+        def api_monitoring():
+            """Métricas de monitoramento da plataforma SAPIENS."""
+            data = self.monitor.summary()
+            data['history'] = self.monitor.history(last_n=20)
+            return jsonify(data)
 
         # ------------------------------------------------------------------
         # API REST v1
@@ -873,8 +942,8 @@ class SapiensWebInterface:
             if caminho and os.path.exists(caminho):
                 try:
                     os.remove(caminho)
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.warning("Nao foi possivel remover arquivo %s: %s", caminho, e)
         # Remove entrada do cache para evitar vazamento de memória
         self.analises_ativas.pop(analise_id, None)
 
@@ -898,8 +967,8 @@ class SapiensWebInterface:
             try:
                 if os.path.isfile(caminho) and (agora - os.path.getmtime(caminho)) > limite:
                     os.remove(caminho)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning("Nao foi possivel remover upload orfao %s: %s", caminho, e)
 
     def _get_analise_status(self, analise_id):
         """Retorna status da análise (cache ou banco)."""
@@ -917,6 +986,9 @@ class SapiensWebInterface:
 
         if analise_info['status'] == 'concluida':
             return render_template('resultados.html', analise=analise_info)
+        elif analise_info['status'] == 'erro':
+            flash(f"A análise falhou: {analise_info.get('erro') or 'erro desconhecido'}", 'error')
+            return redirect(url_for('historico'))
         else:
             return render_template('progresso.html', analise=analise_info)
 
@@ -924,16 +996,20 @@ class SapiensWebInterface:
         """Retorna página com análises do usuário atual (ou todas se admin)."""
         try:
             with _get_db() as conn:
-                if usuario_id and not current_user.admin:
+                if current_user.admin:
+                    rows = conn.execute(
+                        "SELECT * FROM analises ORDER BY criado_em DESC LIMIT 100"
+                    ).fetchall()
+                else:
                     rows = conn.execute(
                         "SELECT * FROM analises WHERE usuario_id = ? ORDER BY criado_em DESC LIMIT 100",
                         (usuario_id,)
                     ).fetchall()
-                else:
-                    rows = conn.execute(
-                        "SELECT * FROM analises ORDER BY criado_em DESC LIMIT 100"
-                    ).fetchall()
-            analises = [self._row_para_dict(r) for r in rows]
+            # Filtra registros de testes automatizados (IDs com prefixo de fixture)
+            analises = [
+                self._row_para_dict(r) for r in rows
+                if not str(r['id']).startswith('teste-')
+            ]
         except Exception:
             analises = []
         return render_template('historico.html', analises=analises)
@@ -1030,9 +1106,8 @@ class SapiensWebInterface:
         """Executa interface web"""
         app = self.create_app()
 
-        print("🚀 Iniciando SAPIENS Web Interface...")
-        print(f"📡 Servidor: http://{self.host}:{self.port}")
-        print(f"📁 Diretório de uploads: {self.upload_config['UPLOAD_FOLDER']}")
+        print(f"Iniciando SAPIENS Web Interface em http://{self.host}:{self.port}")
+        print(f"Diretorio de uploads: {self.upload_config['UPLOAD_FOLDER']}")
 
         self.auditor.auditar_evento('inicializacao_interface_web', dados_entrada={
             'host': self.host,

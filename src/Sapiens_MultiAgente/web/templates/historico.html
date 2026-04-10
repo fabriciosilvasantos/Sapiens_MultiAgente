@@ -1,114 +1,126 @@
 {% extends "base.html" %}
 
-{% block title %}Histórico de Análises{% endblock %}
+{% block title %}Histórico de Análises — SAPIENS{% endblock %}
 
 {% block content %}
-<section class="py-5">
+<div class="bg-cream" style="min-height:calc(100vh - 74px);padding:2.5rem 0 4rem;">
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-lg-10">
+            <div class="col-lg-10 fade-up">
+
+                <!-- Header -->
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2><i class="fas fa-history me-2"></i>Histórico de Análises</h2>
-                    <a href="{{ url_for('analise') }}" class="btn btn-primary">
-                        <i class="fas fa-plus me-1"></i>Nova Análise
+                    <div>
+                        <span class="section-label">Plataforma SAPIENS</span>
+                        <h2 class="mt-1" style="font-size:1.8rem;">Histórico de Análises</h2>
+                    </div>
+                    <a href="{{ url_for('analise') }}" class="btn btn-sapiens">
+                        <i class="fas fa-plus me-2"></i>Nova Análise
                     </a>
                 </div>
 
                 {% if not analises %}
-                <div class="card shadow">
-                    <div class="card-body text-center py-5">
-                        <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
-                        <h4 class="text-muted">Nenhuma análise registrada</h4>
-                        <p class="text-muted">As análises realizadas aparecerão aqui.</p>
-                        <a href="{{ url_for('analise') }}" class="btn btn-primary mt-2">
-                            <i class="fas fa-play me-1"></i>Iniciar Primeira Análise
-                        </a>
+                <div class="card" style="border-radius:20px;box-shadow:var(--shadow);text-align:center;padding:4rem 2rem;">
+                    <div style="width:72px;height:72px;background:var(--gold-pale);border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;">
+                        <i class="fas fa-inbox" style="color:var(--gold);font-size:1.8rem;"></i>
                     </div>
+                    <h4 style="font-family:'Cormorant Garamond',serif;color:var(--text);">Nenhuma análise registrada</h4>
+                    <p class="text-muted" style="max-width:340px;margin:.5rem auto 1.5rem;">As análises realizadas aparecerão aqui. Comece sua primeira análise agora.</p>
+                    <a href="{{ url_for('analise') }}" class="btn btn-sapiens">
+                        <i class="fas fa-play me-2"></i>Iniciar Primeira Análise
+                    </a>
                 </div>
+
                 {% else %}
-                <div class="card shadow">
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0">
-                                <thead class="table-dark">
-                                    <tr>
-                                        <th>Tópico</th>
-                                        <th>Status</th>
-                                        <th>Progresso</th>
-                                        <th>Iniciado em</th>
-                                        <th>Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for analise in analises %}
-                                    <tr>
-                                        <td>
-                                            <span class="fw-semibold">{{ analise.topico_pesquisa or analise.topico }}</span>
-                                            <br>
-                                            <small class="text-muted font-monospace">{{ analise.id[:8] }}…</small>
-                                        </td>
-                                        <td>
-                                            <span class="badge
+                <div class="card" style="border-radius:20px;box-shadow:var(--shadow);overflow:hidden;">
+                    <div class="table-responsive">
+                        <table class="table mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Tópico de Pesquisa</th>
+                                    <th>Status</th>
+                                    <th style="min-width:130px;">Progresso</th>
+                                    <th>Iniciado em</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for analise in analises %}
+                                <tr>
+                                    <td>
+                                        <div style="font-weight:600;font-size:.9rem;max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+                                             title="{{ analise.topico_pesquisa or analise.topico }}"
+                                             aria-label="{{ analise.topico_pesquisa or analise.topico }}">
+                                            {{ analise.topico_pesquisa or analise.topico }}
+                                        </div>
+                                        <small style="color:var(--text-muted);font-family:monospace;font-size:.75rem;">{{ analise.id[:8] }}…</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge
+                                            {% if analise.status == 'concluida' %}bg-success
+                                            {% elif analise.status == 'erro' %}bg-danger
+                                            {% elif analise.status in ('executando_analise','processando_dados','gerando_relatorio') %}bg-primary
+                                            {% else %}bg-warning text-dark{% endif %}">
+                                            {% if analise.status == 'concluida' %}<i class="fas fa-check me-1" aria-hidden="true"></i>Concluída
+                                            {% elif analise.status == 'erro' %}<i class="fas fa-times me-1" aria-hidden="true"></i>Erro
+                                            {% elif analise.status == 'executando_analise' %}<i class="fas fa-spinner fa-spin me-1" aria-hidden="true"></i>Executando
+                                            {% elif analise.status == 'processando_dados' %}<i class="fas fa-spinner fa-spin me-1" aria-hidden="true"></i>Processando
+                                            {% elif analise.status == 'gerando_relatorio' %}<i class="fas fa-spinner fa-spin me-1" aria-hidden="true"></i>Gerando
+                                            {% else %}{{ analise.status | capitalize }}{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="progress mb-1" style="height:6px;">
+                                            <div class="progress-bar
                                                 {% if analise.status == 'concluida' %}bg-success
                                                 {% elif analise.status == 'erro' %}bg-danger
-                                                {% elif analise.status in ('executando_analise', 'processando_dados', 'gerando_relatorio') %}bg-primary
-                                                {% else %}bg-warning text-dark{% endif %}">
-                                                {% if analise.status == 'concluida' %}Concluída
-                                                {% elif analise.status == 'erro' %}Erro
-                                                {% elif analise.status == 'executando_analise' %}Executando
-                                                {% elif analise.status == 'processando_dados' %}Processando
-                                                {% elif analise.status == 'gerando_relatorio' %}Gerando Relatório
-                                                {% else %}{{ analise.status | capitalize }}{% endif %}
-                                            </span>
-                                        </td>
-                                        <td style="min-width: 120px;">
-                                            <div class="progress" style="height: 8px;">
-                                                <div class="progress-bar
-                                                    {% if analise.status == 'concluida' %}bg-success
-                                                    {% elif analise.status == 'erro' %}bg-danger
-                                                    {% else %}bg-primary progress-bar-striped progress-bar-animated{% endif %}"
-                                                    style="width: {{ analise.progresso }}%">
-                                                </div>
+                                                {% else %}progress-bar-striped progress-bar-animated{% endif %}"
+                                                style="width:{{ analise.progresso }}%">
                                             </div>
-                                            <small class="text-muted">{{ analise.progresso }}%</small>
-                                        </td>
-                                        <td>
-                                            <small>{{ (analise.criado_em or analise.timestamp_inicio or '')[:16] | replace('T', ' ') }}</small>
-                                        </td>
-                                        <td>
-                                            {% if analise.status == 'concluida' %}
-                                            <a href="{{ url_for('resultados_analise', analise_id=analise.id) }}"
-                                               class="btn btn-sm btn-success me-1" title="Ver resultados">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <a href="{{ url_for('export_analise', analise_id=analise.id, formato='pdf') }}"
-                                               class="btn btn-sm btn-outline-danger" title="Exportar PDF">
-                                                <i class="fas fa-file-pdf"></i>
-                                            </a>
-                                            {% elif analise.status == 'erro' %}
-                                            <span class="text-danger small" title="{{ analise.erro }}">
-                                                <i class="fas fa-exclamation-circle me-1"></i>Erro
-                                            </span>
-                                            {% else %}
-                                            <a href="{{ url_for('resultados_analise', analise_id=analise.id) }}"
-                                               class="btn btn-sm btn-outline-primary" title="Ver progresso">
-                                                <i class="fas fa-spinner fa-spin"></i>
-                                            </a>
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
+                                        </div>
+                                        <small class="text-muted" style="font-size:.78rem;">{{ analise.progresso }}%</small>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ (analise.criado_em or analise.timestamp_inicio or '') | fmt_dt }}</small>
+                                    </td>
+                                    <td>
+                                        {% if analise.status == 'concluida' %}
+                                        <a href="{{ url_for('resultados_analise', analise_id=analise.id) }}"
+                                           class="btn btn-sm btn-sapiens me-1" style="padding:.3rem .75rem;font-size:.8rem;"
+                                           aria-label="Ver resultados da análise: {{ analise.topico_pesquisa or analise.topico }}">
+                                            <i class="fas fa-eye" aria-hidden="true"></i>
+                                        </a>
+                                        <a href="{{ url_for('export_analise', analise_id=analise.id, formato='pdf') }}"
+                                           class="btn btn-sm btn-sapiens-outline" style="padding:.3rem .75rem;font-size:.8rem;border-color:var(--color-danger);color:var(--color-danger);"
+                                           aria-label="Exportar PDF da análise: {{ analise.topico_pesquisa or analise.topico }}">
+                                            <i class="fas fa-file-pdf" aria-hidden="true"></i>
+                                        </a>
+                                        {% elif analise.status == 'erro' %}
+                                        <span class="text-danger" style="font-size:.82rem;"
+                                              title="{{ analise.erro }}" aria-label="Erro: {{ analise.erro }}">
+                                            <i class="fas fa-exclamation-circle me-1" aria-hidden="true"></i>Erro
+                                        </span>
+                                        {% else %}
+                                        <a href="{{ url_for('resultados_analise', analise_id=analise.id) }}"
+                                           class="btn btn-sm btn-sapiens-outline" style="padding:.3rem .75rem;font-size:.8rem;"
+                                           aria-label="Ver progresso da análise em andamento">
+                                            <i class="fas fa-spinner fa-spin" aria-hidden="true"></i>
+                                        </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
-                    <div class="card-footer text-muted">
-                        <small>Exibindo as últimas {{ analises | length }} análise(s).</small>
+                    <div style="padding:.75rem 1.25rem;background:var(--cream);border-top:1px solid var(--border);">
+                        <small class="text-muted">Exibindo as últimas {{ analises|length }} análise(s).</small>
                     </div>
                 </div>
                 {% endif %}
+
             </div>
         </div>
     </div>
-</section>
+</div>
 {% endblock %}

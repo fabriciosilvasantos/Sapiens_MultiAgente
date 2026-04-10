@@ -1,176 +1,153 @@
 {% extends "base.html" %}
 
-{% block title %}SAPIENS - Análise de Dados{% endblock %}
+{% block title %}Nova Análise — SAPIENS{% endblock %}
 
 {% block extra_head %}
 <style>
     .file-item {
-        background: #f8f9fa;
-        border: 1px solid #dee2e6;
-        border-radius: 8px;
-        padding: 15px;
-        margin-bottom: 10px;
+        background: var(--cream);
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        padding: 12px 16px;
+        margin-bottom: 8px;
+        transition: border-color .2s;
     }
-
-    .file-progress {
-        height: 20px;
-    }
-
-    .dragover {
-        background-color: #e3f2fd !important;
-        border-color: #2196f3 !important;
-    }
+    .file-item:hover { border-color: var(--gold); }
 
     .validation-status {
-        padding: 5px 10px;
-        border-radius: 15px;
-        font-size: 0.8em;
-        font-weight: bold;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: .75rem;
+        font-weight: 600;
+    }
+    .status-valid   { background:#d1fae5; color:#065f46; border:1px solid #a7f3d0; }
+    .status-invalid { background:#fee2e2; color:#991b1b; border:1px solid var(--color-danger-light); }
+    .status-warning { background:var(--gold-pale); color:#92400e; border:1px solid #fde68a; }
+
+    .dragover {
+        background: var(--gold-pale) !important;
+        border-color: var(--gold) !important;
     }
 
-    .status-valid {
-        background-color: #d4edda;
-        color: #155724;
-        border: 1px solid #c3e6cb;
-    }
-
-    .status-invalid {
-        background-color: #f8d7da;
-        color: #721c24;
-        border: 1px solid #f5c6cb;
-    }
-
-    .status-warning {
-        background-color: #fff3cd;
-        color: #856404;
-        border: 1px solid #ffeaa7;
+    @media (max-width: 768px) {
+        .file-upload-area { padding: 24px 16px !important; }
+        .file-upload-area .fa-3x { font-size: 1.6em; }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row">
-        <div class="col-12 text-center mb-5">
-            <h1 class="display-5 fw-bold">
-                <i class="fas fa-chart-line text-primary me-3"></i>Análise de Dados
-            </h1>
-            <p class="lead text-muted">
-                Envie seus dados acadêmicos e descreva sua pesquisa para obter insights poderosos
+<div class="bg-cream" style="min-height:calc(100vh - 74px);padding:2.5rem 0 4rem;">
+    <div class="container">
+
+        <!-- Header -->
+        <div class="text-center mb-5 fade-up">
+            <span class="section-label">Plataforma SAPIENS</span>
+            <h1 class="mt-2" style="font-size:clamp(1.8rem,3vw,2.6rem);">Nova Análise de Dados</h1>
+            <p class="text-muted" style="max-width:500px;margin:0 auto;">
+                Envie seus dados acadêmicos e descreva sua pesquisa para obter insights com nossa equipe de agentes de IA.
             </p>
         </div>
-    </div>
 
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card shadow-sm">
-                <div class="card-body p-4">
-                    <form id="analiseForm" method="post" enctype="multipart/form-data">
-                        <!-- Tópico de Pesquisa -->
-                        <div class="mb-4">
-                            <label for="topico_pesquisa" class="form-label">
-                                <i class="fas fa-question-circle me-2"></i>Tópico de Pesquisa
-                            </label>
-                            <textarea class="form-control" id="topico_pesquisa" name="topico_pesquisa" rows="3"
-                                placeholder="Descreva em detalhes qual análise você precisa realizar. Exemplo: 'Analisar a correlação entre notas dos alunos e frequência às aulas no semestre passado'"
-                                required></textarea>
-                            <div class="form-text">
-                                Seja específico sobre o tipo de análise desejada (descritiva, diagnóstica, preditiva ou
-                                prescritiva)
-                            </div>
-                        </div>
+        <div class="row justify-content-center">
+            <div class="col-lg-8 fade-up fade-up-1">
+                <div class="card card-accent" style="border-radius:20px;box-shadow:var(--shadow);">
+                    <div class="card-body p-4 p-md-5">
+                        <form id="analiseForm" method="post" enctype="multipart/form-data">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-                        <!-- Área de Upload -->
-                        <div class="mb-4">
-                            <label class="form-label">
-                                <i class="fas fa-file-upload me-2"></i>Arquivos de Dados (Opcional)
-                            </label>
-
-                            <style>
-                                @media (max-width: 768px) {
-                                    .file-upload-area {
-                                        padding: 20px !important;
-                                    }
-
-                                    .file-upload-area i.fa-3x {
-                                        font-size: 1.5em;
-                                    }
-                                }
-                            </style>
-
-                            <div class="file-upload-area" id="uploadArea">
-                                <div class="text-center">
-                                    <div class="d-none d-md-block">
-                                        <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
-                                        <h5>Arraste e solte seus arquivos aqui</h5>
-                                        <p class="text-muted">ou clique para selecionar</p>
-                                    </div>
-                                    <div class="d-md-none mb-3">
-                                        <i class="fas fa-camera fa-2x text-muted mb-2"></i>
-                                        <h5>Toque para adicionar arquivos</h5>
-                                    </div>
-
-                                    <input type="file" id="fileInput" multiple
-                                        accept=".csv,.xlsx,.xls,.pdf,.docx,.txt,image/*" capture="environment"
-                                        style="display: none;">
-
-                                    <div class="d-grid gap-2 col-md-6 mx-auto">
-                                        <button type="button" class="btn btn-outline-primary"
-                                            onclick="document.getElementById('fileInput').click()">
-                                            <i class="fas fa-folder-open me-2"></i>Selecionar / Câmera
-                                        </button>
-                                    </div>
+                            <!-- Tópico de Pesquisa -->
+                            <div class="mb-4">
+                                <label for="topico_pesquisa" class="form-label">
+                                    <i class="fas fa-pen-nib me-2 text-gold"></i>Tópico de Pesquisa
+                                    <span class="text-danger ms-1">*</span>
+                                </label>
+                                <textarea class="form-control" id="topico_pesquisa" name="topico_pesquisa" rows="4"
+                                    placeholder="Descreva em detalhes qual análise você precisa realizar. Exemplo: Analisar a correlação entre notas dos alunos e frequência às aulas no semestre passado"
+                                    required style="resize:vertical;"
+                                    aria-required="true" aria-describedby="topico-help"></textarea>
+                                <div class="form-text mt-1" id="topico-help">
+                                    <i class="fas fa-info-circle me-1" aria-hidden="true"></i>
+                                    Seja específico sobre o tipo de análise desejada (descritiva, diagnóstica, preditiva ou prescritiva).
                                 </div>
                             </div>
 
-                            <!-- Lista de arquivos -->
-                            <div id="fileList" class="mt-3" style="display: none;">
-                                <h6>Arquivos selecionados:</h6>
-                                <div id="filesContainer"></div>
+                            <!-- Upload Area -->
+                            <div class="mb-4">
+                                <label class="form-label">
+                                    <i class="fas fa-cloud-upload-alt me-2 text-gold"></i>Arquivos de Dados
+                                    <span class="text-muted fw-normal ms-1" style="font-size:.8rem;">(opcional)</span>
+                                </label>
+
+                                <div class="file-upload-area" id="uploadArea">
+                                    <div class="text-center">
+                                        <div class="d-none d-md-block">
+                                            <div style="width:56px;height:56px;background:var(--gold-pale);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto .75rem;">
+                                                <i class="fas fa-cloud-upload-alt" style="color:var(--gold);font-size:1.5rem;"></i>
+                                            </div>
+                                            <h6 style="font-weight:600;margin-bottom:.3rem;">Arraste e solte seus arquivos</h6>
+                                            <p class="text-muted" style="font-size:.85rem;margin:0;">ou clique para selecionar</p>
+                                        </div>
+                                        <div class="d-md-none mb-2">
+                                            <i class="fas fa-folder-open fa-2x text-gold mb-2"></i>
+                                            <h6 style="font-weight:600;">Toque para adicionar arquivos</h6>
+                                        </div>
+
+                                        <input type="file" id="fileInput" multiple
+                                            accept=".csv,.xlsx,.xls,.pdf,.docx,.txt"
+                                            class="visually-hidden"
+                                            aria-label="Selecionar arquivos para upload">
+
+                                        <label for="fileInput" class="btn btn-sapiens-outline btn-sm mt-3"
+                                            style="font-size:.85rem;padding:.4rem 1.2rem;cursor:pointer;">
+                                            <i class="fas fa-folder-open me-2" aria-hidden="true"></i>Selecionar Arquivo
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div id="fileList" class="mt-3" style="display:none;">
+                                    <p class="form-label mb-2">Arquivos selecionados:</p>
+                                    <div id="filesContainer"></div>
+                                </div>
+
+                                <div class="form-text mt-2">
+                                    <i class="fas fa-paperclip me-1"></i>
+                                    Formatos aceitos: CSV, Excel (.xlsx/.xls), PDF, Word (.docx), TXT · Máx. 100 MB por arquivo
+                                </div>
                             </div>
 
-                            <div class="form-text">
-                                <i class="fas fa-info-circle me-1"></i>
-                                Formatos aceitos: CSV, Excel (.xlsx, .xls), PDF, Word (.docx), TXT
-                                <br>
-                                Tamanho máximo: 100MB por arquivo
+                            <!-- Links -->
+                            <div class="mb-4">
+                                <label for="links_sites" class="form-label">
+                                    <i class="fas fa-link me-2 text-gold"></i>Links de Sites
+                                    <span class="text-muted fw-normal ms-1" style="font-size:.8rem;">(opcional)</span>
+                                </label>
+                                <textarea class="form-control" id="links_sites" name="links_sites" rows="3"
+                                    placeholder="Insira os URLs dos sites para análise (um por linha). Exemplo: https://universidade.edu.br/dados.csv"
+                                    style="resize:vertical;" aria-describedby="links-help"></textarea>
+                                <div class="form-text mt-1" id="links-help">
+                                    <i class="fas fa-info-circle me-1" aria-hidden="true"></i>
+                                    Um URL por linha. A plataforma baixará e analisará o conteúdo automaticamente. Formatos: PDF, CSV, DOCX, TXT.
+                                </div>
                             </div>
-                        </div>
 
-                        <!-- Links de Sites (Novo campo) -->
-                        <div class="mb-4">
-                            <label for="links_sites" class="form-label">
-                                <i class="fas fa-link me-2"></i>Links de Sites (Opcional)
-                            </label>
-                            <textarea class="form-control" id="links_sites" name="links_sites" rows="3" placeholder="Insira os URLs dos sites para análise (um por linha). Exemplo:
-                    https://example.com/relatorio.pdf
-                    https://siteacademico.edu.br/dados.csv
-                    https://universidade.edu.br/pesquisa.docx"></textarea>
-                            <div class="form-text">
-                                <i class="fas fa-info-circle me-1"></i>
-                                Adicione um URL por linha. A plataforma irá baixar e analisar o conteúdo dos sites
-                                automaticamente.
-                                <br>
-                                Formatos suportados: PDF, CSV, DOCX, TXT
+                            <!-- Info Box -->
+                            <div class="alert alert-info mb-4" style="display:flex;gap:.75rem;align-items:flex-start;">
+                                <i class="fas fa-robot mt-1" style="color:var(--color-info);flex-shrink:0;"></i>
+                                <div>
+                                    <strong>Análise Inteligente Automática</strong><br>
+                                    <small>O sistema analisará automaticamente o tópico e determinará o tipo de análise mais adequado: descritiva, diagnóstica, preditiva ou prescritiva.</small>
+                                </div>
                             </div>
-                        </div>
 
-                        <!-- Nota sobre Tipos de Análise -->
-                        <div class="alert alert-info mb-4">
-                            <i class="fas fa-info-circle me-2"></i>
-                            <strong>Análise Inteligente Automática</strong><br>
-                            <small class="text-muted">O sistema analisará automaticamente o tópico de pesquisa e
-                                determinará o tipo de análise mais adequado (descritiva, diagnóstica, preditiva ou
-                                prescritiva).</small>
-                        </div>
-
-                        <!-- Botão de Submissão -->
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-sapiens btn-lg">
-                                <i class="fas fa-play me-2"></i>Iniciar Análise
-                            </button>
-                        </div>
-                    </form>
+                            <!-- Submit -->
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-sapiens btn-lg" style="font-size:1rem;">
+                                    <i class="fas fa-play me-2"></i>Iniciar Análise com IA
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
@@ -180,6 +157,16 @@
 
 {% block extra_scripts %}
 <script>
+    function showNotificacao(mensagem, tipo) {
+        const cores = { erro: 'var(--color-danger)', aviso: 'var(--color-warning)', info: 'var(--color-info)' };
+        const icones = { erro: 'fa-circle-exclamation', aviso: 'fa-triangle-exclamation', info: 'fa-circle-info' };
+        const toast = document.createElement('div');
+        toast.style.cssText = `position:fixed;top:1.2rem;right:1.2rem;z-index:9999;background:#fff;border-left:4px solid ${cores[tipo]||cores.info};border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.15);padding:.85rem 1.2rem;max-width:340px;display:flex;align-items:flex-start;gap:.75rem;font-size:.88rem;`;
+        toast.innerHTML = `<i class="fas ${icones[tipo]||icones.info}" style="color:${cores[tipo]||cores.info};margin-top:2px;flex-shrink:0;"></i><span>${mensagem}</span>`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 4000);
+    }
+
     let uploadedFiles = [];
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -189,8 +176,10 @@
         const filesContainer = document.getElementById('filesContainer');
         const form = document.getElementById('analiseForm');
 
-        // Área de drag and drop
-        uploadArea.addEventListener('click', () => fileInput.click());
+        // Clique na área abre o seletor, exceto se o clique for no label (já cuida disso nativamente)
+        uploadArea.addEventListener('click', (e) => {
+            if (e.target.tagName !== 'LABEL' && !e.target.closest('label')) fileInput.click();
+        });
 
         uploadArea.addEventListener('dragover', function (e) {
             e.preventDefault();
@@ -205,28 +194,19 @@
         uploadArea.addEventListener('drop', function (e) {
             e.preventDefault();
             this.classList.remove('dragover');
-
-            const files = Array.from(e.dataTransfer.files);
-            handleFiles(files);
+            handleFiles(Array.from(e.dataTransfer.files));
         });
 
-        // Input de arquivo
         fileInput.addEventListener('change', function (e) {
-            const files = Array.from(e.target.files);
-            handleFiles(files);
+            handleFiles(Array.from(e.target.files));
         });
 
-        // Manipulação de arquivos
         function handleFiles(files) {
-            files.forEach(file => {
-                if (validateFile(file)) {
-                    uploadFile(file);
-                }
-            });
+            files.forEach(file => { if (validateFile(file)) uploadFile(file); });
         }
 
         function validateFile(file) {
-            const maxSize = 100 * 1024 * 1024; // 100MB
+            const maxSize = 100 * 1024 * 1024;
             const allowedTypes = [
                 'text/csv',
                 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -235,131 +215,86 @@
                 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                 'text/plain'
             ];
-
-            if (file.size > maxSize) {
-                alert(`Arquivo ${file.name} é muito grande. Tamanho máximo: 100MB`);
-                return false;
-            }
-
-            if (!allowedTypes.includes(file.type)) {
-                alert(`Tipo de arquivo não suportado: ${file.name}`);
-                return false;
-            }
-
+            if (file.size > maxSize) { showNotificacao(`Arquivo <strong>${file.name}</strong> excede o limite de 100 MB.`, 'aviso'); return false; }
+            if (!allowedTypes.includes(file.type)) { showNotificacao(`Tipo de arquivo não suportado: <strong>${file.name}</strong>`, 'aviso'); return false; }
             return true;
+        }
+
+        function getCsrf() {
+            return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         }
 
         async function uploadFile(file) {
             const formData = new FormData();
             formData.append('arquivo', file);
-
             try {
                 const response = await fetch('/upload', {
                     method: 'POST',
+                    headers: { 'X-CSRFToken': getCsrf() },
                     body: formData
                 });
-
                 const result = await response.json();
-
                 if (result.success) {
-                    uploadedFiles.push({
-                        file: file,
-                        serverName: result.filename,
-                        validation: result.validacao
-                    });
-
+                    uploadedFiles.push({ file, serverName: result.filename, validation: result.validacao });
                     displayFiles();
                 } else {
-                    alert(`Erro no upload de ${file.name}: ${result.error}`);
+                    showNotificacao(`Falha no envio de <strong>${file.name}</strong>: ${result.error || 'erro desconhecido'}`, 'erro');
                 }
             } catch (error) {
-                alert(`Erro no upload de ${file.name}: ${error.message}`);
+                showNotificacao(`Não foi possível enviar <strong>${file.name}</strong>. Verifique sua conexão.`, 'erro');
             }
         }
 
         function displayFiles() {
-            if (uploadedFiles.length === 0) {
-                fileList.style.display = 'none';
-                return;
-            }
-
+            if (!uploadedFiles.length) { fileList.style.display = 'none'; return; }
             fileList.style.display = 'block';
-
             filesContainer.innerHTML = '';
-
             uploadedFiles.forEach((item, index) => {
-                const fileDiv = document.createElement('div');
-                fileDiv.className = 'file-item';
-                fileDiv.innerHTML = `
-                <div class="d-flex justify-content-between align-items-center">
-                    <div class="flex-grow-1">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-file me-2"></i>
+                const div = document.createElement('div');
+                div.className = 'file-item';
+                div.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fas fa-file-alt text-gold"></i>
                             <div>
-                                <strong>${item.file.name}</strong><br>
-                                <small class="text-muted">
-                                    ${(item.file.size / 1024 / 1024).toFixed(2)} MB
-                                </small>
+                                <div style="font-weight:600;font-size:.9rem;">${item.file.name}</div>
+                                <small class="text-muted">${(item.file.size/1024/1024).toFixed(2)} MB</small>
                             </div>
                         </div>
-                    </div>
-                    <div class="flex-shrink-0">
-                        <span class="validation-status status-valid me-2">
-                            <i class="fas fa-check-circle me-1"></i>Válido
-                        </span>
-                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeFile(${index})">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                </div>
-            `;
-
-                filesContainer.appendChild(fileDiv);
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="validation-status status-valid"><i class="fas fa-check me-1"></i>Válido</span>
+                            <button type="button" class="btn btn-sm btn-remove-file" data-index="${index}"
+                                    style="background:none;border:none;color:var(--color-danger);padding:2px 6px;"
+                                    aria-label="Remover arquivo ${item.file.name}">
+                                <i class="fas fa-times" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>`;
+                filesContainer.appendChild(div);
             });
         }
 
-        window.removeFile = function (index) {
-            uploadedFiles.splice(index, 1);
+        filesContainer.addEventListener('click', function (e) {
+            const btn = e.target.closest('.btn-remove-file');
+            if (!btn) return;
+            uploadedFiles.splice(Number(btn.dataset.index), 1);
             displayFiles();
-        };
+        });
 
-        // Intercepta submissão do formulário
         form.addEventListener('submit', function (e) {
             e.preventDefault();
-
-            // Verifica se o tópico foi preenchido (obrigatório)
             const topico = document.getElementById('topico_pesquisa').value.trim();
-            if (!topico) {
-                alert('O tópico de pesquisa é obrigatório.');
-                return;
-            }
+            if (!topico) { showNotificacao('Informe o tópico de pesquisa antes de continuar.', 'aviso'); return; }
 
-            // Cria FormData
             const formData = new FormData(form);
-
-            // Adiciona links se fornecidos
             const links = document.getElementById('links_sites').value.trim();
-            if (links) {
-                formData.append('links_sites', links);
-            }
+            if (links) formData.append('links_sites', links);
+            uploadedFiles.forEach(item => formData.append('arquivos', item.file));
 
-            // Adiciona arquivos se fornecidos
-            uploadedFiles.forEach(item => {
-                formData.append('arquivos', item.file);
-            });
-
-            // Submete formulário (sem check de arquivos - opcional)
-            fetch('/analise', {
-                method: 'POST',
-                body: formData
-            })
-                .then(response => response.text())
-                .then(html => {
-                    document.body.innerHTML = html;
-                })
-                .catch(error => {
-                    alert(`Erro ao iniciar análise: ${error.message}`);
-                });
+            fetch('/analise', { method: 'POST', headers: { 'X-CSRFToken': getCsrf() }, body: formData })
+                .then(r => r.text())
+                .then(html => { document.body.innerHTML = html; })
+                .catch(() => { showNotificacao('Não foi possível iniciar a análise. Tente novamente.', 'erro'); });
         });
     });
 </script>

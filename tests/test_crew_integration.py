@@ -160,11 +160,9 @@ class TestWebApp:
         return app.test_client()
 
     def test_health_check(self, client):
-        resp = client.get('/api/health')
-        assert resp.status_code == 200
-        data = resp.get_json()
-        assert data['status'] == 'healthy'
-        assert 'versao' in data
+        """Health check requer autenticação — sem login deve redirecionar."""
+        resp = client.get('/api/health', follow_redirects=False)
+        assert resp.status_code == 302
 
     def test_login_get(self, client):
         resp = client.get('/login')
@@ -191,10 +189,10 @@ class TestWebApp:
         # Deve retornar 404 ou redirecionar para login
         assert resp.status_code in (404, 302)
 
-    def test_api_health_nao_requer_login(self, client):
-        """Health check deve estar acessível sem autenticação."""
-        resp = client.get('/api/health')
-        assert resp.status_code == 200
+    def test_api_health_requer_login(self, client):
+        """Health check requer autenticação — sem login redireciona para login."""
+        resp = client.get('/api/health', follow_redirects=False)
+        assert resp.status_code == 302
 
 
 class TestFluxoEndToEnd:

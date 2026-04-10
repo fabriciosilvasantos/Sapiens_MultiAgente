@@ -12,7 +12,14 @@ class StatisticalAnalysisToolInput(BaseModel):
     data: str = Field(..., description="JSON string containing the data to analyze")
     analysis_type: str = Field(
         ...,
-        description="Type of analysis: descriptive, correlation, hypothesis_test, regression, anova_one_way"
+        description=(
+            "Tipo de análise estatística a executar. Valores aceitos (português ou inglês): "
+            "'descritiva' ou 'descriptive' — estatísticas descritivas e normalidade; "
+            "'correlacao' ou 'correlation' — matriz de correlação; "
+            "'teste_hipotese' ou 'hypothesis_test' — testes t e qui-quadrado; "
+            "'regressao' ou 'regression' — regressão linear; "
+            "'anova' ou 'anova_one_way' — ANOVA one-way com post-hoc Tukey."
+        )
     )
     variables: Optional[List[str]] = Field(default=None, description="Variables to analyze")
     group_column: Optional[str] = Field(
@@ -46,6 +53,22 @@ class StatisticalAnalysisTool(BaseTool):
         Returns:
             Resultados da análise estatística
         """
+        # Mapeamento PT→EN: aceita termos em português ou inglês
+        _ALIASES = {
+            "descritiva": "descriptive",
+            "descritivo": "descriptive",
+            "correlacao": "correlation",
+            "correlação": "correlation",
+            "teste_hipotese": "hypothesis_test",
+            "teste_hipótese": "hypothesis_test",
+            "hipotese": "hypothesis_test",
+            "hipótese": "hypothesis_test",
+            "regressao": "regression",
+            "regressão": "regression",
+            "anova": "anova_one_way",
+        }
+        analysis_type = _ALIASES.get(analysis_type.lower(), analysis_type.lower())
+
         try:
             # Parse dos dados
             data_dict = json.loads(data)
@@ -62,7 +85,7 @@ class StatisticalAnalysisTool(BaseTool):
                 return "❌ ERRO: Dados vazios fornecidos."
 
             # Para ANOVA, preserva a coluna de grupo antes de filtrar variáveis
-            if analysis_type.lower() == "anova_one_way":
+            if analysis_type == "anova_one_way":
                 return self._anova_one_way(df, group_column, variables, alpha)
 
             # Selecionar variáveis se especificadas
@@ -73,18 +96,18 @@ class StatisticalAnalysisTool(BaseTool):
                 df = df[available_vars]
 
             # Executar análise baseada no tipo
-            if analysis_type.lower() == "descriptive":
+            if analysis_type == "descriptive":
                 return self._descriptive_analysis(df)
-            elif analysis_type.lower() == "correlation":
+            elif analysis_type == "correlation":
                 return self._correlation_analysis(df)
-            elif analysis_type.lower() == "hypothesis_test":
+            elif analysis_type == "hypothesis_test":
                 return self._hypothesis_testing(df, alpha)
-            elif analysis_type.lower() == "regression":
+            elif analysis_type == "regression":
                 return self._regression_analysis(df)
             else:
                 return (
                     f"❌ ERRO: Tipo de análise não suportado: '{analysis_type}'. "
-                    "Use: descriptive, correlation, hypothesis_test, regression, anova_one_way"
+                    "Use: descritiva, correlacao, regressao, teste_hipotese, anova"
                 )
 
         except json.JSONDecodeError:

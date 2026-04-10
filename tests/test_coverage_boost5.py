@@ -571,10 +571,13 @@ class TestWebAppMoreBranches:
                 """, (datetime.now().isoformat(),))
                 conn.commit()
 
-            # Cria interface DEPOIS de inserir — _carregar_analises_ativas encontra a row
+            # Cria interface DEPOIS de inserir — _carregar_analises_ativas marca as órfãs como erro
             interface2 = SapiensWebInterface()
-        # Linha 104 foi exercitada: cache['analise-ativa'] = {...}
-        assert 'analise-ativa' in interface2.analises_ativas
+            # Verifica que a análise foi marcada como erro (comportamento de cleanup no startup)
+            with _get_db() as conn:
+                row = conn.execute("SELECT status FROM analises WHERE id = 'analise-ativa'").fetchone()
+        assert row['status'] == 'erro'
+        assert interface2.analises_ativas == {}
 
     # ---- _validar_url: cloud metadata bloqueado (linha 588) ----
     def test_validar_url_cloud_metadata(self, app_cliente):

@@ -12,6 +12,9 @@ from .tools.pdf_search_tool import PDFSearchTool
 from .tools.docx_search_tool import DOCXSearchTool
 from .tools.csv_search_tool import CSVSearchTool
 from .tools.chart_generator_tool import ChartGeneratorTool
+from .tools.external_data_tool import ExternalDataTool
+from .tools.quality_review_tool import QualityReviewTool
+from .tools.text_analysis_tool import TextAnalysisTool
 
 
 @CrewBase
@@ -24,7 +27,6 @@ class SapiensAcademicMultiAgentDataAnalysisPlatformCrew:
             config=self.agents_config["agente_gerente_orquestrador"],
             tools=[
                 FileReadTool(),
-                ScrapeWebsiteTool(),
                 DataValidationTool(),
                 CSVProcessorTool(),
             ],
@@ -37,7 +39,7 @@ class SapiensAcademicMultiAgentDataAnalysisPlatformCrew:
             tools=[
                 FileReadTool(),
                 StatisticalAnalysisTool(),
-                ChartGeneratorTool(),
+                ChartGeneratorTool(),  # único agente com geração de gráficos
             ],
         )
 
@@ -48,9 +50,6 @@ class SapiensAcademicMultiAgentDataAnalysisPlatformCrew:
             tools=[
                 FileReadTool(),
                 StatisticalAnalysisTool(),
-                CSVProcessorTool(),
-                PDFSearchTool(),
-                DOCXSearchTool(),
             ],
         )
 
@@ -71,8 +70,38 @@ class SapiensAcademicMultiAgentDataAnalysisPlatformCrew:
             tools=[
                 FileReadTool(),
                 StatisticalAnalysisTool(),
-                CSVProcessorTool(),
                 CSVSearchTool(),
+            ],
+        )
+
+    @agent
+    def especialista_em_fontes_externas(self) -> Agent:
+        return Agent(
+            config=self.agents_config["especialista_em_fontes_externas"],
+            tools=[
+                ExternalDataTool(),
+                ScrapeWebsiteTool(),
+            ],
+        )
+
+    @agent
+    def especialista_em_analise_textual(self) -> Agent:
+        return Agent(
+            config=self.agents_config["especialista_em_analise_textual"],
+            tools=[
+                TextAnalysisTool(),
+                FileReadTool(),
+                PDFSearchTool(),
+                DOCXSearchTool(),
+            ],
+        )
+
+    @agent
+    def revisor_de_qualidade_cientifica(self) -> Agent:
+        return Agent(
+            config=self.agents_config["revisor_de_qualidade_cientifica"],
+            tools=[
+                QualityReviewTool(),
             ],
         )
 
@@ -114,6 +143,26 @@ class SapiensAcademicMultiAgentDataAnalysisPlatformCrew:
         return Task(
             config=self.tasks_config["executar_analise_prescritiva"],
             async_execution=True,
+        )
+
+    @task
+    def buscar_dados_externos_e_benchmarks(self) -> Task:
+        return Task(
+            config=self.tasks_config["buscar_dados_externos_e_benchmarks"],
+            async_execution=True,
+        )
+
+    @task
+    def executar_analise_textual(self) -> Task:
+        return Task(
+            config=self.tasks_config["executar_analise_textual"],
+            async_execution=True,
+        )
+
+    @task
+    def revisar_qualidade_cientifica(self) -> Task:
+        return Task(
+            config=self.tasks_config["revisar_qualidade_cientifica"],
         )
 
     @task

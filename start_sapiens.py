@@ -88,7 +88,7 @@ class SapiensLauncher:
 
         return False
 
-    def start_web_interface(self, host="127.0.0.1", port=5000):
+    def start_web_interface(self, host="127.0.0.1", port=4000):
         """Inicia interface web"""
         print("🌐 Iniciando interface web SAPIENS...")
         print(f"📡 Endereço: http://{host}:{port}")
@@ -163,7 +163,7 @@ class SapiensLauncher:
         parser.add_argument("--cli", action="store_true", help="Executar análise CLI")
         parser.add_argument("--status", action="store_true", help="Mostrar status")
         parser.add_argument("--host", default="127.0.0.1", help="Host para interface web")
-        parser.add_argument("--port", type=int, default=5000, help="Porta para interface web")
+        parser.add_argument("--port", type=int, default=4000, help="Porta para interface web")
         parser.add_argument("--topic", help="Tópico de pesquisa para análise CLI")
 
         args = parser.parse_args()

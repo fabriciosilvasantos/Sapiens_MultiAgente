@@ -1,107 +1,141 @@
 ---
 validacao_rigorosa_de_dados_e_pergunta:
-  description: "**ETAPA CRÍTICA DE VALIDAÇÃO**: \n1) Analisar a pergunta sobre {topico_pesquisa}
-    \n2) **VERIFICAR OBRIGATORIAMENTE** se o usuário forneceu DADOS REAIS em qualquer
-    formato (CSV, Excel, PDF, DOCX, links para datasets, URLs de relatórios, etc.)\n3)
-    Se NÃO houver dados reais: **PARAR AQUI** e solicitar dados específicos ao usuário
-    explicando que tipos de arquivos ou fontes são aceitos\n4) Se houver dados: validar
-    acesso e qualidade antes de prosseguir\n5) **TRANSPARÊNCIA TOTAL**: sempre informar
-    se tem dados reais ou não\n\n**REGRA FUNDAMENTAL**: NUNCA inventar, simular ou
-    fabricar dados. Apenas trabalhar com dados reais fornecidos pelo usuário."
-  expected_output: "**DECISÃO TRANSPARENTE**: \n- **DADOS DISPONÍVEIS**: Lista dos
-    arquivos/fontes reais fornecidos pelo usuário + plano de análise detalhado \n-
-    **DADOS FALTANDO**: Solicitação específica de dados ao usuário com lista de formatos
-    aceitos (CSV, Excel, PDF, DOCX, links) e tipo de informações necessárias para
-    {topico_pesquisa}\n- **TRANSPARÊNCIA**: Status claro sobre disponibilidade de
-    dados reais vs necessidade de dados do usuário"
+  description: |
+    Verificar se o usuário forneceu dados reais para análise de {topico_pesquisa}.
+    Formatos aceitos: CSV, Excel, PDF, DOCX, URLs de datasets ou relatórios.
+    - SE há dados: validar acesso e qualidade, confirmar ao usuário e prosseguir.
+    - SE não há dados: PARAR e solicitar arquivos especificando formatos aceitos.
+    NUNCA inventar, simular ou fabricar dados.
+  expected_output: |
+    Uma linha de status: "DADOS VALIDADOS: [lista de arquivos/fontes]" ou
+    "DADOS NECESSÁRIOS: [solicitação clara ao usuário com formatos aceitos]".
   agent: agente_gerente_orquestrador
-processamento_de_dados_reais_validados:
-  description: |-
-    **SEGUNDA ETAPA** (executar APENAS se dados reais foram validados):
-    1) Processar arquivos fornecidos pelo usuário (CSV, Excel, PDF, DOCX) ou acessar URLs/links validados
-    2) Usar ferramentas apropriadas: PDFSearchTool para PDF, DOCXSearchTool para DOCX, CSVSearchTool para CSV
-    3) Extrair e limpar dados reais sobre {topico_pesquisa}
-    4) Documentar estrutura, qualidade e características dos dados REAIS
-    5) Preparar dados para análise mantendo rastreabilidade da fonte
 
-    **PROIBIDO**: Gerar, simular ou inventar qualquer dado. Trabalhar APENAS com dados reais fornecidos.
-  expected_output: 'Relatório de processamento de dados REAIS incluindo: origem dos
-    dados (arquivos/links específicos), estrutura do dataset real, avaliação de qualidade
-    dos dados fornecidos, limpezas realizadas nos dados reais, e dados preparados
-    para análise com rastreabilidade completa da fonte.'
+processamento_de_dados_reais_validados:
+  description: |
+    Processar os arquivos validados sobre {topico_pesquisa}:
+    usar CSVProcessorTool para CSV/Excel, FileReadTool para PDF/DOCX.
+    Extrair, limpar e estruturar os dados mantendo rastreabilidade da fonte.
+  expected_output: |
+    Sumário de processamento (máx. 300 palavras): origem dos dados, estrutura
+    do dataset (colunas, linhas, tipos), qualidade (nulos, outliers detectados)
+    e dados prontos para análise. Sem reproduzir os dados brutos.
   agent: agente_gerente_orquestrador
   context:
   - validacao_rigorosa_de_dados_e_pergunta
+
 executar_analise_descritiva:
-  description: Quando o Agente Gerente determina que analise descritiva e necessaria
-    para {topico_pesquisa}, realizar analise estatistica abrangente para responder
-    "O que aconteceu?". Gerar resumos estatisticos, identificar tendencias, criar
-    visualizacoes de dados e analisar padroes no conjunto de dados academicos. Focar
-    em fornecer descricoes claras do estado atual e padroes historicos.
-  expected_output: Um relatorio detalhado de analise descritiva com resumos estatisticos,
-    analise de tendencias, visualizacoes de dados (graficos, tabelas), analises comparativas
-    e explicacoes claras do que os dados revelam sobre {topico_pesquisa}. Incluir
-    metricas principais, distribuicoes e padroes apresentados em formato acessivel
-    para gestores academicos.
+  description: |
+    Análise descritiva de {topico_pesquisa} — "O que aconteceu?".
+    Calcular estatísticas (média, mediana, desvio padrão, distribuição),
+    identificar tendências temporais e gerar visualizações dos dados acadêmicos.
+  expected_output: |
+    Relatório descritivo (máx. 400 palavras) com: principais métricas e
+    distribuições, tendências identificadas, gráficos em markdown e
+    3–5 achados-chave destacados. Evitar repetir dados já no sumário de processamento.
   agent: especialista_em_analise_descritiva
   context:
   - processamento_de_dados_reais_validados
+
 executar_analise_diagnostica:
-  description: Quando o Agente Gerente determina que analise diagnostica e necessaria
-    para {topico_pesquisa}, realizar analise causal aprofundada para responder "Por
-    que aconteceu?". Identificar correlacoes, testar hipoteses, analisar relacionamentos
-    entre variaveis e descobrir causas raiz de padroes observados nos dados academicos.
-  expected_output: Um relatorio abrangente de analise diagnostica incluindo analise
-    de correlacao, resultados de testes de hipoteses, relacionamentos causais identificados,
-    testes de significancia estatistica e explicacoes de por que certos padroes existem
-    nos dados de {topico_pesquisa}. Fornecer explicacoes baseadas em evidencias para
-    fenomenos observados com validacao estatistica.
+  description: |
+    Análise diagnóstica de {topico_pesquisa} — "Por que aconteceu?".
+    Calcular correlações, executar testes de hipóteses (com α=0,05) e
+    identificar causas raiz dos padrões observados nos dados acadêmicos.
+  expected_output: |
+    Relatório diagnóstico (máx. 400 palavras) com: correlações significativas
+    encontradas, resultados dos testes estatísticos (estatística + p-valor +
+    tamanho de efeito), causas identificadas e 3–5 achados-chave.
   agent: especialista_em_analise_diagnostica
   context:
   - processamento_de_dados_reais_validados
+
 executar_analise_preditiva:
-  description: Quando o Agente Gerente determina que analise preditiva e necessaria
-    para {topico_pesquisa}, construir modelos de previsao para responder "O que pode
-    acontecer?". Criar modelos preditivos, gerar previsoes, estimar probabilidades
-    de resultados futuros e identificar tendencias que podem ajudar a antecipar cenarios
-    academicos futuros.
-  expected_output: Um relatorio de analise preditiva contendo modelos de previsao,
-    estimativas de probabilidade, projecoes de tendencias, intervalos de confianca
-    e predicoes sobre resultados futuros relacionados a {topico_pesquisa}. Incluir
-    metricas de validacao do modelo, avaliacoes de precisao e cenarios para planejamento
-    futuro por gestores universitarios.
+  description: |
+    Análise preditiva de {topico_pesquisa} — "O que pode acontecer?".
+    Construir modelo de previsão, gerar projeções com intervalos de confiança
+    e estimar tendências futuras relevantes para o planejamento acadêmico.
+  expected_output: |
+    Relatório preditivo (máx. 400 palavras) com: modelo utilizado, métricas
+    de validação, projeções para os próximos períodos com intervalos de
+    confiança e 3–5 cenários para planejamento estratégico.
   agent: especialista_em_analise_preditiva
   context:
   - processamento_de_dados_reais_validados
+
 executar_analise_prescritiva:
-  description: Quando o Agente Gerente determina que analise prescritiva e necessaria
-    para {topico_pesquisa}, gerar recomendacoes acionaveis para responder "O que devemos
-    fazer?". Desenvolver estrategias de otimizacao, criar alternativas de decisao
-    e fornecer planos de acao concretos baseados em insights de dados e resultados
-    de analises.
-  expected_output: Um relatorio de analise prescritiva com recomendacoes especificas
-    e acionaveis para {topico_pesquisa}, incluindo estrategias de otimizacao, planos
-    de implementacao, sugestoes de alocacao de recursos, avaliacoes de risco e itens
-    de acao priorizados. Fornecer passos concretos que administradores universitarios
-    e pesquisadores podem implementar para melhorar resultados.
+  description: |
+    Análise prescritiva de {topico_pesquisa} — "O que devemos fazer?".
+    Gerar recomendações acionáveis priorizadas por impacto, com planos
+    de implementação e métricas de acompanhamento para gestores.
+  expected_output: |
+    Relatório prescritivo (máx. 400 palavras) com: lista priorizada de
+    recomendações (alta/média/baixa urgência), passos de implementação
+    por recomendação e indicadores de sucesso mensuráveis.
   agent: especialista_em_analise_prescritiva
   context:
   - processamento_de_dados_reais_validados
-compilacao_e_apresentacao_do_relatorio_final:
-  description: Compilar e sintetizar todos os resultados de analises dos agentes especialistas
-    em um relatorio final abrangente. Validar os resultados quanto a solidez estatistica
-    e relevancia academica. Traduzir descobertas tecnicas em insights claros e acionaveis
-    adequados para {topico_pesquisa}. Criar resumos executivos, visualizacoes e recomendacoes
-    que possam ser facilmente entendidas e implementadas por gestores universitarios.
-  expected_output: 'Um relatorio final abrangente da plataforma SAPIENS incluindo:
-    1) Resumo executivo com principais descobertas, 2) Resultados detalhados de analises
-    com visualizacoes, 3) Validacao estatistica e medidas de confianca, 4) Recomendacoes
-    acionaveis para gestao universitaria, 5) Diretrizes de implementacao, 6) Apendices
-    com detalhes tecnicos. O relatorio deve ser acessivel para audiencias nao-tecnicas
-    mantendo rigor analitico.'
-  agent: agente_gerente_orquestrador
+
+buscar_dados_externos_e_benchmarks:
+  description: |
+    Buscar benchmarks nacionais relevantes para contextualizar {topico_pesquisa}.
+    Usar ExternalDataTool para obter indicadores INEP/IBGE/CAPES/MEC e
+    comparar com os dados institucionais processados.
+  expected_output: |
+    Tabela de benchmarks (máx. 200 palavras): indicador nacional × valor de
+    referência × fonte, com nota sobre como comparar com os dados da instituição.
+  agent: especialista_em_fontes_externas
+  context:
+  - processamento_de_dados_reais_validados
+
+executar_analise_textual:
+  description: |
+    Analisar conteúdo textual dos documentos de {topico_pesquisa}.
+    Extrair palavras-chave, identificar entidades (instituições, datas,
+    indicadores) e detectar temas predominantes em PDFs/DOCX fornecidos.
+  expected_output: |
+    Relatório textual (máx. 300 palavras) com: top-10 palavras-chave,
+    entidades identificadas em tabela, temas por relevância e
+    síntese qualitativa em 2–3 parágrafos.
+  agent: especialista_em_analise_textual
+  context:
+  - processamento_de_dados_reais_validados
+
+revisar_qualidade_cientifica:
+  description: |
+    Revisar a qualidade metodológica dos relatórios produzidos sobre {topico_pesquisa}.
+    Verificar nos sumários recebidos: afirmações causais sem suporte, generalizações
+    absolutas, p-valor sem tamanho de efeito, R² baixo sem ressalva, amostras pequenas
+    não sinalizadas. Aplicar checklist por tipo de análise e pontuar 0–100.
+  expected_output: |
+    Parecer de qualidade (máx. 350 palavras): pontuação geral (0–100), nível
+    (Excelente/Satisfatório/Necessita melhorias/Revisão necessária), alertas
+    metodológicos encontrados, checklist resumido por tipo de análise e
+    até 3 recomendações prioritárias de melhoria.
+  agent: revisor_de_qualidade_cientifica
   context:
   - executar_analise_descritiva
   - executar_analise_diagnostica
   - executar_analise_preditiva
   - executar_analise_prescritiva
+  - buscar_dados_externos_e_benchmarks
+  - executar_analise_textual
+
+compilacao_e_apresentacao_do_relatorio_final:
+  description: |
+    Compilar relatório final sobre {topico_pesquisa} integrando todos os resultados.
+    Sintetizar achados dos especialistas, incorporar o parecer de qualidade e
+    traduzir descobertas técnicas em linguagem acessível para gestores universitários.
+  expected_output: |
+    Relatório final em markdown com:
+    1. Resumo executivo (3–5 bullets principais)
+    2. Análise descritiva — achados-chave
+    3. Análise diagnóstica — causas identificadas
+    4. Análise preditiva — cenários futuros
+    5. Análise prescritiva — recomendações priorizadas
+    6. Contextualização nacional (benchmarks INEP/IBGE)
+    7. Síntese documental (análise textual)
+    8. Parecer de qualidade científica e ressalvas metodológicas
+  agent: agente_gerente_orquestrador
+  context:
+  - revisar_qualidade_cientifica

@@ -3,259 +3,689 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}SAPIENS - Plataforma Acadêmica{% endblock %}</title>
+    <title>{% block title %}SAPIENS — Plataforma Acadêmica{% endblock %}</title>
 
-    <!-- CSRF token para uso em requisições AJAX -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
-    <!-- Estilos customizados -->
     <style>
-        .navbar-brand {
-            font-weight: bold;
-            font-size: 1.5rem;
+        /* ── Variables ─────────────────────────────────────────────── */
+        :root {
+            --navy:        #0f1729;
+            --navy-mid:    #1a2744;
+            --navy-light:  #243354;
+            --gold:        #e8a020;
+            --gold-light:  #f5c842;
+            --gold-pale:   #fdf3dc;
+            --cream:       #faf8f3;
+            --white:       #ffffff;
+            --text:        #1a1a2e;
+            --text-muted:  #6b7280;
+            --border:      #e5e7eb;
+            --radius:      14px;
+            --shadow-sm:   0 1px 4px rgba(15,23,41,.06);
+            --shadow:      0 4px 20px rgba(15,23,41,.10);
+            --shadow-lg:   0 12px 40px rgba(15,23,41,.16);
+            --color-success:       #10b981;
+            --color-success-light: #34d399;
+            --color-danger:        #ef4444;
+            --color-danger-light:  #fca5a5;
+            --color-info:          #3b82f6;
+            --color-warning:       #f59e0b;
         }
 
+        /* ── Base ───────────────────────────────────────────────────── */
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 400;
+            color: var(--text);
+            background: var(--cream);
+            line-height: 1.65;
+        }
+
+        h1, h2, h3, .brand-text {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-weight: 700;
+            letter-spacing: -.01em;
+        }
+
+        /* ── Navbar ─────────────────────────────────────────────────── */
+        .sapiens-nav {
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            padding: .75rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1030;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .sapiens-nav .brand-text {
+            font-size: 1.6rem;
+            color: var(--navy);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+        }
+
+        .sapiens-nav .brand-text .brand-dot {
+            width: 8px; height: 8px;
+            background: var(--gold);
+            border-radius: 50%;
+            display: inline-block;
+            margin-bottom: 2px;
+        }
+
+        .sapiens-nav .nav-link {
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 500;
+            font-size: .9rem;
+            color: var(--text-muted);
+            padding: .4rem .85rem;
+            border-radius: 6px;
+            transition: color .18s, background .18s;
+            text-decoration: none;
+        }
+
+        .sapiens-nav .nav-link:hover,
+        .sapiens-nav .nav-link.active {
+            color: var(--navy);
+            background: var(--gold-pale);
+        }
+
+        .sapiens-nav .nav-link.active {
+            color: var(--gold);
+            font-weight: 600;
+        }
+
+        .sapiens-nav .btn-nav-cta {
+            font-family: 'DM Sans', sans-serif;
+            font-size: .85rem;
+            font-weight: 600;
+            background: var(--navy);
+            color: var(--white);
+            border: none;
+            padding: .45rem 1.1rem;
+            border-radius: 8px;
+            transition: background .2s, transform .15s;
+        }
+
+        .sapiens-nav .btn-nav-cta:hover {
+            background: var(--navy-mid);
+            color: var(--white);
+            transform: translateY(-1px);
+        }
+
+        /* ── Hero ───────────────────────────────────────────────────── */
         .hero-section {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 100px 0;
+            background: var(--navy);
+            color: var(--white);
+            padding: 100px 0 90px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='104'%3E%3Cpath d='M30 0 L60 17 L60 51 L30 68 L0 51 L0 17Z' fill='none' stroke='rgba(232,160,32,.12)' stroke-width='1'/%3E%3Cpath d='M30 36 L60 53 L60 87 L30 104 L0 87 L0 53Z' fill='none' stroke='rgba(232,160,32,.12)' stroke-width='1'/%3E%3C/svg%3E");
+            background-size: 60px 104px;
+            opacity: 1;
+        }
+
+        .hero-section > .container { position: relative; }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: .45rem;
+            background: rgba(232,160,32,.15);
+            border: 1px solid rgba(232,160,32,.3);
+            color: var(--gold-light);
+            font-size: .78rem;
+            font-weight: 600;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            padding: .3rem .85rem;
+            border-radius: 20px;
+            margin-bottom: 1.5rem;
+        }
+
+        /* ── Cards ──────────────────────────────────────────────────── */
+        .card {
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            background: var(--white);
+        }
+
+        .card-accent {
+            border-top: 3px solid var(--gold);
+        }
+
+        .card-hover {
+            transition: transform .22s, box-shadow .22s;
+            cursor: default;
         }
 
         .card-hover:hover {
-            transform: translateY(-5px);
-            transition: transform 0.3s ease;
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
         }
 
+        .card-header {
+            background: transparent;
+            border-bottom: 1px solid var(--border);
+            padding: 1.1rem 1.4rem;
+        }
+
+        .card-header.dark {
+            background: var(--navy);
+            color: var(--white);
+            border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
+        }
+
+        .card-header.gold {
+            background: var(--gold);
+            color: var(--navy);
+            border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
+        }
+
+        .card-header.success-bg {
+            background: #064e3b;
+            color: var(--white);
+            border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
+        }
+
+        /* ── Buttons ────────────────────────────────────────────────── */
+        .btn-sapiens {
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 600;
+            font-size: .92rem;
+            background: var(--navy);
+            border: 2px solid var(--navy);
+            color: var(--white);
+            padding: .65rem 1.8rem;
+            border-radius: 10px;
+            transition: background .2s, border-color .2s, transform .15s, box-shadow .2s;
+            letter-spacing: .01em;
+        }
+
+        .btn-sapiens:hover {
+            background: var(--gold);
+            border-color: var(--gold);
+            color: var(--navy);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(232,160,32,.35);
+        }
+
+        .btn-sapiens:active { transform: translateY(0); }
+
+        .btn-sapiens-outline {
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 600;
+            font-size: .92rem;
+            background: transparent;
+            border: 2px solid var(--navy);
+            color: var(--navy);
+            padding: .65rem 1.8rem;
+            border-radius: 10px;
+            transition: all .2s;
+        }
+
+        .btn-sapiens-outline:hover {
+            background: var(--navy);
+            color: var(--white);
+            transform: translateY(-2px);
+        }
+
+        .btn-gold {
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 700;
+            background: var(--gold);
+            border: none;
+            color: var(--navy);
+            padding: .75rem 2rem;
+            border-radius: 10px;
+            transition: background .2s, transform .15s, box-shadow .2s;
+            letter-spacing: .01em;
+        }
+
+        .btn-gold:hover {
+            background: var(--gold-light);
+            color: var(--navy);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(232,160,32,.4);
+        }
+
+        /* ── File Upload ────────────────────────────────────────────── */
         .file-upload-area {
-            border: 2px dashed #dee2e6;
-            border-radius: 8px;
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
             padding: 40px;
             text-align: center;
-            background-color: #f8f9fa;
-            transition: all 0.3s ease;
+            background: var(--cream);
+            transition: all .25s;
         }
 
         .file-upload-area:hover,
         .file-upload-area.dragover {
-            border-color: #007bff;
-            background-color: #e3f2fd;
+            border-color: var(--gold);
+            background: var(--gold-pale);
         }
 
-        .progress-custom {
-            height: 10px;
+        /* ── Progress ───────────────────────────────────────────────── */
+        .progress {
+            background: #e9ecef;
+            border-radius: 99px;
+            overflow: hidden;
         }
 
-        .status-badge {
-            font-size: 0.9em;
+        .progress-bar {
+            background: linear-gradient(90deg, var(--navy), var(--gold));
+            border-radius: 99px;
+            transition: width .4s ease;
         }
 
-        .btn-sapiens {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .progress-bar.bg-warning  { background: var(--gold) !important; }
+        .progress-bar.bg-info     { background: var(--color-info) !important; }
+        .progress-bar.bg-success  { background: var(--color-success) !important; }
+        .progress-bar.bg-danger   { background: var(--color-danger) !important; }
+
+        /* ── Badges ─────────────────────────────────────────────────── */
+        .badge {
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 600;
+            font-size: .72rem;
+            letter-spacing: .04em;
+            border-radius: 6px;
+            padding: .3em .65em;
+        }
+
+        /* ── Tables ─────────────────────────────────────────────────── */
+        .table thead th {
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 600;
+            font-size: .82rem;
+            letter-spacing: .05em;
+            text-transform: uppercase;
+            background: var(--navy);
+            color: var(--white);
             border: none;
-            color: white;
+            padding: .85rem 1rem;
         }
 
-        .btn-sapiens:hover {
-            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-            color: white;
+        .table tbody td {
+            vertical-align: middle;
+            padding: .85rem 1rem;
+            border-color: var(--border);
         }
 
-        .footer {
-            background-color: #f8f9fa;
-            padding: 40px 0;
-            margin-top: 50px;
-            margin-bottom: 60px; /* Espaço para bottom nav em mobile */
+        .table tbody tr:hover td { background: var(--gold-pale); }
+
+        /* ── Forms ──────────────────────────────────────────────────── */
+        .form-control, .form-select {
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            padding: .65rem 1rem;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .93rem;
+            transition: border-color .2s, box-shadow .2s;
         }
 
-        /* Mobile First Improvements */
+        .form-control:focus, .form-select:focus {
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(232,160,32,.18);
+            outline: none;
+        }
+
+        .form-control:focus-visible, .form-select:focus-visible,
+        a:focus-visible, button:focus-visible {
+            outline: 2px solid var(--gold);
+            outline-offset: 2px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            font-size: .88rem;
+            color: var(--text);
+            margin-bottom: .4rem;
+        }
+
+        .form-text {
+            font-size: .8rem;
+            color: var(--text-muted);
+        }
+
+        .input-group-text {
+            background: var(--cream);
+            border: 1.5px solid var(--border);
+            color: var(--text-muted);
+        }
+
+        /* ── Alerts ─────────────────────────────────────────────────── */
+        .alert {
+            border-radius: var(--radius);
+            border: 1px solid transparent;
+            font-size: .9rem;
+        }
+
+        .alert-info {
+            background: #eff6ff;
+            border-color: #bfdbfe;
+            color: #1e40af;
+        }
+
+        .alert-success {
+            background: #f0fdf4;
+            border-color: #bbf7d0;
+            color: #166534;
+        }
+
+        .alert-danger {
+            background: #fef2f2;
+            border-color: #fecaca;
+            color: #991b1b;
+        }
+
+        .alert-warning {
+            background: var(--gold-pale);
+            border-color: #fde68a;
+            color: #92400e;
+        }
+
+        /* ── Nav Tabs/Pills ─────────────────────────────────────────── */
+        .nav-pills .nav-link {
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 500;
+            font-size: .88rem;
+            color: var(--text-muted);
+            border-radius: 8px;
+            padding: .5rem 1rem;
+            transition: all .18s;
+        }
+
+        .nav-pills .nav-link.active {
+            background: var(--navy);
+            color: var(--white);
+        }
+
+        .nav-pills .nav-link:hover:not(.active) {
+            background: var(--gold-pale);
+            color: var(--navy);
+        }
+
+        /* ── List Group ─────────────────────────────────────────────── */
+        .list-group-item {
+            border-color: var(--border);
+            padding: .85rem 1.1rem;
+            font-size: .92rem;
+        }
+
+        .list-group-item.active {
+            background: var(--navy);
+            border-color: var(--navy);
+        }
+
+        /* ── Footer ─────────────────────────────────────────────────── */
+        .sapiens-footer {
+            background: var(--navy);
+            color: rgba(255,255,255,.7);
+            padding: 3rem 0 2rem;
+            margin-top: 4rem;
+        }
+
+        .sapiens-footer .footer-brand {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--white);
+        }
+
+        .sapiens-footer h6 {
+            color: var(--gold);
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 600;
+            font-size: .8rem;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            margin-bottom: .85rem;
+        }
+
+        .sapiens-footer a {
+            color: rgba(255,255,255,.75);
+            text-decoration: none;
+            font-size: .88rem;
+            transition: color .18s;
+        }
+
+        .sapiens-footer a:hover { color: var(--gold-light); }
+
+        .sapiens-footer .footer-divider {
+            border-color: rgba(255,255,255,.1);
+            margin: 1.5rem 0 1rem;
+        }
+
+        .sapiens-footer .footer-copy {
+            font-size: .8rem;
+            color: rgba(255,255,255,.4);
+        }
+
+        /* ── Bottom Nav (Mobile) ────────────────────────────────────── */
         @media (max-width: 991.98px) {
-            /* Aumentar tamanho de fonte de inputs para evitar zoom no iOS */
-            input, select, textarea {
-                font-size: 16px !important;
-            }
+            input, select, textarea { font-size: 16px !important; }
 
-            /* Bottom Navigation */
+            body { padding-bottom: 70px; }
+
             .bottom-nav {
                 position: fixed;
-                bottom: 0;
-                left: 0;
+                bottom: 0; left: 0;
                 width: 100%;
-                background-color: #fff;
-                box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+                background: var(--white);
+                box-shadow: 0 -1px 0 var(--border), 0 -4px 16px rgba(15,23,41,.08);
                 z-index: 1050;
-                padding: 10px 0;
+                padding: 8px 0 10px;
                 display: flex;
                 justify-content: space-around;
             }
 
             .bottom-nav-item {
                 text-align: center;
-                color: #6c757d;
+                color: var(--text-muted);
                 text-decoration: none;
-                font-size: 0.8rem;
+                font-size: .72rem;
+                font-weight: 500;
                 flex: 1;
-            }
-
-            .bottom-nav-item.active {
-                color: #667eea;
-                font-weight: bold;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 3px;
+                transition: color .18s;
             }
 
             .bottom-nav-item i {
-                display: block;
                 font-size: 1.2rem;
-                margin-bottom: 2px;
             }
-            
-            /* Ajuste para não esconder conteúdo atrás da nav */
-            body {
-                padding-bottom: 60px;
+
+            .bottom-nav-item.active,
+            .bottom-nav-item:hover {
+                color: var(--gold);
+            }
+
+            .bottom-nav-item.active i {
+                color: var(--gold);
             }
         }
-        
-        /* Garantir áreas de toque adequadas */
-        .btn, .nav-link {
-            min-height: 44px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+
+        /* ── Utility ────────────────────────────────────────────────── */
+        .text-gold { color: var(--gold); }
+        .text-navy { color: var(--navy); }
+        .bg-navy   { background: var(--navy); }
+        .bg-cream  { background: var(--cream); }
+
+        .section-label {
+            font-family: 'DM Sans', sans-serif;
+            font-size: .75rem;
+            font-weight: 700;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--gold);
+        }
+
+        /* ── Animations ─────────────────────────────────────────────── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-up { animation: fadeUp .5s ease both; }
+        .fade-up-1 { animation-delay: .1s; }
+        .fade-up-2 { animation-delay: .2s; }
+        .fade-up-3 { animation-delay: .3s; }
+        .fade-up-4 { animation-delay: .4s; }
+
+        /* ── Dark Mode ───────────────────────────────────────────────── */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --cream:      #111827;
+                --white:      #1f2937;
+                --text:       #f1f5f9;
+                --text-muted: #94a3b8;
+                --border:     rgba(255,255,255,.10);
+                --shadow-sm:  0 1px 4px rgba(0,0,0,.30);
+                --shadow:     0 4px 20px rgba(0,0,0,.40);
+                --shadow-lg:  0 12px 40px rgba(0,0,0,.55);
+                --gold-pale:  rgba(232,160,32,.12);
+            }
+            .sapiens-nav      { background: #1f2937; border-bottom-color: rgba(255,255,255,.08); }
+            .card             { background: #1f2937; border-color: rgba(255,255,255,.08); }
+            .card-header      { background: #111827; border-bottom-color: rgba(255,255,255,.08); }
+            .table            { --bs-table-bg: #1f2937; --bs-table-striped-bg: #111827; color: var(--text); }
+            .table td, .table th { border-color: rgba(255,255,255,.08); }
+            .form-control, .form-select { background: #111827; border-color: rgba(255,255,255,.15); color: var(--text); }
+            .form-control:focus, .form-select:focus { background: #111827; color: var(--text); }
+            .alert-info       { background: rgba(59,130,246,.15); border-color: rgba(59,130,246,.3); color: #93c5fd; }
+            .alert-success    { background: rgba(16,185,129,.15); border-color: rgba(16,185,129,.3); color: #6ee7b7; }
+            .alert-warning    { background: rgba(232,160,32,.15); border-color: rgba(232,160,32,.3); color: var(--gold-light); }
+            .alert-danger     { background: rgba(239,68,68,.15); border-color: rgba(239,68,68,.3); color: #fca5a5; }
+            .text-muted       { color: var(--text-muted) !important; }
+            .bg-cream         { background: var(--cream) !important; }
         }
     </style>
 
     {% block extra_head %}{% endblock %}
 </head>
 <body>
-    <!-- Navbar (Top - Simplificada em Mobile) -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="{{ url_for('index') }}">
-                <i class="fas fa-graduation-cap me-2"></i>SAPIENS
+
+    <!-- Navbar -->
+    <nav class="sapiens-nav" aria-label="Navegação principal">
+        <div class="container d-flex align-items-center justify-content-between">
+            <a href="{{ url_for('index') }}" class="brand-text" aria-label="SAPIENS — Página inicial">
+                <i class="fas fa-graduation-cap text-gold" style="font-size:1.3rem;" aria-hidden="true"></i>
+                SAPIENS<span class="brand-dot"></span>
             </a>
 
-            <!-- Menu Desktop -->
-            <div class="collapse navbar-collapse d-none d-lg-block" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('index') }}">
-                            <i class="fas fa-home me-1"></i>Início
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('analise') }}">
-                            <i class="fas fa-chart-line me-1"></i>Análise
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('historico') }}">
-                            <i class="fas fa-history me-1"></i>Histórico
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('sobre') }}">
-                            <i class="fas fa-info-circle me-1"></i>Sobre
-                        </a>
-                    </li>
-                </ul>
+            <!-- Desktop Menu -->
+            <div class="d-none d-lg-flex align-items-center gap-1">
+                <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}" href="{{ url_for('index') }}">Início</a>
+                <a class="nav-link {% if request.endpoint == 'analise' %}active{% endif %}" href="{{ url_for('analise') }}">Análise</a>
+                <a class="nav-link {% if request.endpoint == 'historico' %}active{% endif %}" href="{{ url_for('historico') }}">Histórico</a>
+                <a class="nav-link {% if request.endpoint == 'sobre' %}active{% endif %}" href="{{ url_for('sobre') }}">Sobre</a>
+            </div>
 
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/api/health">
-                            <i class="fas fa-heartbeat me-1"></i>Status
-                        </a>
-                    </li>
-                    {% if current_user.is_authenticated %}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                            <i class="fas fa-user-circle me-1"></i>{{ current_user.nome }}
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><span class="dropdown-item-text text-muted small">{{ current_user.username }}</span></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <a class="dropdown-item text-danger" href="{{ url_for('logout') }}">
-                                    <i class="fas fa-sign-out-alt me-1"></i>Sair
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                    {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('login') }}">
-                            <i class="fas fa-sign-in-alt me-1"></i>Login
-                        </a>
-                    </li>
-                    {% endif %}
-                </ul>
+            <div class="d-none d-lg-flex align-items-center gap-2">
+                <a href="/status" class="nav-link" style="font-size:.82rem;" aria-label="Status do sistema">
+                    <i class="fas fa-circle text-success me-1" style="font-size:.6rem;" aria-hidden="true"></i>Status
+                </a>
+                {% if current_user.is_authenticated %}
+                <div class="dropdown">
+                    <button class="btn btn-sapiens btn-sm dropdown-toggle" data-bs-toggle="dropdown" style="padding:.4rem 1rem;">
+                        <i class="fas fa-user-circle me-1"></i>{{ current_user.nome }}
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" style="border-radius:10px;border:1px solid var(--border);box-shadow:var(--shadow);">
+                        <li><span class="dropdown-item-text text-muted small">{{ current_user.username }}</span></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-2" aria-hidden="true"></i>Sair da plataforma</a></li>
+                    </ul>
+                </div>
+                {% else %}
+                <a href="{{ url_for('login') }}" class="btn btn-sapiens" style="padding:.45rem 1.2rem;font-size:.88rem;">
+                    <i class="fas fa-sign-in-alt me-1"></i>Entrar
+                </a>
+                {% endif %}
             </div>
         </div>
     </nav>
 
     <!-- Conteúdo principal -->
-    <main>
+    <main id="main-content">
         {% block content %}{% endblock %}
     </main>
 
     <!-- Footer -->
-    <footer class="footer">
+    <footer class="sapiens-footer d-none d-lg-block" aria-label="Rodapé">
         <div class="container">
             <div class="row">
-                <div class="col-md-6">
-                    <h5>SAPIENS</h5>
-                    <p>Plataforma Acadêmica Multiagente de Análise de Dados</p>
-                    <p class="mb-0">Versão 2.0 - 2025</p>
+                <div class="col-md-5 mb-4 mb-md-0">
+                    <div class="footer-brand mb-2"><i class="fas fa-graduation-cap me-2 text-gold"></i>SAPIENS</div>
+                    <p style="font-size:.88rem;line-height:1.7;max-width:280px;">
+                        Plataforma Acadêmica Multiagente de Análise de Dados. Transformando dados em conhecimento.
+                    </p>
+                    <small class="footer-copy">Versão 0.1 · 2026</small>
                 </div>
-                <div class="col-md-3">
-                    <h6>Links Úteis</h6>
-                    <ul class="list-unstyled">
+                <div class="col-md-3 mb-4 mb-md-0">
+                    <h6>Navegação</h6>
+                    <ul class="list-unstyled" style="line-height:2;">
+                        <li><a href="{{ url_for('analise') }}">Nova Análise</a></li>
+                        <li><a href="{{ url_for('historico') }}">Histórico</a></li>
                         <li><a href="{{ url_for('sobre') }}">Sobre o Projeto</a></li>
-                        <li><a href="#">Documentação</a></li>
-                        <li><a href="#">Suporte</a></li>
+                        <li><a href="/status">Status do Sistema</a></li>
                     </ul>
                 </div>
-                <div class="col-md-3">
-                    <h6>Tecnologias</h6>
-                    <ul class="list-unstyled">
-                        <li><small>Python</small></li>
-                        <li><small>CrewAI</small></li>
-                        <li><small>Flask</small></li>
-                        <li><small>Bootstrap</small></li>
-                    </ul>
-                </div>
+            </div>
+            <hr class="footer-divider">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="footer-copy">© 2026 SAPIENS · Plataforma Acadêmica Multiagente</span>
             </div>
         </div>
     </footer>
 
     <!-- Bottom Navigation (Mobile Only) -->
-    <nav class="bottom-nav d-lg-none">
-        <a href="{{ url_for('index') }}" class="bottom-nav-item {% if request.endpoint == 'index' %}active{% endif %}">
-            <i class="fas fa-home"></i>
-            Início
+    <nav class="bottom-nav d-lg-none" aria-label="Navegação mobile">
+        <a href="{{ url_for('index') }}" class="bottom-nav-item {% if request.endpoint == 'index' %}active{% endif %}"
+           aria-label="Início" {% if request.endpoint == 'index' %}aria-current="page"{% endif %}>
+            <i class="fas fa-home" aria-hidden="true"></i><span>Início</span>
         </a>
-        <a href="{{ url_for('analise') }}" class="bottom-nav-item {% if request.endpoint == 'analise' %}active{% endif %}">
-            <i class="fas fa-chart-line"></i>
-            Análise
+        <a href="{{ url_for('analise') }}" class="bottom-nav-item {% if request.endpoint == 'analise' %}active{% endif %}"
+           aria-label="Nova Análise" {% if request.endpoint == 'analise' %}aria-current="page"{% endif %}>
+            <i class="fas fa-chart-line" aria-hidden="true"></i><span>Análise</span>
         </a>
-        <a href="{{ url_for('sobre') }}" class="bottom-nav-item {% if request.endpoint == 'sobre' %}active{% endif %}">
-            <i class="fas fa-info-circle"></i>
-            Sobre
+        <a href="{{ url_for('historico') }}" class="bottom-nav-item {% if request.endpoint == 'historico' %}active{% endif %}"
+           aria-label="Histórico de análises" {% if request.endpoint == 'historico' %}aria-current="page"{% endif %}>
+            <i class="fas fa-history" aria-hidden="true"></i><span>Histórico</span>
         </a>
-        <a href="/api/health" class="bottom-nav-item">
-            <i class="fas fa-heartbeat"></i>
-            Status
+        <a href="{{ url_for('sobre') }}" class="bottom-nav-item {% if request.endpoint == 'sobre' %}active{% endif %}"
+           aria-label="Sobre o projeto" {% if request.endpoint == 'sobre' %}aria-current="page"{% endif %}>
+            <i class="fas fa-info-circle" aria-hidden="true"></i><span>Sobre</span>
         </a>
     </nav>
 
     <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- jQuery para funcionalidades avançadas -->
-    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 
     {% block extra_scripts %}{% endblock %}
 </body>

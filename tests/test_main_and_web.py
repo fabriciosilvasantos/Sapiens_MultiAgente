@@ -159,10 +159,21 @@ class TestWebRotasAutenticadas:
         resp = client.get('/sobre')
         assert resp.status_code == 200
 
-    def test_health_check_retorna_200(self, client):
-        resp = client.get('/api/health')
+    def test_health_check_sem_login_redireciona(self, client):
+        resp = client.get('/api/health', follow_redirects=False)
+        assert resp.status_code == 302
+
+    def test_health_check_com_login_retorna_json(self, auth_client):
+        resp = auth_client.get('/api/health')
         assert resp.status_code == 200
-        assert resp.get_json()['status'] == 'healthy'
+        data = resp.get_json()
+        assert data['status'] == 'healthy'
+        assert 'versao' in data
+        assert 'banco_dados' in data
+
+    def test_status_page_com_login_retorna_200(self, auth_client):
+        resp = auth_client.get('/status')
+        assert resp.status_code == 200
 
     def test_login_com_credenciais_corretas(self, client):
         resp = client.post(
@@ -236,3 +247,46 @@ class TestWebRotasAutenticadas:
         resp = auth_client.get('/logout', follow_redirects=False)
         assert resp.status_code == 302
         assert '/login' in resp.headers['Location']
+
+    def test_upload_sem_arquivo_retorna_400(self, auth_client):
+        resp = auth_client.post('/upload', data={})
+        assert resp.status_code == 400
+        data = resp.get_json()
+        assert 'error' in data
+
+    def test_status_analise_inexistente_retorna_404(self, auth_client):
+        resp = auth_client.get('/status/analise-inexistente-xyz')
+        assert resp.status_code == 404
+
+    def test_resultados_analise_inexistente_retorna_404(self, auth_client):
+        resp = auth_client.get('/resultados/analise-inexistente-xyz')
+        assert resp.status_code in (302, 404)
+
+    def test_export_analise_inexistente_retorna_404(self, auth_client):
+        resp = auth_client.get('/export/analise-inexistente-xyz/pdf')
+        assert resp.status_code == 404
+
+    def test_export_formato_invalido_retorna_400(self, auth_client, tmp_path):
+        """Cria uma análise falsa no banco e testa formato inválido."""
+        import sqlite3, json, uuid
+        from unittest.mock import patch
+        analise_id = str(uuid.uuid4())
+        db_path = str(tmp_path / "test_sapiens.db")
+        with patch('Sapiens_MultiAgente.web.app.DB_PATH', db_path), \
+             patch('Sapiens_MultiAgente.web.auth.DB_PATH', db_path):
+            import sqlite3 as _sq
+            with _sq.connect(db_path) as conn:
+                conn.execute(
+                    "INSERT INTO analises (id, usuario_id, topico, status, progresso, arquivos, criado_em) "
+                    "VALUES (?, 'admin', 'Teste', 'concluida', 100, '[]', '2026-01-01T00:00:00')",
+                    (analise_id,)
+                )
+                conn.commit()
+        resp = auth_client.get(f'/export/{analise_id}/xml')
+        assert resp.status_code == 400
+
+    def test_stream_analise_inexistente_retorna_200_sse(self, auth_client):
+        # SSE sempre retorna 200; análise inexistente envia evento de erro no stream
+        resp = auth_client.get('/stream/analise-inexistente-xyz')
+        assert resp.status_code == 200
+        assert 'text/event-stream' in resp.content_type
