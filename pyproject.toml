@@ -1,8 +1,8 @@
 [project]
 name = "sapiens-multiagente"
-version = "2.0.0"
+version = "1.0.0"
 description = "SAPIENS - Plataforma Acadêmica Multiagente de Análise de Dados com interface web e auditoria"
-authors = [{ name = "Fabricio Silva Santos", email = "fabricio.silva.santos@example.com" }]
+authors = [{ name = "Fabricio Silva Santos", email = "fabricio@uenf.br" }]
 requires-python = ">=3.10,<3.14"
 readme = "README.md"
 license = {text = "MIT"}
@@ -36,7 +36,6 @@ dependencies = [
     "python-docx>=1.1.0",
     "pypdf>=4.0.0",
     "requests>=2.31.0",
-    "python-magic>=0.4.27",
 
     # Logging & Monitoring
     "colorlog>=6.7.0",
