@@ -1,7 +1,7 @@
 # =============================================================================
-# CONFIGURAÇÃO DE LLM — SAPIENS
+# CONFIGURACAO DE LLM — SAPIENS
 # =============================================================================
-# "ativo" define o modelo padrão (fallback para agentes sem config específica).
+# "ativo" define o modelo padrao (fallback para agentes sem config especifica).
 # "agentes" permite atribuir modelos individuais por agente.
 # Via API: POST /api/config/llm  {"modelo": "<chave>"}
 #          POST /api/config/llm  {"agente": "<nome>", "modelo": "<chave>"}
@@ -16,70 +16,70 @@ ativo: gemma_4_moe
 # ------------------------------------------------------------------
 agentes:
   agente_gerente_orquestrador: llama_33_70b
-  especialista_em_analise_descritiva: gemma_free
-  especialista_em_analise_diagnostica: deepseek_r1
-  especialista_em_analise_preditiva: deepseek_r1
+  especialista_em_analise_descritiva: gemma_31b
+  especialista_em_analise_diagnostica: nemotron_120b
+  especialista_em_analise_preditiva: nemotron_120b
   especialista_em_analise_prescritiva: llama_33_70b
   especialista_em_fontes_externas: gemma_4_moe
-  especialista_em_analise_textual: gemma_free
-  revisor_de_qualidade_cientifica: deepseek_r1
+  especialista_em_analise_textual: gemma_31b
+  revisor_de_qualidade_cientifica: nemotron_120b
 
 # ------------------------------------------------------------------
-# CATÁLOGO DE MODELOS
+# CATALOGO DE MODELOS
 # ------------------------------------------------------------------
 modelos:
-  deepseek_r1:
-    nome: Qwen QwQ 32B (gratuito)
-    model_id: openrouter/qwen/qwq-32b:free
+  nemotron_120b:
+    nome: NVIDIA Nemotron 3 Super 120B (gratuito)
+    model_id: openrouter/nvidia/nemotron-3-super-120b-a12b:free
     temperatura: 0.6
-    groq_fallback: groq/qwen-qwq-32b
-    descricao: "Raciocínio chain-of-thought — melhor para diagnóstica, preditiva e revisão científica"
+    groq_fallback: groq/openai/gpt-oss-120b
+    descricao: "120B MoE (12B ativos), 262K contexto — reasoning, diagnostica, preditiva e revisao cientifica"
 
   llama_33_70b:
     nome: Llama 3.3 70B (gratuito)
     model_id: openrouter/meta-llama/llama-3.3-70b-instruct:free
     temperatura: 0.7
     groq_fallback: groq/llama-3.3-70b-versatile
-    descricao: "Melhor instruction following — orquestração, prescrição e relatório final. 86% MMLU"
+    descricao: "86% MMLU, melhor instruction following — orquestracao, prescricao e relatorio final"
 
-  gemma_free:
+  gemma_31b:
     nome: Gemma 4 31B (gratuito)
     model_id: openrouter/google/gemma-4-31b-it:free
     temperatura: 0.7
-    groq_fallback: groq/llama-3.3-70b-versatile
-    descricao: "140+ idiomas, 256K contexto — descritiva e análise textual em português"
+    groq_fallback: groq/meta-llama/llama-4-scout-17b-16e-instruct
+    descricao: "140+ idiomas, 262K contexto — descritiva e analise textual em portugues"
 
   gemma_4_moe:
     nome: Gemma 4 26B MoE (gratuito)
     model_id: openrouter/google/gemma-4-26b-a4b-it:free
     temperatura: 0.7
-    groq_fallback: groq/llama-3.3-70b-versatile
-    descricao: "MoE rápido — fontes externas (lookup), fallback padrão. 256K contexto"
+    groq_fallback: groq/openai/gpt-oss-20b
+    descricao: "MoE rapido (4B ativos), 262K contexto — fontes externas, fallback padrao"
 
-  mistral_small3:
-    nome: Mistral Small 3 24B (gratuito)
-    model_id: openrouter/mistral/mistral-small-24b-instruct-2501:free
+  gpt_oss_120b:
+    nome: GPT-OSS 120B (gratuito)
+    model_id: openrouter/openai/gpt-oss-120b:free
+    temperatura: 0.6
+    groq_fallback: groq/openai/gpt-oss-120b
+    descricao: "117B MoE (5.1B ativos), 131K contexto — reasoning alternativo, tool use"
+
+  gpt_oss_20b:
+    nome: GPT-OSS 20B (gratuito)
+    model_id: openrouter/openai/gpt-oss-20b:free
+    temperatura: 0.7
+    groq_fallback: groq/openai/gpt-oss-20b
+    descricao: "21B MoE (3.6B ativos), 131K contexto — ultra-rapido (1000 TPS na Groq)"
+
+  hermes_405b:
+    nome: Hermes 3 Llama 3.1 405B (gratuito)
+    model_id: openrouter/nousresearch/hermes-3-llama-3.1-405b:free
     temperatura: 0.7
     groq_fallback: groq/llama-3.3-70b-versatile
-    descricao: "81% MMLU — boa alternativa geral, 32K contexto"
-
-  llama_33_8b:
-    nome: Llama 3.3 8B (gratuito)
-    model_id: openrouter/meta-llama/llama-3.3-8b-instruct:free
-    temperatura: 0.7
-    groq_fallback: groq/llama-3.1-8b-instant
-    descricao: "Opção leve e rápida — 73% MMLU, 128K contexto"
-
-  llama_31_8b:
-    nome: Llama 3.1 8B (gratuito)
-    model_id: openrouter/meta-llama/llama-3.1-8b-instruct:free
-    temperatura: 0.7
-    groq_fallback: groq/llama-3.1-8b-instant
-    descricao: "Fallback leve — 66.7% MMLU, 128K contexto"
+    descricao: "405B — maior modelo free, instruction following avancado"
 
   auto:
-    nome: OpenRouter Auto
-    model_id: openrouter/auto
+    nome: OpenRouter Auto (free)
+    model_id: openrouter/openrouter/free
     temperatura: 0.7
     groq_fallback: groq/llama-3.3-70b-versatile
-    descricao: "Roteamento automático ao melhor modelo disponível (pode ter custo)"
+    descricao: "Roteamento automatico ao melhor modelo free disponivel"
