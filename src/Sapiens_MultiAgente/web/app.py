@@ -174,8 +174,12 @@ class SapiensWebInterface:
             pass
         return None
 
+    # ------------------------------------------------------------------
+    # Criação da aplicação Flask
+    # ------------------------------------------------------------------
+
     def create_app(self):
-        """Cria aplicação Flask"""
+        """Cria aplicação Flask com todas as rotas e middlewares."""
         app = Flask(__name__)
         app.config['UPLOAD_FOLDER'] = self.upload_config['UPLOAD_FOLDER']
         app.config['MAX_CONTENT_LENGTH'] = self.upload_config['MAX_CONTENT_LENGTH']
@@ -223,25 +227,37 @@ class SapiensWebInterface:
             storage_uri="memory://"
         )
 
-        # Limites específicos — aplicados nas rotas abaixo via limiter.limit()
+        # Registra rotas por grupo
+        self._setup_template_filters(app)
+        self._setup_auth_routes(app)
+        self._setup_page_routes(app, limiter)
+        self._setup_system_routes(app)
+        self._setup_config_routes(app)
+        self._setup_api_v1_routes(app)
 
-        # Filtro de data amigável para os templates
+        return app
+
+    # ------------------------------------------------------------------
+    # Setup de rotas — Template Filters
+    # ------------------------------------------------------------------
+
+    def _setup_template_filters(self, app):
         @app.template_filter('fmt_dt')
         def fmt_dt(value):
             if not value:
                 return ''
             s = str(value)[:19].replace('T', ' ')
             try:
-                from datetime import datetime
                 dt = datetime.strptime(s, '%Y-%m-%d %H:%M:%S')
                 return dt.strftime('%d/%m/%Y %H:%M')
             except Exception:
                 return s
 
-        # ------------------------------------------------------------------
-        # Autenticação
-        # ------------------------------------------------------------------
+    # ------------------------------------------------------------------
+    # Setup de rotas — Autenticação
+    # ------------------------------------------------------------------
 
+    def _setup_auth_routes(self, app):
         @app.route('/login', methods=['GET', 'POST'])
         def login():
             if current_user.is_authenticated:
@@ -264,10 +280,11 @@ class SapiensWebInterface:
             flash('Sessão encerrada com sucesso.', 'success')
             return redirect(url_for('login'))
 
-        # ------------------------------------------------------------------
-        # Rotas principais (protegidas por login)
-        # ------------------------------------------------------------------
+    # ------------------------------------------------------------------
+    # Setup de rotas — Páginas e funcionalidades principais
+    # ------------------------------------------------------------------
 
+    def _setup_page_routes(self, app, limiter):
         @app.route('/')
         @login_required
         def index():
@@ -317,34 +334,7 @@ class SapiensWebInterface:
         def stream_progresso(analise_id):
             """Server-Sent Events: envia progresso em tempo real."""
             from flask import Response
-            import time
-
-            def event_generator():
-                ultimo_progresso = -1
-                while True:
-                    info = self._buscar_analise(analise_id)
-                    if not info:
-                        yield "data: {\"erro\": \"Análise não encontrada\"}\n\n"
-                        break
-
-                    progresso = info.get('progresso', 0)
-                    status = info.get('status', '')
-
-                    if progresso != ultimo_progresso:
-                        payload = json.dumps({
-                            'progresso': progresso,
-                            'status': status,
-                            'timestamp': datetime.now().isoformat()
-                        }, ensure_ascii=False)
-                        yield f"data: {payload}\n\n"
-                        ultimo_progresso = progresso
-
-                    if status in ('concluida', 'erro'):
-                        break
-
-                    time.sleep(1)
-
-            return Response(event_generator(), mimetype='text/event-stream',
+            return Response(self._event_generator(analise_id), mimetype='text/event-stream',
                             headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'})
 
         @app.route('/export/<analise_id>/<formato>')
@@ -352,8 +342,13 @@ class SapiensWebInterface:
             """Exporta resultados nos formatos: pdf, txt"""
             return self._exportar_analise(analise_id, formato)
 
+    # ------------------------------------------------------------------
+    # Setup de rotas — Sistema e monitoramento
+    # ------------------------------------------------------------------
+
+    def _setup_system_routes(self, app):
         @app.route('/status')
-        @app.route('/api/health')  # mantido para compatibilidade com API
+        @app.route('/api/health')
         @login_required
         def health_check():
             """Health check do sistema.
@@ -423,6 +418,11 @@ class SapiensWebInterface:
             data['history'] = self.monitor.history(last_n=20)
             return jsonify(data)
 
+    # ------------------------------------------------------------------
+    # Setup de rotas — Configuração LLM
+    # ------------------------------------------------------------------
+
+    def _setup_config_routes(self, app):
         @app.route('/api/config/llm', methods=['GET'])
         @login_required
         def api_llm_config_get():
@@ -454,10 +454,11 @@ class SapiensWebInterface:
             except ValueError as e:
                 return jsonify({"ok": False, "erro": str(e)}), 400
 
-        # ------------------------------------------------------------------
-        # API REST v1
-        # ------------------------------------------------------------------
+    # ------------------------------------------------------------------
+    # Setup de rotas — API REST v1
+    # ------------------------------------------------------------------
 
+    def _setup_api_v1_routes(self, app):
         @app.route('/api/v1/analises', methods=['GET'])
         @login_required
         def api_listar_analises():
@@ -651,7 +652,9 @@ class SapiensWebInterface:
                 'concluido_em': info.get('concluido_em') or info.get('timestamp_fim')
             })
 
-        return app
+    # ------------------------------------------------------------------
+    # Helpers de validação
+    # ------------------------------------------------------------------
 
     def _validar_url(self, url: str) -> tuple[bool, str]:
         """Valida URL para evitar SSRF. Retorna (valido, motivo)."""
@@ -696,6 +699,10 @@ class SapiensWebInterface:
         """Verifica se extensão é permitida"""
         return '.' in filename and \
                filename.rsplit('.', 1)[1].lower() in self.upload_config['ALLOWED_EXTENSIONS']
+
+    # ------------------------------------------------------------------
+    # Processamento de análises
+    # ------------------------------------------------------------------
 
     def _processar_analise(self, app):
         """Processa solicitação de análise"""
@@ -857,6 +864,10 @@ class SapiensWebInterface:
         except Exception as e:
             return jsonify({'error': f'Erro no upload: {str(e)}'}), 500
 
+    # ------------------------------------------------------------------
+    # Execução de análise (CrewAI)
+    # ------------------------------------------------------------------
+
     def _executar_analise(self, analise_id: str):
         """Executa análise usando CrewAI"""
         import threading
@@ -965,6 +976,41 @@ class SapiensWebInterface:
         thread.daemon = True
         thread.start()
 
+    # ------------------------------------------------------------------
+    # SSE (Server-Sent Events)
+    # ------------------------------------------------------------------
+
+    def _event_generator(self, analise_id):
+        """Gera eventos SSE para acompanhamento de progresso em tempo real."""
+        import time
+        ultimo_progresso = -1
+        while True:
+            info = self._buscar_analise(analise_id)
+            if not info:
+                yield "data: {\"erro\": \"Análise não encontrada\"}\n\n"
+                break
+
+            progresso = info.get('progresso', 0)
+            status = info.get('status', '')
+
+            if progresso != ultimo_progresso:
+                payload = json.dumps({
+                    'progresso': progresso,
+                    'status': status,
+                    'timestamp': datetime.now().isoformat()
+                }, ensure_ascii=False)
+                yield f"data: {payload}\n\n"
+                ultimo_progresso = progresso
+
+            if status in ('concluida', 'erro'):
+                break
+
+            time.sleep(1)
+
+    # ------------------------------------------------------------------
+    # Limpeza de arquivos
+    # ------------------------------------------------------------------
+
     def _limpar_arquivos_analise(self, analise_id: str):
         """Remove arquivos de upload de uma análise específica e libera cache."""
         analise_info = self.analises_ativas.get(analise_id, {})
@@ -1000,6 +1046,10 @@ class SapiensWebInterface:
                     os.remove(caminho)
             except Exception as e:
                 logger.warning("Nao foi possivel remover upload orfao %s: %s", caminho, e)
+
+    # ------------------------------------------------------------------
+    # Status e resultados
+    # ------------------------------------------------------------------
 
     def _get_analise_status(self, analise_id):
         """Retorna status da análise (cache ou banco)."""
@@ -1044,6 +1094,10 @@ class SapiensWebInterface:
         except Exception:
             analises = []
         return render_template('historico.html', analises=analises)
+
+    # ------------------------------------------------------------------
+    # Exportação de resultados
+    # ------------------------------------------------------------------
 
     def _exportar_analise(self, analise_id: str, formato: str):
         """Exporta resultados da análise em PDF ou TXT."""
@@ -1132,6 +1186,10 @@ class SapiensWebInterface:
 
         else:
             return jsonify({'error': f"Formato '{formato}' não suportado. Use 'pdf' ou 'txt'."}), 400
+
+    # ------------------------------------------------------------------
+    # Inicialização e estatísticas
+    # ------------------------------------------------------------------
 
     def run(self):
         """Executa interface web"""
