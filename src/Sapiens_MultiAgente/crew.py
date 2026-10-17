@@ -13,6 +13,7 @@ from crewai_tools import (
 
 from .config.llm_settings import get_model_for_agent
 from .config.llm_fallback import build_llm
+from .estatisticas_previas import calcular_estatisticas_previas
 from .tools.data_validation_tool import DataValidationTool
 from .tools.csv_processor_tool import CSVProcessorTool
 from .tools.statistical_analysis_tool import StatisticalAnalysisTool
@@ -106,9 +107,17 @@ class SapiensAcademicMultiAgentDataAnalysisPlatformCrew:
             raise AnaliseCancelada("Análise cancelada: tempo limite excedido.")
 
     @before_kickoff
-    def _registrar_arquivos(self, inputs: dict | None) -> dict | None:
-        """Guarda se há PDF/DOCX/TXT entre os arquivos, para a condição da análise textual."""
-        self._tem_documentos = ha_documentos_textuais((inputs or {}).get("arquivos_analisados"))
+    def _preparar_entradas(self, inputs: dict | None) -> dict | None:
+        """Prepara a execução a partir dos arquivos enviados.
+
+        - registra se há PDF/DOCX/TXT, para a condição da análise textual;
+        - calcula descritiva e correlação em Python ({estatisticas_previas} nas tasks),
+          em vez de deixar cada agente decidir quando chamar a StatisticalAnalysisTool.
+        """
+        inputs = dict(inputs or {})
+        arquivos = inputs.get("arquivos_analisados")
+        self._tem_documentos = ha_documentos_textuais(arquivos)
+        inputs.setdefault("estatisticas_previas", calcular_estatisticas_previas(arquivos))
         return inputs
 
     @agent

@@ -55,6 +55,17 @@ Também **não faz sentido** um agente "DevOps": `tools/devops_analysis_tool.py`
 7. ✅ **Alto (era Baixo) — o timeout da crew não cancela a execução.** `future.cancel()` não interrompe uma thread já em execução, e o `with ThreadPoolExecutor` esperava a crew terminar antes de reportar o timeout. Além disso, no CrewAI 0.203 uma exceção numa task async nunca resolve o `Future`, e o `kickoff` travava para sempre (ex.: erro persistente do LLM numa análise paralela). Correção: `crew_instance.cancelar()` faz os callbacks levantarem `AnaliseCancelada` no próximo passo de cada agente; `executor.shutdown(wait=False)`; `TaskParalela` repassa exceções ao `Future`.
 8. **Baixo — revisor sem ciclo de correção.** Opção futura: `guardrail` no relatório final exigindo pontuação mínima, ou task de "revisão das ressalvas" antes da compilação.
 
+### Estatísticas pré-calculadas (2026-10-17)
+
+Descritiva, correlação e visão geral do dataset (linhas, colunas, tipos, nulos) são
+cálculos determinísticos. Agora são feitos uma vez em Python, num `@before_kickoff`
+(`estatisticas_previas.py`), e entregues prontos nas tasks via `{estatisticas_previas}`.
+Efeitos: menos chamadas de ferramenta pelos agentes, números de referência que o
+revisor usa para detectar valores inventados, e nenhuma dependência do LLM para
+decidir *se* calcula a estatística básica. A análise descritiva também passou a omitir
+colunas quase únicas (nomes, matrículas) e a listar no máximo 15 categorias por coluna,
+para não enviar dados pessoais de alunos ao LLM externo.
+
 ### Fluxo recomendado
 
 ```

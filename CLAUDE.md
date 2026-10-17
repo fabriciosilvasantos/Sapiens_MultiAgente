@@ -97,6 +97,11 @@ print('Resultado:', '✅ Ambiente OK' if ok else '❌ Configure as variáveis fa
 
 ## Arquitetura dos agentes
 
+Antes do kickoff, `estatisticas_previas.py` calcula em Python (sem LLM) a visão geral,
+a descritiva e as correlações de cada CSV/Excel/JSON. O resultado entra nas tasks via
+`{estatisticas_previas}` (processamento, descritiva, diagnóstica, preditiva e revisor);
+os agentes interpretam esses números e usam `StatisticalAnalysisTool` só para recortes adicionais.
+
 ```
 agente_gerente_orquestrador             → valida dados (guardrail: "DADOS NECESSÁRIOS" interrompe a crew)
   ↓                                        e processa os arquivos ({arquivos_analisados})
