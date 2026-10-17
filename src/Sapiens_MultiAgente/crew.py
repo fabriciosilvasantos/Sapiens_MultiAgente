@@ -1,4 +1,5 @@
 import os
+import threading
 from pathlib import Path
 from typing import Any
 
@@ -24,6 +25,31 @@ from .tools.quality_review_tool import QualityReviewTool
 from .tools.text_analysis_tool import TextAnalysisTool
 
 EXTENSOES_DOCUMENTOS = {".pdf", ".docx", ".txt"}
+
+
+class TaskParalela(Task):
+    """Task async cujo erro chega ao Future.
+
+    No CrewAI 0.203, Task._execute_task_async não trata exceções: se o agente
+    falha (erro do LLM, rate limit, cancelamento), o Future nunca é resolvido
+    e Crew.kickoff fica bloqueado para sempre esperando por ele.
+    """
+
+    def _execute_task_async(self, agent, context, tools, future) -> None:
+        try:
+            resultado = self._execute_core(agent, context, tools)
+        except BaseException as erro:  # noqa: BLE001 - qualquer falha precisa liberar o Future
+            future.set_exception(erro)
+        else:
+            future.set_result(resultado)
+
+
+class AnaliseCancelada(TimeoutError):
+    """Levantada nos callbacks da crew depois de cancelar(); interrompe agentes e tasks.
+
+    Herda de TimeoutError porque o CrewAI repassa esse tipo sem as retentativas
+    automáticas do agente (max_retry_limit), encerrando a execução de imediato.
+    """
 
 
 def ha_documentos_textuais(arquivos: Any) -> bool:
@@ -63,6 +89,21 @@ class SapiensAcademicMultiAgentDataAnalysisPlatformCrew:
 
     # Sem kickoff (ex.: replay), executa a análise textual como antes.
     _tem_documentos: bool = True
+
+    def __init__(self):
+        self._cancelamento = threading.Event()
+
+    def cancelar(self) -> None:
+        """Pede o fim da execução: cada agente para no próximo passo (após a chamada ao LLM em curso).
+
+        Threads Python não podem ser interrompidas de fora; sem isto a crew
+        continuaria consumindo tokens depois do timeout da análise.
+        """
+        self._cancelamento.set()
+
+    def _verificar_cancelamento(self, _saida: Any) -> None:
+        if self._cancelamento.is_set():
+            raise AnaliseCancelada("Análise cancelada: tempo limite excedido.")
 
     @before_kickoff
     def _registrar_arquivos(self, inputs: dict | None) -> dict | None:
@@ -188,28 +229,28 @@ class SapiensAcademicMultiAgentDataAnalysisPlatformCrew:
 
     @task
     def executar_analise_descritiva(self) -> Task:
-        return Task(
+        return TaskParalela(
             config=self.tasks_config["executar_analise_descritiva"],
             async_execution=True,
         )
 
     @task
     def executar_analise_diagnostica(self) -> Task:
-        return Task(
+        return TaskParalela(
             config=self.tasks_config["executar_analise_diagnostica"],
             async_execution=True,
         )
 
     @task
     def executar_analise_preditiva(self) -> Task:
-        return Task(
+        return TaskParalela(
             config=self.tasks_config["executar_analise_preditiva"],
             async_execution=True,
         )
 
     @task
     def buscar_dados_externos_e_benchmarks(self) -> Task:
-        return Task(
+        return TaskParalela(
             config=self.tasks_config["buscar_dados_externos_e_benchmarks"],
             async_execution=True,
         )
@@ -241,4 +282,7 @@ class SapiensAcademicMultiAgentDataAnalysisPlatformCrew:
             tasks=self.tasks,
             process=Process.sequential,
             verbose=True,
+            # Chamados após cada passo de agente e cada task concluída.
+            step_callback=self._verificar_cancelamento,
+            task_callback=self._verificar_cancelamento,
         )

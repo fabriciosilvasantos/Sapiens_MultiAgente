@@ -494,3 +494,95 @@ class TestAnaliseTextualCondicional:
         executadas = self._executar(['/up/notas.csv', '/up/relatorio.pdf'])
         assert 'executar_analise_textual' in executadas
         assert len(executadas) == 10
+
+
+class TestCancelamentoEErrosParalelos:
+    """cancelar() interrompe a crew; erros em tasks paralelas não travam o kickoff."""
+
+    ENV = {
+        'OPENAI_API_KEY': 'test-key', 'OPENAI_API_BASE': 'http://localhost',
+        'CREWAI_DISABLE_TELEMETRY': 'true', 'OTEL_SDK_DISABLED': 'true',
+    }
+    RESPOSTA = "Thought: ok\nFinal Answer: DADOS VALIDADOS: /up/notas.csv"
+
+    def _iniciar(self, llm_falso):
+        """Roda o kickoff numa thread com o LLM simulado; retorna (instancia, thread, resultado)."""
+        import threading
+        from Sapiens_MultiAgente.crew import SapiensAcademicMultiAgentDataAnalysisPlatformCrew
+        resultado = {}
+        with patch.dict(os.environ, self.ENV):
+            instancia = SapiensAcademicMultiAgentDataAnalysisPlatformCrew()
+            crew = instancia.crew()
+        crew.verbose = False
+
+        def rodar():
+            with patch.dict(os.environ, self.ENV), \
+                    patch('crewai.agents.crew_agent_executor.get_llm_response', llm_falso):
+                try:
+                    crew.kickoff(inputs={'topico_pesquisa': 'Evasão', 'arquivos_analisados': ['/up/notas.csv']})
+                    resultado['erro'] = None
+                except BaseException as erro:  # noqa: BLE001
+                    resultado['erro'] = erro
+
+        thread = threading.Thread(target=rodar, daemon=True)
+        thread.start()
+        return instancia, thread, resultado
+
+    def test_cancelar_antes_interrompe_no_primeiro_passo(self):
+        from Sapiens_MultiAgente.crew import AnaliseCancelada
+        chamadas = []
+
+        def llm_falso(**kwargs):
+            chamadas.append(1)
+            return self.RESPOSTA
+
+        with patch.dict(os.environ, self.ENV):
+            from Sapiens_MultiAgente.crew import SapiensAcademicMultiAgentDataAnalysisPlatformCrew
+            instancia = SapiensAcademicMultiAgentDataAnalysisPlatformCrew()
+            crew = instancia.crew()
+            crew.verbose = False
+            instancia.cancelar()
+            with patch('crewai.agents.crew_agent_executor.get_llm_response', llm_falso):
+                with pytest.raises(AnaliseCancelada):
+                    crew.kickoff(inputs={'topico_pesquisa': 'Evasão', 'arquivos_analisados': ['/up/notas.csv']})
+        assert len(chamadas) == 1
+
+    def test_cancelar_durante_bloco_paralelo_encerra_a_crew(self):
+        import threading
+        import time
+        from Sapiens_MultiAgente.crew import AnaliseCancelada
+        trava = threading.Lock()
+        chamadas = []
+
+        def llm_falso(**kwargs):
+            with trava:
+                chamadas.append(1)
+            time.sleep(0.3)
+            return self.RESPOSTA
+
+        instancia, thread, resultado = self._iniciar(llm_falso)
+        limite = time.time() + 10
+        while len(chamadas) < 4 and time.time() < limite:  # validação, processamento e bloco paralelo
+            time.sleep(0.02)
+        no_cancelamento = len(chamadas)
+        instancia.cancelar()
+        thread.join(10)
+
+        assert not thread.is_alive(), "a crew deveria terminar após cancelar()"
+        assert isinstance(resultado['erro'], AnaliseCancelada)
+        time.sleep(0.5)  # threads paralelas ainda em voo chegam ao próximo passo
+        # Só as chamadas já em andamento (no máximo as 4 paralelas) terminam; nenhuma task nova começa.
+        assert len(chamadas) <= no_cancelamento + 4
+        assert len(chamadas) < 9
+
+    def test_erro_persistente_em_task_paralela_nao_trava(self):
+        def llm_falso(**kwargs):
+            if 'Diagnóstica' in str(kwargs.get('messages')):
+                raise RuntimeError("LLM indisponível")
+            return self.RESPOSTA
+
+        _, thread, resultado = self._iniciar(llm_falso)
+        thread.join(20)
+        assert not thread.is_alive(), "kickoff travou: o Future da task paralela não foi resolvido"
+        assert isinstance(resultado['erro'], RuntimeError)
+        assert 'LLM indisponível' in str(resultado['erro'])
