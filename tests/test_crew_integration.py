@@ -68,10 +68,10 @@ class TestCrewEstrutura:
     def test_agentes_tem_campos_obrigatorios(self):
         from Sapiens_MultiAgente.crew import SapiensAcademicMultiAgentDataAnalysisPlatformCrew
         crew_instance = SapiensAcademicMultiAgentDataAnalysisPlatformCrew()
-        # O agents.yaml tem chaves extras de configuração global — ignorar chaves sem 'role'
-        agentes_reais = {k: v for k, v in crew_instance.agents_config.items() if 'role' in v}
-        assert len(agentes_reais) >= 5, "Esperados pelo menos 5 agentes com 'role'"
-        for nome, config in agentes_reais.items():
+        config_agentes = crew_instance.agents_config
+        assert len(config_agentes) >= 5, "Esperados pelo menos 5 agentes"
+        for nome, config in config_agentes.items():
+            assert 'role' in config, f"Agente '{nome}' sem 'role'"
             assert 'goal' in config, f"Agente '{nome}' sem 'goal'"
             assert 'backstory' in config, f"Agente '{nome}' sem 'backstory'"
 
@@ -410,3 +410,24 @@ class TestArquivosEValidacao:
         ok, resultado = validar_dados_disponiveis(TaskOutput(description="v", raw=saida, agent="a"))
         assert ok is True
         assert resultado == saida
+
+
+class TestAgentsYamlCamposValidos:
+    """agents.yaml só pode ter campos que o crewai.Agent realmente lê."""
+
+    def test_chaves_sao_campos_do_agent(self):
+        from crewai import Agent
+        from Sapiens_MultiAgente.crew import SapiensAcademicMultiAgentDataAnalysisPlatformCrew
+        campos = set(Agent.model_fields)
+        for nome, config in SapiensAcademicMultiAgentDataAnalysisPlatformCrew().agents_config.items():
+            invalidas = set(config) - campos
+            assert not invalidas, f"Agente '{nome}' tem chaves ignoradas pelo CrewAI: {sorted(invalidas)}"
+
+    def test_max_iter_aplicado_aos_agentes(self):
+        from Sapiens_MultiAgente.crew import SapiensAcademicMultiAgentDataAnalysisPlatformCrew
+        with patch.dict(os.environ, {'OPENAI_API_KEY': 'test-key', 'OPENAI_API_BASE': 'http://localhost'}):
+            crew_instance = SapiensAcademicMultiAgentDataAnalysisPlatformCrew()
+            orquestrador = crew_instance.agente_gerente_orquestrador()
+            revisor = crew_instance.revisor_de_qualidade_cientifica()
+        assert orquestrador.max_iter == 10
+        assert revisor.max_iter == 8
