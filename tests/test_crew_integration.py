@@ -84,7 +84,7 @@ class TestCrewEstrutura:
             assert 'agent' in config, f"Task '{nome}' sem 'agent'"
 
     def test_analises_paralelas_com_async(self):
-        """Descritiva, diagnóstica, preditiva, benchmarks e textual rodam em paralelo."""
+        """Descritiva, diagnóstica, preditiva e benchmarks rodam em paralelo."""
         from Sapiens_MultiAgente.crew import SapiensAcademicMultiAgentDataAnalysisPlatformCrew
         with patch.dict(os.environ, {'OPENAI_API_KEY': 'test-key', 'OPENAI_API_BASE': 'http://localhost'}):
             crew_instance = SapiensAcademicMultiAgentDataAnalysisPlatformCrew()
@@ -93,7 +93,6 @@ class TestCrewEstrutura:
                 crew_instance.executar_analise_diagnostica(),
                 crew_instance.executar_analise_preditiva(),
                 crew_instance.buscar_dados_externos_e_benchmarks(),
-                crew_instance.executar_analise_textual(),
             ]
         for task in tasks_async:
             assert task.async_execution is True, \
@@ -431,3 +430,67 @@ class TestAgentsYamlCamposValidos:
             revisor = crew_instance.revisor_de_qualidade_cientifica()
         assert orquestrador.max_iter == 10
         assert revisor.max_iter == 8
+
+
+class TestAnaliseTextualCondicional:
+    """A análise textual só roda quando há PDF/DOCX/TXT entre os arquivos."""
+
+    @pytest.mark.parametrize("arquivos, esperado", [
+        (["/up/notas.csv"], False),
+        (["/up/planilha.xlsx", "/up/notas.csv"], False),
+        ([], False),
+        (None, False),
+        (["/up/notas.csv", "/up/relatorio.PDF"], True),
+        (["/up/ata.docx"], True),
+        (["/up/entrevistas.txt"], True),
+        ("/up/relatorio.pdf", True),
+    ])
+    def test_deteccao_de_documentos(self, arquivos, esperado):
+        from Sapiens_MultiAgente.crew import ha_documentos_textuais
+        assert ha_documentos_textuais(arquivos) is esperado
+
+    def test_textual_e_conditional_e_vem_antes_do_bloco_paralelo(self):
+        from crewai.tasks.conditional_task import ConditionalTask
+        from Sapiens_MultiAgente.crew import SapiensAcademicMultiAgentDataAnalysisPlatformCrew
+        with patch.dict(os.environ, {'OPENAI_API_KEY': 'test-key', 'OPENAI_API_BASE': 'http://localhost'}):
+            crew = SapiensAcademicMultiAgentDataAnalysisPlatformCrew().crew()
+        nomes = [t.name for t in crew.tasks]
+        textual = crew.tasks[nomes.index('executar_analise_textual')]
+        assert isinstance(textual, ConditionalTask)
+        assert textual.async_execution is not True
+        assert nomes.index('processamento_de_dados_reais_validados') < nomes.index('executar_analise_textual')
+        assert nomes.index('executar_analise_textual') < nomes.index('executar_analise_descritiva')
+        revisor = crew.tasks[nomes.index('revisar_qualidade_cientifica')]
+        assert 'executar_analise_textual' in {t.name for t in revisor.context}
+
+    @staticmethod
+    def _executar(arquivos):
+        from crewai import Agent
+        from Sapiens_MultiAgente.crew import SapiensAcademicMultiAgentDataAnalysisPlatformCrew
+        executadas = []
+
+        def agente_falso(self, task, context=None, tools=None):
+            executadas.append(task.name)
+            if task.name == 'validacao_rigorosa_de_dados_e_pergunta':
+                return "DADOS VALIDADOS: " + ", ".join(arquivos)
+            return "ok"
+
+        env = {
+            'OPENAI_API_KEY': 'test-key', 'OPENAI_API_BASE': 'http://localhost',
+            'CREWAI_DISABLE_TELEMETRY': 'true', 'OTEL_SDK_DISABLED': 'true',
+        }
+        with patch.dict(os.environ, env), patch.object(Agent, 'execute_task', agente_falso):
+            crew = SapiensAcademicMultiAgentDataAnalysisPlatformCrew().crew()
+            crew.kickoff(inputs={'topico_pesquisa': 'Evasão', 'arquivos_analisados': arquivos})
+        return executadas
+
+    def test_pula_textual_so_com_csv(self):
+        executadas = self._executar(['/up/notas.csv'])
+        assert 'executar_analise_textual' not in executadas
+        assert executadas[-1] == 'compilacao_e_apresentacao_do_relatorio_final'
+        assert len(executadas) == 9
+
+    def test_executa_textual_com_pdf(self):
+        executadas = self._executar(['/up/notas.csv', '/up/relatorio.pdf'])
+        assert 'executar_analise_textual' in executadas
+        assert len(executadas) == 10

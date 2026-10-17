@@ -100,11 +100,12 @@ print('Resultado:', '✅ Ambiente OK' if ok else '❌ Configure as variáveis fa
 ```
 agente_gerente_orquestrador             → valida dados (guardrail: "DADOS NECESSÁRIOS" interrompe a crew)
   ↓                                        e processa os arquivos ({arquivos_analisados})
+especialista_em_analise_textual         → ConditionalTask: só roda com PDF/DOCX/TXT (sequencial)
+  ↓
 especialista_em_analise_descritiva      ┐
-especialista_em_analise_diagnostica     │
-especialista_em_analise_preditiva       ├ async_execution=True (paralelas)
-especialista_em_fontes_externas         │ (INEP/IBGE benchmarks)
-especialista_em_analise_textual         ┘ (NLP documentos)
+especialista_em_analise_diagnostica     ├ async_execution=True (paralelas)
+especialista_em_analise_preditiva       │
+especialista_em_fontes_externas         ┘ (INEP/IBGE benchmarks)
   ↓ (todas concluídas)
 especialista_em_analise_prescritiva     → recomendações baseadas nos achados acima (sequencial)
   ↓
