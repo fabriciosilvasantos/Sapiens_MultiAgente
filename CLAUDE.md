@@ -7,8 +7,21 @@ Plataforma acadêmica multiagente de análise de dados construída com CrewAI + 
 - **Pacote principal**: `src/Sapiens_MultiAgente/`
 - **Ambiente virtual**: `.venv/` (ativar com `source .venv/bin/activate`)
 - **Banco de dados**: SQLite em `sapiens.db` (criado automaticamente)
-- **Testes**: `pytest tests/` — atualmente 57 testes
+- **Testes**: `pytest tests/` — atualmente ~513 testes
 - **LLM**: OpenRouter via variável `OPENAI_API_KEY` + `OPENAI_API_BASE`
+
+## Subagentes de desenvolvimento
+
+Definidos em `.claude/agents/` (análise completa em `docs/ANALISE_AGENTES.md`):
+
+| Subagente | Escopo |
+|-----------|--------|
+| `crewai-architect` | agents.yaml, tasks.yaml, crew.py, llm_config (fluxo dos agentes) |
+| `tool-developer` | Tools CrewAI em `tools/` |
+| `test-engineer` | Testes pytest, mocks de LLM, consolidação dos `test_coverage_boost*` |
+| `flask-web-developer` | `web/` — rotas, API v1, SSE, SQLite, uploads, templates |
+| `security-auditor` | Revisão (somente leitura) de segurança e LGPD |
+| `statistical-methods-reviewer` | Revisão (somente leitura) do rigor estatístico |
 
 ## Skills disponíveis
 
@@ -85,15 +98,16 @@ print('Resultado:', '✅ Ambiente OK' if ok else '❌ Configure as variáveis fa
 ## Arquitetura dos agentes
 
 ```
-agente_gerente_orquestrador             → valida dados e orquestra
-  ↓
+agente_gerente_orquestrador             → valida dados (guardrail: "DADOS NECESSÁRIOS" interrompe a crew)
+  ↓                                        e processa os arquivos ({arquivos_analisados})
 especialista_em_analise_descritiva      ┐
 especialista_em_analise_diagnostica     │
 especialista_em_analise_preditiva       ├ async_execution=True (paralelas)
-especialista_em_analise_prescritiva     │
 especialista_em_fontes_externas         │ (INEP/IBGE benchmarks)
 especialista_em_analise_textual         ┘ (NLP documentos)
   ↓ (todas concluídas)
+especialista_em_analise_prescritiva     → recomendações baseadas nos achados acima (sequencial)
+  ↓
 revisor_de_qualidade_cientifica         → revisão metodológica (sequencial)
   ↓
 compilacao_e_apresentacao_do_relatorio_final

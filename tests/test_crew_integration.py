@@ -84,22 +84,41 @@ class TestCrewEstrutura:
             assert 'agent' in config, f"Task '{nome}' sem 'agent'"
 
     def test_analises_paralelas_com_async(self):
-        """As 4 análises devem ter async_execution=True."""
+        """Descritiva, diagnóstica, preditiva, benchmarks e textual rodam em paralelo."""
         from Sapiens_MultiAgente.crew import SapiensAcademicMultiAgentDataAnalysisPlatformCrew
         with patch.dict(os.environ, {'OPENAI_API_KEY': 'test-key', 'OPENAI_API_BASE': 'http://localhost'}):
-            try:
-                crew_instance = SapiensAcademicMultiAgentDataAnalysisPlatformCrew()
-                tasks_async = [
-                    crew_instance.executar_analise_descritiva(),
-                    crew_instance.executar_analise_diagnostica(),
-                    crew_instance.executar_analise_preditiva(),
-                    crew_instance.executar_analise_prescritiva(),
-                ]
-                for task in tasks_async:
-                    assert task.async_execution is True, \
-                        f"Task '{task.description[:40]}' deveria ter async_execution=True"
-            except Exception:
-                pytest.skip("Não foi possível instanciar tasks sem LLM configurado")
+            crew_instance = SapiensAcademicMultiAgentDataAnalysisPlatformCrew()
+            tasks_async = [
+                crew_instance.executar_analise_descritiva(),
+                crew_instance.executar_analise_diagnostica(),
+                crew_instance.executar_analise_preditiva(),
+                crew_instance.buscar_dados_externos_e_benchmarks(),
+                crew_instance.executar_analise_textual(),
+            ]
+        for task in tasks_async:
+            assert task.async_execution is True, \
+                f"Task '{task.description[:40]}' deveria ter async_execution=True"
+
+    def test_prescritiva_aguarda_demais_analises(self):
+        """A prescritiva é síncrona e recebe os achados das análises anteriores."""
+        from Sapiens_MultiAgente.crew import SapiensAcademicMultiAgentDataAnalysisPlatformCrew
+        with patch.dict(os.environ, {'OPENAI_API_KEY': 'test-key', 'OPENAI_API_BASE': 'http://localhost'}):
+            crew_instance = SapiensAcademicMultiAgentDataAnalysisPlatformCrew()
+            crew = crew_instance.crew()
+        nomes = [t.name for t in crew.tasks]
+        idx = nomes.index('executar_analise_prescritiva')
+        prescritiva = crew.tasks[idx]
+        assert prescritiva.async_execution is not True
+        contexto = {t.name for t in prescritiva.context}
+        assert {
+            'executar_analise_descritiva',
+            'executar_analise_diagnostica',
+            'executar_analise_preditiva',
+            'buscar_dados_externos_e_benchmarks',
+        } <= contexto
+        for dependencia in contexto:
+            assert nomes.index(dependencia) < idx, f"'{dependencia}' deve rodar antes da prescritiva"
+        assert nomes.index('revisar_qualidade_cientifica') > idx
 
     def test_relatorio_nao_e_async(self):
         """O relatório final deve aguardar todas as análises (sem async)."""
@@ -334,3 +353,60 @@ class TestFluxoEndToEnd:
         assert analise_id not in interface.analises_ativas, (
             "Cache deveria ter sido liberado após conclusão da análise"
         )
+
+
+class TestArquivosEValidacao:
+    """Arquivos chegam aos agentes e a crew para quando faltam dados."""
+
+    def test_tasks_que_leem_dados_recebem_arquivos(self):
+        from Sapiens_MultiAgente.crew import SapiensAcademicMultiAgentDataAnalysisPlatformCrew
+        config = SapiensAcademicMultiAgentDataAnalysisPlatformCrew().tasks_config
+        for nome in [
+            'validacao_rigorosa_de_dados_e_pergunta',
+            'processamento_de_dados_reais_validados',
+            'executar_analise_descritiva',
+            'executar_analise_diagnostica',
+            'executar_analise_preditiva',
+            'executar_analise_prescritiva',
+            'executar_analise_textual',
+        ]:
+            assert '{arquivos_analisados}' in config[nome]['description'], nome
+
+    def test_caminhos_interpolados_na_validacao(self):
+        from Sapiens_MultiAgente.crew import SapiensAcademicMultiAgentDataAnalysisPlatformCrew
+        with patch.dict(os.environ, {'OPENAI_API_KEY': 'test-key', 'OPENAI_API_BASE': 'http://localhost'}):
+            crew = SapiensAcademicMultiAgentDataAnalysisPlatformCrew().crew()
+        validacao = crew.tasks[0]
+        validacao.interpolate_inputs_and_add_conversation_history(
+            {'topico_pesquisa': 'Evasão', 'arquivos_analisados': ['/tmp/uploads/notas.csv']}
+        )
+        assert '/tmp/uploads/notas.csv' in validacao.description
+
+    def test_validacao_tem_guardrail_sem_retentativas(self):
+        from Sapiens_MultiAgente.crew import (
+            SapiensAcademicMultiAgentDataAnalysisPlatformCrew, validar_dados_disponiveis,
+        )
+        with patch.dict(os.environ, {'OPENAI_API_KEY': 'test-key', 'OPENAI_API_BASE': 'http://localhost'}):
+            task = SapiensAcademicMultiAgentDataAnalysisPlatformCrew().validacao_rigorosa_de_dados_e_pergunta()
+        assert task.guardrail is validar_dados_disponiveis
+        assert task.guardrail_max_retries == 0
+
+    @pytest.mark.parametrize("saida", [
+        "DADOS NECESSÁRIOS: envie um CSV com as notas.",
+        "**DADOS NECESSÁRIOS**: envie arquivos CSV ou PDF.",
+        "dados necessarios: nenhum arquivo foi enviado",
+    ])
+    def test_guardrail_bloqueia_sem_dados(self, saida):
+        from crewai import TaskOutput
+        from Sapiens_MultiAgente.crew import validar_dados_disponiveis
+        ok, msg = validar_dados_disponiveis(TaskOutput(description="v", raw=saida, agent="a"))
+        assert ok is False
+        assert "envie" in msg or "nenhum" in msg
+
+    def test_guardrail_libera_com_dados(self):
+        from crewai import TaskOutput
+        from Sapiens_MultiAgente.crew import validar_dados_disponiveis
+        saida = "DADOS VALIDADOS: /tmp/uploads/notas.csv"
+        ok, resultado = validar_dados_disponiveis(TaskOutput(description="v", raw=saida, agent="a"))
+        assert ok is True
+        assert resultado == saida

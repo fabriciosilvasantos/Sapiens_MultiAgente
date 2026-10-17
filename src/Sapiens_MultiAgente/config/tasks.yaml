@@ -2,19 +2,24 @@
 validacao_rigorosa_de_dados_e_pergunta:
   description: |
     Verificar se o usuário forneceu dados reais para análise de {topico_pesquisa}.
+    Arquivos enviados pelo usuário (caminhos locais): {arquivos_analisados}
     Formatos aceitos: CSV, Excel, PDF, DOCX, URLs de datasets ou relatórios.
+    Se a lista de arquivos estiver vazia, não há dados.
     - SE há dados: validar acesso e qualidade, confirmar ao usuário e prosseguir.
     - SE não há dados: PARAR e solicitar arquivos especificando formatos aceitos.
     NUNCA inventar, simular ou fabricar dados.
   expected_output: |
-    Uma linha de status: "DADOS VALIDADOS: [lista de arquivos/fontes]" ou
+    Uma linha de status começando EXATAMENTE com um dos prefixos:
+    "DADOS VALIDADOS: [lista de arquivos/fontes]" ou
     "DADOS NECESSÁRIOS: [solicitação clara ao usuário com formatos aceitos]".
+    A resposta "DADOS NECESSÁRIOS" interrompe a análise.
   agent: agente_gerente_orquestrador
 
 processamento_de_dados_reais_validados:
   description: |
     Processar os arquivos validados sobre {topico_pesquisa}:
-    usar CSVProcessorTool para CSV/Excel, FileReadTool para PDF/DOCX.
+    {arquivos_analisados}
+    Usar CSVProcessorTool para CSV/Excel, FileReadTool para PDF/DOCX.
     Extrair, limpar e estruturar os dados mantendo rastreabilidade da fonte.
   expected_output: |
     Sumário de processamento (máx. 300 palavras): origem dos dados, estrutura
@@ -27,6 +32,7 @@ processamento_de_dados_reais_validados:
 executar_analise_descritiva:
   description: |
     Análise descritiva de {topico_pesquisa} — "O que aconteceu?".
+    Arquivos de dados: {arquivos_analisados}
     Calcular estatísticas (média, mediana, desvio padrão, distribuição),
     identificar tendências temporais e gerar visualizações dos dados acadêmicos.
   expected_output: |
@@ -40,6 +46,7 @@ executar_analise_descritiva:
 executar_analise_diagnostica:
   description: |
     Análise diagnóstica de {topico_pesquisa} — "Por que aconteceu?".
+    Arquivos de dados: {arquivos_analisados}
     Calcular correlações, executar testes de hipóteses (com α=0,05) e
     identificar causas raiz dos padrões observados nos dados acadêmicos.
   expected_output: |
@@ -53,6 +60,7 @@ executar_analise_diagnostica:
 executar_analise_preditiva:
   description: |
     Análise preditiva de {topico_pesquisa} — "O que pode acontecer?".
+    Arquivos de dados: {arquivos_analisados}
     Construir modelo de previsão, gerar projeções com intervalos de confiança
     e estimar tendências futuras relevantes para o planejamento acadêmico.
   expected_output: |
@@ -60,19 +68,6 @@ executar_analise_preditiva:
     de validação, projeções para os próximos períodos com intervalos de
     confiança e 3–5 cenários para planejamento estratégico.
   agent: especialista_em_analise_preditiva
-  context:
-  - processamento_de_dados_reais_validados
-
-executar_analise_prescritiva:
-  description: |
-    Análise prescritiva de {topico_pesquisa} — "O que devemos fazer?".
-    Gerar recomendações acionáveis priorizadas por impacto, com planos
-    de implementação e métricas de acompanhamento para gestores.
-  expected_output: |
-    Relatório prescritivo (máx. 400 palavras) com: lista priorizada de
-    recomendações (alta/média/baixa urgência), passos de implementação
-    por recomendação e indicadores de sucesso mensuráveis.
-  agent: especialista_em_analise_prescritiva
   context:
   - processamento_de_dados_reais_validados
 
@@ -91,6 +86,7 @@ buscar_dados_externos_e_benchmarks:
 executar_analise_textual:
   description: |
     Analisar conteúdo textual dos documentos de {topico_pesquisa}.
+    Arquivos de dados: {arquivos_analisados}
     Extrair palavras-chave, identificar entidades (instituições, datas,
     indicadores) e detectar temas predominantes em PDFs/DOCX fornecidos.
   expected_output: |
@@ -100,6 +96,26 @@ executar_analise_textual:
   agent: especialista_em_analise_textual
   context:
   - processamento_de_dados_reais_validados
+
+executar_analise_prescritiva:
+  description: |
+    Análise prescritiva de {topico_pesquisa} — "O que devemos fazer?".
+    Arquivos de dados: {arquivos_analisados}
+    Basear-se nos achados das análises descritiva, diagnóstica e preditiva e
+    nos benchmarks nacionais recebidos no contexto: cada recomendação deve
+    citar o achado que a justifica. Gerar recomendações acionáveis priorizadas
+    por impacto, com planos de implementação e métricas de acompanhamento.
+  expected_output: |
+    Relatório prescritivo (máx. 400 palavras) com: lista priorizada de
+    recomendações (alta/média/baixa urgência), passos de implementação
+    por recomendação, achado que a fundamenta e indicadores de sucesso mensuráveis.
+  agent: especialista_em_analise_prescritiva
+  context:
+  - processamento_de_dados_reais_validados
+  - executar_analise_descritiva
+  - executar_analise_diagnostica
+  - executar_analise_preditiva
+  - buscar_dados_externos_e_benchmarks
 
 revisar_qualidade_cientifica:
   description: |
