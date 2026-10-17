@@ -921,16 +921,21 @@ class SapiensWebInterface:
                 # Executa análise com timeout configurável
                 import concurrent.futures
                 crew_timeout = int(os.getenv('SAPIENS_CREW_TIMEOUT', str(2 * 60 * 60)))  # 2h padrão
-                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-                    future = executor.submit(crew.kickoff, inputs=inputs)
-                    try:
-                        resultados = future.result(timeout=crew_timeout)
-                    except concurrent.futures.TimeoutError:
-                        future.cancel()
-                        raise TimeoutError(
-                            f"Análise excedeu o tempo limite de {crew_timeout}s. "
-                            "Ajuste SAPIENS_CREW_TIMEOUT se necessário."
-                        )
+                executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+                future = executor.submit(crew.kickoff, inputs=inputs)
+                try:
+                    resultados = future.result(timeout=crew_timeout)
+                except concurrent.futures.TimeoutError:
+                    # future.cancel() não para uma thread em execução: sinaliza a crew,
+                    # que interrompe os agentes no próximo passo.
+                    crew_instance.cancelar()
+                    raise TimeoutError(
+                        f"Análise excedeu o tempo limite de {crew_timeout}s. "
+                        "Ajuste SAPIENS_CREW_TIMEOUT se necessário."
+                    )
+                finally:
+                    # Sem esperar: um 'with' aguardaria a crew terminar antes de reportar o timeout.
+                    executor.shutdown(wait=False)
 
                 # Atualiza progresso final
                 _atualizar_status({

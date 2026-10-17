@@ -21,6 +21,9 @@ processamento_de_dados_reais_validados:
     {arquivos_analisados}
     Usar CSVProcessorTool para CSV/Excel, FileReadTool para PDF/DOCX.
     Extrair, limpar e estruturar os dados mantendo rastreabilidade da fonte.
+    Estatísticas já calculadas pelo SAPIENS em Python (valores de referência;
+    cite-os literalmente, não os recalcule nem os altere):
+    {estatisticas_previas}
   expected_output: |
     Sumário de processamento (máx. 300 palavras): origem dos dados, estrutura
     do dataset (colunas, linhas, tipos), qualidade (nulos, outliers detectados)
@@ -48,8 +51,12 @@ executar_analise_descritiva:
   description: |
     Análise descritiva de {topico_pesquisa} — "O que aconteceu?".
     Arquivos de dados: {arquivos_analisados}
-    Calcular estatísticas (média, mediana, desvio padrão, distribuição),
-    identificar tendências temporais e gerar visualizações dos dados acadêmicos.
+    Estatísticas já calculadas pelo SAPIENS em Python (valores de referência;
+    cite-os literalmente, não os recalcule nem os altere):
+    {estatisticas_previas}
+    Interpretar essas estatísticas (médias, dispersão, distribuições), identificar
+    tendências temporais e gerar visualizações. Use StatisticalAnalysisTool apenas
+    para recortes que não estão acima (ex.: por grupo ou por período).
   expected_output: |
     Relatório descritivo (máx. 400 palavras) com: principais métricas e
     distribuições, tendências identificadas, gráficos em markdown e
@@ -62,8 +69,12 @@ executar_analise_diagnostica:
   description: |
     Análise diagnóstica de {topico_pesquisa} — "Por que aconteceu?".
     Arquivos de dados: {arquivos_analisados}
-    Calcular correlações, executar testes de hipóteses (com α=0,05) e
-    identificar causas raiz dos padrões observados nos dados acadêmicos.
+    Estatísticas já calculadas pelo SAPIENS em Python (valores de referência;
+    cite-os literalmente, não os recalcule nem os altere):
+    {estatisticas_previas}
+    Partir das correlações acima, executar testes de hipóteses e ANOVA por grupo
+    (α=0,05) com StatisticalAnalysisTool e identificar causas prováveis dos padrões
+    observados — correlação não implica causalidade.
   expected_output: |
     Relatório diagnóstico (máx. 400 palavras) com: correlações significativas
     encontradas, resultados dos testes estatísticos (estatística + p-valor +
@@ -76,8 +87,12 @@ executar_analise_preditiva:
   description: |
     Análise preditiva de {topico_pesquisa} — "O que pode acontecer?".
     Arquivos de dados: {arquivos_analisados}
+    Estatísticas já calculadas pelo SAPIENS em Python (valores de referência;
+    cite-os literalmente, não os recalcule nem os altere):
+    {estatisticas_previas}
     Construir modelo de previsão, gerar projeções com intervalos de confiança
     e estimar tendências futuras relevantes para o planejamento acadêmico.
+    Séries curtas (poucos períodos) exigem ressalva explícita sobre a incerteza.
   expected_output: |
     Relatório preditivo (máx. 400 palavras) com: modelo utilizado, métricas
     de validação, projeções para os próximos períodos com intervalos de
@@ -124,6 +139,10 @@ revisar_qualidade_cientifica:
     Verificar nos sumários recebidos: afirmações causais sem suporte, generalizações
     absolutas, p-valor sem tamanho de efeito, R² baixo sem ressalva, amostras pequenas
     não sinalizadas. Aplicar checklist por tipo de análise e pontuar 0–100.
+    Conferir os números citados nos relatórios contra as estatísticas calculadas
+    pelo SAPIENS abaixo; sinalizar como alerta grave qualquer valor divergente ou
+    sem origem nos dados:
+    {estatisticas_previas}
   expected_output: |
     Parecer de qualidade (máx. 350 palavras): pontuação geral (0–100), nível
     (Excelente/Satisfatório/Necessita melhorias/Revisão necessária), alertas

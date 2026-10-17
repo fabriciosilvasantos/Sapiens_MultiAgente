@@ -9,6 +9,7 @@ import csv
 import json
 
 EXTENSOES_TABULARES = {".csv", ".txt", ".xlsx", ".xls", ".json"}
+MAX_CATEGORIAS = 15  # categorias listadas por coluna na análise descritiva
 
 
 class StatisticalAnalysisToolInput(BaseModel):
@@ -190,7 +191,16 @@ class StatisticalAnalysisTool(BaseTool):
             report += "📊 VARIÁVEIS CATEGÓRICAS:\n"
             for col in categorical_cols:
                 value_counts = df[col].value_counts()
-                report += f"• {col}:\n{value_counts.to_string()}\n\n"
+                distintos = len(value_counts)
+                # Colunas quase únicas (nomes, matrículas, e-mails) não são categorias:
+                # listar os valores exporia dados pessoais ao LLM sem valor analítico.
+                if distintos > MAX_CATEGORIAS and distintos > 0.5 * df[col].notna().sum():
+                    report += f"• {col}: {distintos} valores distintos (provável identificador — valores omitidos)\n\n"
+                    continue
+                report += f"• {col}:\n{value_counts.head(MAX_CATEGORIAS).to_string()}\n"
+                if distintos > MAX_CATEGORIAS:
+                    report += f"  … e mais {distintos - MAX_CATEGORIAS} categorias\n"
+                report += "\n"
 
         return report
 

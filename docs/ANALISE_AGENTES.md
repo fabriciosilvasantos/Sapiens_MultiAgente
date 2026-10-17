@@ -44,7 +44,7 @@ Também **não faz sentido** um agente "DevOps": `tools/devops_analysis_tool.py`
 
 ### Problemas encontrados (por prioridade)
 
-> **Status (2026-10-17):** problemas 1 a 6 corrigidos — `{arquivos_analisados}` interpolado nas tasks, guardrail `validar_dados_disponiveis` (em `crew.py`, sem retentativas) na validação e prescritiva síncrona após as análises paralelas; `StatisticalAnalysisTool` aceita `file_path` (CSV/Excel/JSON); `agents.yaml` só com campos do `crewai.Agent` (`max_iter` no lugar de `max_iterations`); análise textual como `ConditionalTask`, só com PDF/DOCX/TXT.
+> **Status (2026-10-17):** problemas 1 a 7 corrigidos — `{arquivos_analisados}` interpolado nas tasks, guardrail `validar_dados_disponiveis` (em `crew.py`, sem retentativas) na validação e prescritiva síncrona após as análises paralelas; `StatisticalAnalysisTool` aceita `file_path` (CSV/Excel/JSON); `agents.yaml` só com campos do `crewai.Agent` (`max_iter` no lugar de `max_iterations`); análise textual como `ConditionalTask`, só com PDF/DOCX/TXT; timeout cancela a crew (`cancelar()` + callbacks) e erros em tasks paralelas não travam mais o kickoff (`TaskParalela`).
 
 1. ✅ **Crítico — os agentes não recebem os caminhos dos arquivos.** `web/app.py` envia `inputs={'topico_pesquisa', 'arquivos_analisados'}`, mas nenhum texto de `agents.yaml`/`tasks.yaml` usa `{arquivos_analisados}`. O CrewAI só interpola placeholders presentes no texto, então os agentes nunca sabem quais arquivos analisar. Correção: incluir `Arquivos disponíveis: {arquivos_analisados}` nas descriptions de `validacao_rigorosa_de_dados_e_pergunta` e `processamento_de_dados_reais_validados` (e nas tasks analíticas).
 2. ✅ **Alto — `StatisticalAnalysisTool` exige o dataset inteiro como string JSON** (`data: str`). O LLM teria de colar os dados no argumento da tool, o que estoura contexto e convida à fabricação de números. Correção aplicada: parâmetro `file_path` (extensões tabulares, arquivo precisa existir; separador e encoding detectados), com precedência sobre `data`.
@@ -52,8 +52,19 @@ Também **não faz sentido** um agente "DevOps": `tools/devops_analysis_tool.py`
 4. ✅ **Médio — prescritiva em paralelo** (ver tabela). Correção: torná-la síncrona, após as async, com `context` = descritiva, diagnóstica, preditiva, benchmarks.
 5. ✅ **Médio — chaves inválidas em `agents.yaml`.** `max_iterations`, `ferramentas`, `temperatura_modelo`, `timeout_minutos`, `seguranca`, `formato_saida` e os blocos globais `sistema/seguranca/performance` não são campos do `crewai.Agent` e são ignorados. Dão falsa impressão de configuração. Correção: usar `max_iter`, `max_execution_time`, `allow_delegation: false`; remover o resto (temperatura já vem de `llm_config.yaml`, tools de `crew.py`).
 6. ✅ **Médio — análise textual incondicional** → `ConditionalTask` que só roda se houver `.pdf/.docx/.txt` em `arquivos_analisados`.
-7. **Baixo — o timeout da crew não cancela a execução.** `future.cancel()` não interrompe uma thread já em execução; a crew continua consumindo tokens após o `TimeoutError`.
+7. ✅ **Alto (era Baixo) — o timeout da crew não cancela a execução.** `future.cancel()` não interrompe uma thread já em execução, e o `with ThreadPoolExecutor` esperava a crew terminar antes de reportar o timeout. Além disso, no CrewAI 0.203 uma exceção numa task async nunca resolve o `Future`, e o `kickoff` travava para sempre (ex.: erro persistente do LLM numa análise paralela). Correção: `crew_instance.cancelar()` faz os callbacks levantarem `AnaliseCancelada` no próximo passo de cada agente; `executor.shutdown(wait=False)`; `TaskParalela` repassa exceções ao `Future`.
 8. **Baixo — revisor sem ciclo de correção.** Opção futura: `guardrail` no relatório final exigindo pontuação mínima, ou task de "revisão das ressalvas" antes da compilação.
+
+### Estatísticas pré-calculadas (2026-10-17)
+
+Descritiva, correlação e visão geral do dataset (linhas, colunas, tipos, nulos) são
+cálculos determinísticos. Agora são feitos uma vez em Python, num `@before_kickoff`
+(`estatisticas_previas.py`), e entregues prontos nas tasks via `{estatisticas_previas}`.
+Efeitos: menos chamadas de ferramenta pelos agentes, números de referência que o
+revisor usa para detectar valores inventados, e nenhuma dependência do LLM para
+decidir *se* calcula a estatística básica. A análise descritiva também passou a omitir
+colunas quase únicas (nomes, matrículas) e a listar no máximo 15 categorias por coluna,
+para não enviar dados pessoais de alunos ao LLM externo.
 
 ### Fluxo recomendado
 

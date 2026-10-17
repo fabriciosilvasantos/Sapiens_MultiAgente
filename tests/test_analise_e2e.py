@@ -439,10 +439,12 @@ class TestTimeout:
     def test_timeout_marca_analise_como_erro(self, setup):
         interface, _, _ = setup
         mock_instance, mock_crew_obj = _mock_crew()
+        crew_terminou = []
 
-        # Crew leva mais tempo que o timeout configurado
+        # Crew leva bem mais tempo que o timeout configurado
         def crew_lento(**kwargs):
-            time.sleep(3)
+            time.sleep(4)
+            crew_terminou.append(True)
             result = MagicMock()
             result.__str__ = lambda self: "nunca vai chegar aqui"
             return result
@@ -461,7 +463,7 @@ class TestTimeout:
         }
         interface._salvar_analise(analise_id)
 
-        # Timeout de 1s — bem abaixo dos 3s que a crew vai demorar
+        # Timeout de 1s — bem abaixo dos 4s que a crew vai demorar
         with patch('Sapiens_MultiAgente.crew.SapiensAcademicMultiAgentDataAnalysisPlatformCrew',
                    return_value=mock_instance), \
              patch.dict(os.environ, {'SAPIENS_CREW_TIMEOUT': '1'}):
@@ -472,6 +474,9 @@ class TestTimeout:
         assert 'tempo limite' in analise.get('erro', '').lower() or \
                'timeout' in analise.get('erro', '').lower() or \
                'SAPIENS_CREW_TIMEOUT' in analise.get('erro', '')
+        # O erro é reportado sem esperar a crew terminar, e a crew é sinalizada para parar.
+        assert not crew_terminou, "o timeout só foi reportado depois de a crew terminar"
+        mock_instance.cancelar.assert_called_once()
 
 
 # ---------------------------------------------------------------------------
