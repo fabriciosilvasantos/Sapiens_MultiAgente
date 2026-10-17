@@ -3,7 +3,7 @@ import threading
 from pathlib import Path
 from typing import Any
 
-from crewai import Agent, Crew, LLM, Process, Task, TaskOutput
+from crewai import Agent, Crew, LLM, Process, Task
 from crewai.project import CrewBase, agent, before_kickoff, crew, task
 from crewai.tasks.conditional_task import ConditionalTask
 from crewai_tools import (
@@ -14,8 +14,7 @@ from crewai_tools import (
 from .config.llm_settings import get_model_for_agent
 from .config.llm_fallback import build_llm
 from .estatisticas_previas import calcular_estatisticas_previas
-from .tools.data_validation_tool import DataValidationTool
-from .tools.csv_processor_tool import CSVProcessorTool
+from .preparacao_dados import resumir_arquivos, validar_arquivos
 from .tools.statistical_analysis_tool import StatisticalAnalysisTool
 from .tools.pdf_search_tool import PDFSearchTool
 from .tools.docx_search_tool import DOCXSearchTool
@@ -60,20 +59,6 @@ def ha_documentos_textuais(arquivos: Any) -> bool:
     return any(Path(str(a)).suffix.lower() in EXTENSOES_DOCUMENTOS for a in arquivos or [])
 
 
-def validar_dados_disponiveis(output: TaskOutput) -> tuple[bool, Any]:
-    """Interrompe a crew quando a validação conclui que não há dados reais.
-
-    Em Process.sequential as tasks seguintes rodariam mesmo assim, gerando
-    análises sem dados. Com guardrail_max_retries=0, a falha levanta exceção
-    e a mensagem "DADOS NECESSÁRIOS: ..." chega ao usuário como erro da análise.
-    """
-    texto = (output.raw or "").replace("*", "").replace("#", "").strip()
-    normalizado = texto.upper().replace("Á", "A")
-    if "DADOS NECESSARIOS" in normalizado and "DADOS VALIDADOS" not in normalizado:
-        return False, texto
-    return True, output.raw
-
-
 @CrewBase
 class SapiensAcademicMultiAgentDataAnalysisPlatformCrew:
     """SapiensAcademicMultiAgentDataAnalysisPlatform crew"""
@@ -108,15 +93,19 @@ class SapiensAcademicMultiAgentDataAnalysisPlatformCrew:
 
     @before_kickoff
     def _preparar_entradas(self, inputs: dict | None) -> dict | None:
-        """Prepara a execução a partir dos arquivos enviados.
+        """Valida e prepara os arquivos em Python, sem chamar o LLM.
 
-        - registra se há PDF/DOCX/TXT, para a condição da análise textual;
-        - calcula descritiva e correlação em Python ({estatisticas_previas} nas tasks),
-          em vez de deixar cada agente decidir quando chamar a StatisticalAnalysisTool.
+        - sem arquivos utilizáveis, levanta DadosNecessarios ("DADOS NECESSÁRIOS: ...")
+          antes de qualquer chamada ao modelo;
+        - {resumo_dados}: tipo, tamanho e dimensões de cada arquivo;
+        - {estatisticas_previas}: descritiva e correlação calculadas em Python;
+        - registra se há PDF/DOCX/TXT, para a condição da análise textual.
         """
+        self._verificar_cancelamento(None)
         inputs = dict(inputs or {})
-        arquivos = inputs.get("arquivos_analisados")
+        arquivos = validar_arquivos(inputs.get("arquivos_analisados"))
         self._tem_documentos = ha_documentos_textuais(arquivos)
+        inputs.setdefault("resumo_dados", resumir_arquivos(arquivos))
         inputs.setdefault("estatisticas_previas", calcular_estatisticas_previas(arquivos))
         return inputs
 
@@ -124,11 +113,9 @@ class SapiensAcademicMultiAgentDataAnalysisPlatformCrew:
     def agente_gerente_orquestrador(self) -> Agent:
         return Agent(
             config=self.agents_config["agente_gerente_orquestrador"],
-            tools=[
-                FileReadTool(),
-                DataValidationTool(),
-                CSVProcessorTool(),
-            ],
+            # Só compila o relatório a partir do context: validação e processamento
+            # dos arquivos são feitos em Python (preparacao_dados.py) antes do kickoff.
+            tools=[],
             llm=self._get_llm("agente_gerente_orquestrador"),
         )
 
@@ -213,30 +200,6 @@ class SapiensAcademicMultiAgentDataAnalysisPlatformCrew:
         )
 
     @task
-    def validacao_rigorosa_de_dados_e_pergunta(self) -> Task:
-        return Task(
-            config=self.tasks_config["validacao_rigorosa_de_dados_e_pergunta"],
-            guardrail=validar_dados_disponiveis,
-            guardrail_max_retries=0,
-        )
-
-    @task
-    def processamento_de_dados_reais_validados(self) -> Task:
-        return Task(
-            config=self.tasks_config["processamento_de_dados_reais_validados"],
-        )
-
-    @task
-    def executar_analise_textual(self) -> Task:
-        # ConditionalTask não pode ser async e o CrewAI aguarda as tasks paralelas
-        # pendentes antes de avaliá-la; por isso fica antes do bloco paralelo.
-        # A condição usa os arquivos enviados (determinístico), não o texto do LLM.
-        return ConditionalTask(
-            config=self.tasks_config["executar_analise_textual"],
-            condition=lambda _saida_anterior: self._tem_documentos,
-        )
-
-    @task
     def executar_analise_descritiva(self) -> Task:
         return TaskParalela(
             config=self.tasks_config["executar_analise_descritiva"],
@@ -262,6 +225,16 @@ class SapiensAcademicMultiAgentDataAnalysisPlatformCrew:
         return TaskParalela(
             config=self.tasks_config["buscar_dados_externos_e_benchmarks"],
             async_execution=True,
+        )
+
+    @task
+    def executar_analise_textual(self) -> Task:
+        # ConditionalTask não pode ser a primeira task nem async; o CrewAI aguarda
+        # as tasks paralelas pendentes antes de avaliá-la, por isso fica logo após
+        # o bloco paralelo. A condição usa os arquivos enviados, não o texto do LLM.
+        return ConditionalTask(
+            config=self.tasks_config["executar_analise_textual"],
+            condition=lambda _saida_anterior: self._tem_documentos,
         )
 
     @task

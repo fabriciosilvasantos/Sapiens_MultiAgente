@@ -44,7 +44,7 @@ Também **não faz sentido** um agente "DevOps": `tools/devops_analysis_tool.py`
 
 ### Problemas encontrados (por prioridade)
 
-> **Status (2026-10-17):** problemas 1 a 7 corrigidos — `{arquivos_analisados}` interpolado nas tasks, guardrail `validar_dados_disponiveis` (em `crew.py`, sem retentativas) na validação e prescritiva síncrona após as análises paralelas; `StatisticalAnalysisTool` aceita `file_path` (CSV/Excel/JSON); `agents.yaml` só com campos do `crewai.Agent` (`max_iter` no lugar de `max_iterations`); análise textual como `ConditionalTask`, só com PDF/DOCX/TXT; timeout cancela a crew (`cancelar()` + callbacks) e erros em tasks paralelas não travam mais o kickoff (`TaskParalela`).
+> **Status (2026-10-17):** problemas 1 a 7 corrigidos — `{arquivos_analisados}` interpolado nas tasks, validação dos dados fora do LLM (inicialmente um guardrail; hoje `preparacao_dados.py`, sem nenhuma chamada ao modelo) e prescritiva síncrona após as análises paralelas; `StatisticalAnalysisTool` aceita `file_path` (CSV/Excel/JSON); `agents.yaml` só com campos do `crewai.Agent` (`max_iter` no lugar de `max_iterations`); análise textual como `ConditionalTask`, só com PDF/DOCX/TXT; timeout cancela a crew (`cancelar()` + callbacks) e erros em tasks paralelas não travam mais o kickoff (`TaskParalela`).
 
 1. ✅ **Crítico — os agentes não recebem os caminhos dos arquivos.** `web/app.py` envia `inputs={'topico_pesquisa', 'arquivos_analisados'}`, mas nenhum texto de `agents.yaml`/`tasks.yaml` usa `{arquivos_analisados}`. O CrewAI só interpola placeholders presentes no texto, então os agentes nunca sabem quais arquivos analisar. Correção: incluir `Arquivos disponíveis: {arquivos_analisados}` nas descriptions de `validacao_rigorosa_de_dados_e_pergunta` e `processamento_de_dados_reais_validados` (e nas tasks analíticas).
 2. ✅ **Alto — `StatisticalAnalysisTool` exige o dataset inteiro como string JSON** (`data: str`). O LLM teria de colar os dados no argumento da tool, o que estoura contexto e convida à fabricação de números. Correção aplicada: parâmetro `file_path` (extensões tabulares, arquivo precisa existir; separador e encoding detectados), com precedência sobre `data`.
@@ -66,25 +66,36 @@ decidir *se* calcula a estatística básica. A análise descritiva também passo
 colunas quase únicas (nomes, matrículas) e a listar no máximo 15 categorias por coluna,
 para não enviar dados pessoais de alunos ao LLM externo.
 
-### Fluxo recomendado
+### Validação e processamento em Python (2026-10-17)
+
+As tasks `validacao_rigorosa_de_dados_e_pergunta` e `processamento_de_dados_reais_validados`
+foram removidas: gastavam duas chamadas de LLM em verificações determinísticas.
+`preparacao_dados.py` valida os arquivos (existência e extensão) e resume cada um
+(tipo, tamanho, linhas × colunas) no `@before_kickoff`. Sem dados utilizáveis, a análise
+termina com "DADOS NECESSÁRIOS: ..." antes de qualquer chamada ao modelo; o guardrail
+deixou de ser necessário. Com só CSV, a crew passou de 9 para 7 tasks de agente.
+
+### Fluxo atual
 
 ```
-validacao_rigorosa_de_dados_e_pergunta   (gerente, guardrail)
+[Python] validar_arquivos → resumo_dados → estatisticas_previas   (before_kickoff, sem LLM)
   ↓
-processamento_de_dados_reais_validados   (gerente)
+descritiva │ diagnóstica │ preditiva │ fontes externas   ← async (TaskParalela)
   ↓
-executar_analise_textual                 (ConditionalTask: só com PDF/DOCX/TXT; não pode ser async)
+executar_analise_textual        (ConditionalTask: só com PDF/DOCX/TXT; não pode ser a 1ª nem async)
   ↓
-descritiva │ diagnóstica │ preditiva │ fontes externas   ← async
-  ↓
-executar_analise_prescritiva             (síncrona; context = todas acima)
+executar_analise_prescritiva    (síncrona; context = análises + benchmarks)
   ↓
 revisar_qualidade_cientifica
   ↓
-compilacao_e_apresentacao_do_relatorio_final
+compilacao_e_apresentacao_do_relatorio_final   (orquestrador, sem ferramentas)
 ```
 
-Opcional (quando o relatório final crescer): separar um agente `redator_executivo` para a compilação, deixando o gerente só com validação/processamento — renomeando-o para `engenheiro_de_dados_academicos`.
+**Corrigido:** o relatório final tinha só `revisar_qualidade_cientifica` no `context` e o
+orquestrador escrevia as seções 2–7 sem os relatórios dos especialistas. Agora recebe todas
+as análises, os benchmarks, a análise textual (vazia quando pulada) e o parecer do revisor.
+
+Opcional: renomear `agente_gerente_orquestrador` para `redator_executivo`, já que ele só compila o relatório final.
 
 ---
 

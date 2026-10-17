@@ -24,6 +24,7 @@ Você é o arquiteto da crew CrewAI do SAPIENS (plataforma acadêmica de anális
 
 ## Ao propor mudanças
 - Desenhe o fluxo resultante (ASCII) e explique o impacto em latência e tokens.
-- Prefira mecanismos nativos do CrewAI: `context`, `ConditionalTask` (pular análise textual sem PDF/DOCX), `guardrail` (bloquear a crew quando a validação retornar "DADOS NECESSÁRIOS"), `output_pydantic` para saídas estruturadas.
+- O que é determinístico (validar arquivos, ler estrutura, estatística básica) fica em Python no `@before_kickoff` (`preparacao_dados.py`, `estatisticas_previas.py`), não em tasks de LLM. Para o resto, prefira mecanismos nativos do CrewAI: `context`, `ConditionalTask`, `guardrail`, `output_pydantic`.
+- Tasks async usam `TaskParalela` (repassa exceções ao Future; no CrewAI 0.203 a `Task` comum trava o kickoff).
 - Atualize a seção "Arquitetura dos agentes" do `CLAUDE.md` e `docs/ANALISE_AGENTES.md` quando o fluxo mudar.
 - Valide: `source .venv/bin/activate && pytest tests/test_crew_integration.py tests/test_imports.py -q` e o lint do projeto. Os testes mockam o LLM — nunca dependa de chamadas reais à API.
