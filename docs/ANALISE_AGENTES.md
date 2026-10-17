@@ -44,14 +44,14 @@ Também **não faz sentido** um agente "DevOps": `tools/devops_analysis_tool.py`
 
 ### Problemas encontrados (por prioridade)
 
-> **Status (2026-10-17):** problemas 1 a 5 corrigidos — `{arquivos_analisados}` interpolado nas tasks, guardrail `validar_dados_disponiveis` (em `crew.py`, sem retentativas) na validação e prescritiva síncrona após as análises paralelas; `StatisticalAnalysisTool` aceita `file_path` (CSV/Excel/JSON); `agents.yaml` só com campos do `crewai.Agent` (`max_iter` no lugar de `max_iterations`).
+> **Status (2026-10-17):** problemas 1 a 6 corrigidos — `{arquivos_analisados}` interpolado nas tasks, guardrail `validar_dados_disponiveis` (em `crew.py`, sem retentativas) na validação e prescritiva síncrona após as análises paralelas; `StatisticalAnalysisTool` aceita `file_path` (CSV/Excel/JSON); `agents.yaml` só com campos do `crewai.Agent` (`max_iter` no lugar de `max_iterations`); análise textual como `ConditionalTask`, só com PDF/DOCX/TXT.
 
 1. ✅ **Crítico — os agentes não recebem os caminhos dos arquivos.** `web/app.py` envia `inputs={'topico_pesquisa', 'arquivos_analisados'}`, mas nenhum texto de `agents.yaml`/`tasks.yaml` usa `{arquivos_analisados}`. O CrewAI só interpola placeholders presentes no texto, então os agentes nunca sabem quais arquivos analisar. Correção: incluir `Arquivos disponíveis: {arquivos_analisados}` nas descriptions de `validacao_rigorosa_de_dados_e_pergunta` e `processamento_de_dados_reais_validados` (e nas tasks analíticas).
 2. ✅ **Alto — `StatisticalAnalysisTool` exige o dataset inteiro como string JSON** (`data: str`). O LLM teria de colar os dados no argumento da tool, o que estoura contexto e convida à fabricação de números. Correção aplicada: parâmetro `file_path` (extensões tabulares, arquivo precisa existir; separador e encoding detectados), com precedência sobre `data`.
 3. ✅ **Alto — a validação não interrompe a crew.** A task diz "SE não há dados: PARAR", mas em processo sequencial as demais tasks rodam do mesmo jeito. Correção: `guardrail` na task de validação (falha se a saída começar com `DADOS NECESSÁRIOS`) ou checar arquivos em `app.py` antes do `kickoff`.
 4. ✅ **Médio — prescritiva em paralelo** (ver tabela). Correção: torná-la síncrona, após as async, com `context` = descritiva, diagnóstica, preditiva, benchmarks.
 5. ✅ **Médio — chaves inválidas em `agents.yaml`.** `max_iterations`, `ferramentas`, `temperatura_modelo`, `timeout_minutos`, `seguranca`, `formato_saida` e os blocos globais `sistema/seguranca/performance` não são campos do `crewai.Agent` e são ignorados. Dão falsa impressão de configuração. Correção: usar `max_iter`, `max_execution_time`, `allow_delegation: false`; remover o resto (temperatura já vem de `llm_config.yaml`, tools de `crew.py`).
-6. **Médio — análise textual incondicional** → `ConditionalTask` que só roda se houver `.pdf/.docx/.txt` em `arquivos_analisados`.
+6. ✅ **Médio — análise textual incondicional** → `ConditionalTask` que só roda se houver `.pdf/.docx/.txt` em `arquivos_analisados`.
 7. **Baixo — o timeout da crew não cancela a execução.** `future.cancel()` não interrompe uma thread já em execução; a crew continua consumindo tokens após o `TimeoutError`.
 8. **Baixo — revisor sem ciclo de correção.** Opção futura: `guardrail` no relatório final exigindo pontuação mínima, ou task de "revisão das ressalvas" antes da compilação.
 
@@ -62,7 +62,9 @@ validacao_rigorosa_de_dados_e_pergunta   (gerente, guardrail)
   ↓
 processamento_de_dados_reais_validados   (gerente)
   ↓
-descritiva │ diagnóstica │ preditiva │ fontes externas │ textual (ConditionalTask)   ← async
+executar_analise_textual                 (ConditionalTask: só com PDF/DOCX/TXT; não pode ser async)
+  ↓
+descritiva │ diagnóstica │ preditiva │ fontes externas   ← async
   ↓
 executar_analise_prescritiva             (síncrona; context = todas acima)
   ↓

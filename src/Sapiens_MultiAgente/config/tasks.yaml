@@ -29,6 +29,21 @@ processamento_de_dados_reais_validados:
   context:
   - validacao_rigorosa_de_dados_e_pergunta
 
+executar_analise_textual:
+  description: |
+    Analisar conteúdo textual dos documentos de {topico_pesquisa}.
+    (Executada apenas quando há PDF, DOCX ou TXT entre os arquivos enviados.)
+    Arquivos de dados: {arquivos_analisados}
+    Extrair palavras-chave, identificar entidades (instituições, datas,
+    indicadores) e detectar temas predominantes em PDFs/DOCX fornecidos.
+  expected_output: |
+    Relatório textual (máx. 300 palavras) com: top-10 palavras-chave,
+    entidades identificadas em tabela, temas por relevância e
+    síntese qualitativa em 2–3 parágrafos.
+  agent: especialista_em_analise_textual
+  context:
+  - processamento_de_dados_reais_validados
+
 executar_analise_descritiva:
   description: |
     Análise descritiva de {topico_pesquisa} — "O que aconteceu?".
@@ -80,20 +95,6 @@ buscar_dados_externos_e_benchmarks:
     Tabela de benchmarks (máx. 200 palavras): indicador nacional × valor de
     referência × fonte, com nota sobre como comparar com os dados da instituição.
   agent: especialista_em_fontes_externas
-  context:
-  - processamento_de_dados_reais_validados
-
-executar_analise_textual:
-  description: |
-    Analisar conteúdo textual dos documentos de {topico_pesquisa}.
-    Arquivos de dados: {arquivos_analisados}
-    Extrair palavras-chave, identificar entidades (instituições, datas,
-    indicadores) e detectar temas predominantes em PDFs/DOCX fornecidos.
-  expected_output: |
-    Relatório textual (máx. 300 palavras) com: top-10 palavras-chave,
-    entidades identificadas em tabela, temas por relevância e
-    síntese qualitativa em 2–3 parágrafos.
-  agent: especialista_em_analise_textual
   context:
   - processamento_de_dados_reais_validados
 
@@ -150,7 +151,7 @@ compilacao_e_apresentacao_do_relatorio_final:
     4. Análise preditiva — cenários futuros
     5. Análise prescritiva — recomendações priorizadas
     6. Contextualização nacional (benchmarks INEP/IBGE)
-    7. Síntese documental (análise textual)
+    7. Síntese documental (análise textual) — omitir se não houver documentos textuais
     8. Parecer de qualidade científica e ressalvas metodológicas
   agent: agente_gerente_orquestrador
   context:
