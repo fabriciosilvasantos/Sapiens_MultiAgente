@@ -139,6 +139,74 @@ class TestStatisticalAnalysisTool:
 # DataValidationTool
 # ---------------------------------------------------------------------------
 
+class TestStatisticalAnalysisFilePath:
+    """A tool lê os dados direto do arquivo, sem o LLM colar o dataset no argumento."""
+
+    @pytest.fixture
+    def tool(self):
+        from Sapiens_MultiAgente.tools.statistical_analysis_tool import StatisticalAnalysisTool
+        return StatisticalAnalysisTool()
+
+    def test_csv_virgula(self, tool, tmp_path):
+        arquivo = tmp_path / "notas.csv"
+        arquivo.write_text("nota,frequencia\n7.5,80\n8.0,90\n6.5,70\n9.0,95\n", encoding="utf-8")
+        resultado = tool._run(file_path=str(arquivo), analysis_type="descritiva")
+        assert "❌" not in resultado
+        assert "nota" in resultado
+
+    def test_csv_ponto_e_virgula_latin1(self, tool, tmp_path):
+        arquivo = tmp_path / "evasao.csv"
+        arquivo.write_bytes("período;evadidos;matrículas\n1;10;100\n2;12;110\n3;9;105\n".encode("latin-1"))
+        resultado = tool._run(file_path=str(arquivo), analysis_type="correlacao")
+        assert "❌" not in resultado
+        assert "evadidos" in resultado
+
+    def test_xlsx(self, tool, tmp_path):
+        import pandas as pd
+        arquivo = tmp_path / "dados.xlsx"
+        pd.DataFrame({"x": [1, 2, 3, 4, 5], "y": [2.1, 3.9, 6.2, 8.1, 9.8]}).to_excel(arquivo, index=False)
+        resultado = tool._run(file_path=str(arquivo), analysis_type="regressao")
+        assert "❌" not in resultado
+
+    def test_dataset_real_uenf_com_anova(self, tool):
+        arquivo = os.path.join(os.path.dirname(__file__), "..", "data", "uenf_alunos_2020_2025.csv")
+        resultado = tool._run(
+            file_path=arquivo, analysis_type="anova", group_column="centro", variables=["cr_medio"]
+        )
+        assert "❌" not in resultado
+
+    def test_file_path_tem_precedencia_sobre_data(self, tool, tmp_path):
+        arquivo = tmp_path / "a.csv"
+        arquivo.write_text("coluna_do_arquivo\n1\n2\n3\n", encoding="utf-8")
+        resultado = tool._run(
+            file_path=str(arquivo), data=json.dumps({"coluna_inline": [1, 2, 3]}), analysis_type="descriptive"
+        )
+        assert "coluna_do_arquivo" in resultado
+        assert "coluna_inline" not in resultado
+
+    def test_arquivo_inexistente(self, tool):
+        resultado = tool._run(file_path="/nao/existe.csv", analysis_type="descriptive")
+        assert resultado.startswith("❌ ERRO:")
+        assert "não encontrado" in resultado
+
+    def test_extensao_nao_tabular(self, tool, tmp_path):
+        arquivo = tmp_path / "relatorio.pdf"
+        arquivo.write_bytes(b"%PDF-1.4")
+        resultado = tool._run(file_path=str(arquivo), analysis_type="descriptive")
+        assert resultado.startswith("❌ ERRO:")
+        assert ".pdf" in resultado
+
+    def test_sem_file_path_nem_data(self, tool):
+        resultado = tool._run(analysis_type="descriptive")
+        assert resultado.startswith("❌ ERRO:")
+        assert "file_path" in resultado
+
+    def test_schema_aceita_so_file_path(self):
+        from Sapiens_MultiAgente.tools.statistical_analysis_tool import StatisticalAnalysisToolInput
+        entrada = StatisticalAnalysisToolInput(file_path="dados.csv", analysis_type="descritiva")
+        assert entrada.data is None
+
+
 class TestDataValidationTool:
     def _make_file(self, content: str, suffix: str) -> str:
         f = tempfile.NamedTemporaryFile(mode='w', suffix=suffix, delete=False, encoding='utf-8')
