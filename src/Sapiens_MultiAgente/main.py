@@ -13,7 +13,8 @@ def run():
     Run the crew.
     """
     inputs = {
-        'topico_pesquisa': 'Análise de desempenho acadêmico dos estudantes de graduação em Ciências da Computação'
+        'topico_pesquisa': 'Análise de desempenho acadêmico dos estudantes de graduação em Ciências da Computação',
+        'arquivos_analisados': [],
     }
     SapiensAcademicMultiAgentDataAnalysisPlatformCrew().crew().kickoff(inputs=inputs)
 
@@ -23,7 +24,8 @@ def train():
     Train the crew for a given number of iterations.
     """
     inputs = {
-        'topico_pesquisa': 'Análise de desempenho acadêmico dos estudantes de graduação em Ciências da Computação'
+        'topico_pesquisa': 'Análise de desempenho acadêmico dos estudantes de graduação em Ciências da Computação',
+        'arquivos_analisados': [],
     }
     try:
         SapiensAcademicMultiAgentDataAnalysisPlatformCrew().crew().train(n_iterations=int(sys.argv[1]), filename=sys.argv[2], inputs=inputs)
@@ -48,7 +50,8 @@ def test():
     Test the crew execution and returns the results.
     """
     inputs = {
-        'topico_pesquisa': 'Análise de desempenho acadêmico dos estudantes de graduação em Ciências da Computação'
+        'topico_pesquisa': 'Análise de desempenho acadêmico dos estudantes de graduação em Ciências da Computação',
+        'arquivos_analisados': [],
     }
     try:
         SapiensAcademicMultiAgentDataAnalysisPlatformCrew().crew().test(n_iterations=int(sys.argv[1]), openai_model_name=sys.argv[2], inputs=inputs)

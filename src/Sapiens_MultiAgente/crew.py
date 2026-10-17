@@ -1,5 +1,7 @@
 import os
-from crewai import Agent, Crew, LLM, Process, Task
+from typing import Any
+
+from crewai import Agent, Crew, LLM, Process, Task, TaskOutput
 from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import (
     FileReadTool,
@@ -18,6 +20,20 @@ from .tools.chart_generator_tool import ChartGeneratorTool
 from .tools.external_data_tool import ExternalDataTool
 from .tools.quality_review_tool import QualityReviewTool
 from .tools.text_analysis_tool import TextAnalysisTool
+
+
+def validar_dados_disponiveis(output: TaskOutput) -> tuple[bool, Any]:
+    """Interrompe a crew quando a validação conclui que não há dados reais.
+
+    Em Process.sequential as tasks seguintes rodariam mesmo assim, gerando
+    análises sem dados. Com guardrail_max_retries=0, a falha levanta exceção
+    e a mensagem "DADOS NECESSÁRIOS: ..." chega ao usuário como erro da análise.
+    """
+    texto = (output.raw or "").replace("*", "").replace("#", "").strip()
+    normalizado = texto.upper().replace("Á", "A")
+    if "DADOS NECESSARIOS" in normalizado and "DADOS VALIDADOS" not in normalizado:
+        return False, texto
+    return True, output.raw
 
 
 @CrewBase
@@ -130,6 +146,8 @@ class SapiensAcademicMultiAgentDataAnalysisPlatformCrew:
     def validacao_rigorosa_de_dados_e_pergunta(self) -> Task:
         return Task(
             config=self.tasks_config["validacao_rigorosa_de_dados_e_pergunta"],
+            guardrail=validar_dados_disponiveis,
+            guardrail_max_retries=0,
         )
 
     @task
@@ -160,13 +178,6 @@ class SapiensAcademicMultiAgentDataAnalysisPlatformCrew:
         )
 
     @task
-    def executar_analise_prescritiva(self) -> Task:
-        return Task(
-            config=self.tasks_config["executar_analise_prescritiva"],
-            async_execution=True,
-        )
-
-    @task
     def buscar_dados_externos_e_benchmarks(self) -> Task:
         return Task(
             config=self.tasks_config["buscar_dados_externos_e_benchmarks"],
@@ -178,6 +189,13 @@ class SapiensAcademicMultiAgentDataAnalysisPlatformCrew:
         return Task(
             config=self.tasks_config["executar_analise_textual"],
             async_execution=True,
+        )
+
+    @task
+    def executar_analise_prescritiva(self) -> Task:
+        return Task(
+            config=self.tasks_config["executar_analise_prescritiva"],
+            # Síncrona: aguarda as análises paralelas, cujos achados recebe via context.
         )
 
     @task

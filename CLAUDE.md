@@ -98,15 +98,16 @@ print('Resultado:', '✅ Ambiente OK' if ok else '❌ Configure as variáveis fa
 ## Arquitetura dos agentes
 
 ```
-agente_gerente_orquestrador             → valida dados e orquestra
-  ↓
+agente_gerente_orquestrador             → valida dados (guardrail: "DADOS NECESSÁRIOS" interrompe a crew)
+  ↓                                        e processa os arquivos ({arquivos_analisados})
 especialista_em_analise_descritiva      ┐
 especialista_em_analise_diagnostica     │
 especialista_em_analise_preditiva       ├ async_execution=True (paralelas)
-especialista_em_analise_prescritiva     │
 especialista_em_fontes_externas         │ (INEP/IBGE benchmarks)
 especialista_em_analise_textual         ┘ (NLP documentos)
   ↓ (todas concluídas)
+especialista_em_analise_prescritiva     → recomendações baseadas nos achados acima (sequencial)
+  ↓
 revisor_de_qualidade_cientifica         → revisão metodológica (sequencial)
   ↓
 compilacao_e_apresentacao_do_relatorio_final
