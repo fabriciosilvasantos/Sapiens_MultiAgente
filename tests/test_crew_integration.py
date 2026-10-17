@@ -121,6 +121,15 @@ class TestCrewEstrutura:
             assert nomes.index(dependencia) < idx, f"'{dependencia}' deve rodar antes da prescritiva"
         assert nomes.index('revisar_qualidade_cientifica') > idx
 
+    def test_relatorio_final_recebe_todos_os_resultados(self):
+        """O orquestrador precisa dos relatórios dos especialistas, não só do parecer do revisor."""
+        from Sapiens_MultiAgente.crew import SapiensAcademicMultiAgentDataAnalysisPlatformCrew
+        with patch.dict(os.environ, {'OPENAI_API_KEY': 'test-key', 'OPENAI_API_BASE': 'http://localhost'}):
+            crew = SapiensAcademicMultiAgentDataAnalysisPlatformCrew().crew()
+        relatorio = crew.tasks[-1]
+        assert relatorio.name == 'compilacao_e_apresentacao_do_relatorio_final'
+        assert {t.name for t in relatorio.context} == {t.name for t in crew.tasks[:-1]}
+
     def test_relatorio_nao_e_async(self):
         """O relatório final deve aguardar todas as análises (sem async)."""
         from Sapiens_MultiAgente.crew import SapiensAcademicMultiAgentDataAnalysisPlatformCrew

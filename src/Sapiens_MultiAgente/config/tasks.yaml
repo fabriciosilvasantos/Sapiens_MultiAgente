@@ -118,8 +118,10 @@ compilacao_e_apresentacao_do_relatorio_final:
   description: |
     Compilar relatório final sobre {topico_pesquisa} integrando todos os resultados.
     {resumo_dados}
-    Sintetizar achados dos especialistas, incorporar o parecer de qualidade e
-    traduzir descobertas técnicas em linguagem acessível para gestores universitários.
+    Sintetizar os relatórios dos especialistas recebidos no contexto, incorporar o
+    parecer de qualidade (corrigindo ou ressalvando o que o revisor apontou) e traduzir
+    descobertas técnicas em linguagem acessível para gestores universitários.
+    Usar apenas números e fatos presentes nesses relatórios.
   expected_output: |
     Relatório final em markdown com:
     1. Resumo executivo (3–5 bullets principais)
@@ -131,5 +133,13 @@ compilacao_e_apresentacao_do_relatorio_final:
     7. Síntese documental (análise textual) — omitir se não houver documentos textuais
     8. Parecer de qualidade científica e ressalvas metodológicas
   agent: agente_gerente_orquestrador
+  # Sem os relatórios dos especialistas, o orquestrador só veria o parecer do
+  # revisor e teria de escrever as seções 2–7 sem os achados.
   context:
+  - executar_analise_descritiva
+  - executar_analise_diagnostica
+  - executar_analise_preditiva
+  - buscar_dados_externos_e_benchmarks
+  - executar_analise_textual
+  - executar_analise_prescritiva
   - revisar_qualidade_cientifica

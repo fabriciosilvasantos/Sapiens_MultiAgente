@@ -91,8 +91,9 @@ revisar_qualidade_cientifica
 compilacao_e_apresentacao_do_relatorio_final   (orquestrador, sem ferramentas)
 ```
 
-**Pendente:** o relatório final tem só `revisar_qualidade_cientifica` no `context`, então o
-orquestrador não recebe os relatórios dos especialistas, apenas o parecer do revisor.
+**Corrigido:** o relatório final tinha só `revisar_qualidade_cientifica` no `context` e o
+orquestrador escrevia as seções 2–7 sem os relatórios dos especialistas. Agora recebe todas
+as análises, os benchmarks, a análise textual (vazia quando pulada) e o parecer do revisor.
 
 Opcional: renomear `agente_gerente_orquestrador` para `redator_executivo`, já que ele só compila o relatório final.
 
