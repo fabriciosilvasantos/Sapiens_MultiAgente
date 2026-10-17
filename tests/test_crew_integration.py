@@ -10,6 +10,8 @@ from unittest.mock import patch, MagicMock
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
+DATASET_UENF = os.path.join(os.path.dirname(__file__), '..', 'data', 'uenf_alunos_2020_2025.csv')
+
 
 class TestCrewEstrutura:
     """Valida que o crew está estruturado corretamente."""
@@ -50,20 +52,20 @@ class TestCrewEstrutura:
         for agente in agentes_esperados:
             assert agente in crew_instance.agents_config, f"Agente ausente: {agente}"
 
-    def test_sete_tasks_configuradas(self):
+    def test_tasks_configuradas(self):
         from Sapiens_MultiAgente.crew import SapiensAcademicMultiAgentDataAnalysisPlatformCrew
         crew_instance = SapiensAcademicMultiAgentDataAnalysisPlatformCrew()
         tasks_esperadas = [
-            'validacao_rigorosa_de_dados_e_pergunta',
-            'processamento_de_dados_reais_validados',
             'executar_analise_descritiva',
             'executar_analise_diagnostica',
             'executar_analise_preditiva',
+            'buscar_dados_externos_e_benchmarks',
+            'executar_analise_textual',
             'executar_analise_prescritiva',
+            'revisar_qualidade_cientifica',
             'compilacao_e_apresentacao_do_relatorio_final',
         ]
-        for task in tasks_esperadas:
-            assert task in crew_instance.tasks_config, f"Task ausente: {task}"
+        assert sorted(crew_instance.tasks_config) == sorted(tasks_esperadas)
 
     def test_agentes_tem_campos_obrigatorios(self):
         from Sapiens_MultiAgente.crew import SapiensAcademicMultiAgentDataAnalysisPlatformCrew
@@ -355,14 +357,17 @@ class TestFluxoEndToEnd:
 
 
 class TestArquivosEValidacao:
-    """Arquivos chegam aos agentes e a crew para quando faltam dados."""
+    """Validação dos arquivos em Python: arquivos chegam às tasks e a crew para sem dados."""
+
+    ENV = {
+        'OPENAI_API_KEY': 'test-key', 'OPENAI_API_BASE': 'http://localhost',
+        'CREWAI_DISABLE_TELEMETRY': 'true', 'OTEL_SDK_DISABLED': 'true',
+    }
 
     def test_tasks_que_leem_dados_recebem_arquivos(self):
         from Sapiens_MultiAgente.crew import SapiensAcademicMultiAgentDataAnalysisPlatformCrew
         config = SapiensAcademicMultiAgentDataAnalysisPlatformCrew().tasks_config
         for nome in [
-            'validacao_rigorosa_de_dados_e_pergunta',
-            'processamento_de_dados_reais_validados',
             'executar_analise_descritiva',
             'executar_analise_diagnostica',
             'executar_analise_preditiva',
@@ -371,44 +376,61 @@ class TestArquivosEValidacao:
         ]:
             assert '{arquivos_analisados}' in config[nome]['description'], nome
 
-    def test_caminhos_interpolados_na_validacao(self):
+    def test_resumo_dos_dados_nas_tasks_sem_estatisticas(self):
         from Sapiens_MultiAgente.crew import SapiensAcademicMultiAgentDataAnalysisPlatformCrew
-        with patch.dict(os.environ, {'OPENAI_API_KEY': 'test-key', 'OPENAI_API_BASE': 'http://localhost'}):
+        config = SapiensAcademicMultiAgentDataAnalysisPlatformCrew().tasks_config
+        for nome in ['buscar_dados_externos_e_benchmarks', 'compilacao_e_apresentacao_do_relatorio_final']:
+            assert '{resumo_dados}' in config[nome]['description'], nome
+
+    def test_caminhos_interpolados(self):
+        from Sapiens_MultiAgente.crew import SapiensAcademicMultiAgentDataAnalysisPlatformCrew
+        with patch.dict(os.environ, self.ENV):
             crew = SapiensAcademicMultiAgentDataAnalysisPlatformCrew().crew()
-        validacao = crew.tasks[0]
-        validacao.interpolate_inputs_and_add_conversation_history(
-            {'topico_pesquisa': 'Evasão', 'arquivos_analisados': ['/tmp/uploads/notas.csv']}
-        )
-        assert '/tmp/uploads/notas.csv' in validacao.description
+        descritiva = crew.tasks[0]
+        descritiva.interpolate_inputs_and_add_conversation_history({
+            'topico_pesquisa': 'Evasão', 'arquivos_analisados': ['/tmp/uploads/notas.csv'],
+            'estatisticas_previas': '-', 'resumo_dados': '-',
+        })
+        assert '/tmp/uploads/notas.csv' in descritiva.description
 
-    def test_validacao_tem_guardrail_sem_retentativas(self):
-        from Sapiens_MultiAgente.crew import (
-            SapiensAcademicMultiAgentDataAnalysisPlatformCrew, validar_dados_disponiveis,
-        )
-        with patch.dict(os.environ, {'OPENAI_API_KEY': 'test-key', 'OPENAI_API_BASE': 'http://localhost'}):
-            task = SapiensAcademicMultiAgentDataAnalysisPlatformCrew().validacao_rigorosa_de_dados_e_pergunta()
-        assert task.guardrail is validar_dados_disponiveis
-        assert task.guardrail_max_retries == 0
+    def test_orquestrador_sem_ferramentas(self):
+        from Sapiens_MultiAgente.crew import SapiensAcademicMultiAgentDataAnalysisPlatformCrew
+        with patch.dict(os.environ, self.ENV):
+            orquestrador = SapiensAcademicMultiAgentDataAnalysisPlatformCrew().agente_gerente_orquestrador()
+        assert orquestrador.tools == []
 
-    @pytest.mark.parametrize("saida", [
-        "DADOS NECESSÁRIOS: envie um CSV com as notas.",
-        "**DADOS NECESSÁRIOS**: envie arquivos CSV ou PDF.",
-        "dados necessarios: nenhum arquivo foi enviado",
+    @pytest.mark.parametrize("arquivos, trecho", [
+        ([], "nenhum arquivo foi enviado"),
+        (None, "nenhum arquivo foi enviado"),
+        (['/nao/existe.csv'], "existe.csv: arquivo não encontrado"),
+        ([DATASET_UENF, '/up/planilha.exe'], "planilha.exe: extensão '.exe' não aceita"),
     ])
-    def test_guardrail_bloqueia_sem_dados(self, saida):
-        from crewai import TaskOutput
-        from Sapiens_MultiAgente.crew import validar_dados_disponiveis
-        ok, msg = validar_dados_disponiveis(TaskOutput(description="v", raw=saida, agent="a"))
-        assert ok is False
-        assert "envie" in msg or "nenhum" in msg
+    def test_sem_dados_validos_para_antes_de_chamar_agentes(self, arquivos, trecho):
+        from crewai import Agent
+        from Sapiens_MultiAgente.crew import SapiensAcademicMultiAgentDataAnalysisPlatformCrew
+        from Sapiens_MultiAgente.preparacao_dados import DadosNecessarios
+        executadas = []
 
-    def test_guardrail_libera_com_dados(self):
-        from crewai import TaskOutput
-        from Sapiens_MultiAgente.crew import validar_dados_disponiveis
-        saida = "DADOS VALIDADOS: /tmp/uploads/notas.csv"
-        ok, resultado = validar_dados_disponiveis(TaskOutput(description="v", raw=saida, agent="a"))
-        assert ok is True
-        assert resultado == saida
+        def agente_falso(self, task, context=None, tools=None):
+            executadas.append(task.name)
+            return "ok"
+
+        with patch.dict(os.environ, self.ENV), patch.object(Agent, 'execute_task', agente_falso):
+            crew = SapiensAcademicMultiAgentDataAnalysisPlatformCrew().crew()
+            with pytest.raises(DadosNecessarios) as erro:
+                crew.kickoff(inputs={'topico_pesquisa': 'Evasão', 'arquivos_analisados': arquivos})
+        assert str(erro.value).startswith("DADOS NECESSÁRIOS:")
+        assert trecho in str(erro.value)
+        assert executadas == []
+
+    def test_resumo_e_estatisticas_preparados_no_before_kickoff(self):
+        from Sapiens_MultiAgente.crew import SapiensAcademicMultiAgentDataAnalysisPlatformCrew
+        with patch.dict(os.environ, self.ENV):
+            instancia = SapiensAcademicMultiAgentDataAnalysisPlatformCrew()
+        entradas = instancia._preparar_entradas({'topico_pesquisa': 'Evasão', 'arquivos_analisados': [DATASET_UENF]})
+        assert "uenf_alunos_2020_2025.csv (CSV," in entradas['resumo_dados']
+        assert "tabela com 132 linhas e 11 colunas" in entradas['resumo_dados']
+        assert "r = 0.907" in entradas['estatisticas_previas']
 
 
 class TestAgentsYamlCamposValidos:
@@ -449,7 +471,7 @@ class TestAnaliseTextualCondicional:
         from Sapiens_MultiAgente.crew import ha_documentos_textuais
         assert ha_documentos_textuais(arquivos) is esperado
 
-    def test_textual_e_conditional_e_vem_antes_do_bloco_paralelo(self):
+    def test_textual_e_conditional_e_vem_logo_apos_o_bloco_paralelo(self):
         from crewai.tasks.conditional_task import ConditionalTask
         from Sapiens_MultiAgente.crew import SapiensAcademicMultiAgentDataAnalysisPlatformCrew
         with patch.dict(os.environ, {'OPENAI_API_KEY': 'test-key', 'OPENAI_API_BASE': 'http://localhost'}):
@@ -458,8 +480,8 @@ class TestAnaliseTextualCondicional:
         textual = crew.tasks[nomes.index('executar_analise_textual')]
         assert isinstance(textual, ConditionalTask)
         assert textual.async_execution is not True
-        assert nomes.index('processamento_de_dados_reais_validados') < nomes.index('executar_analise_textual')
-        assert nomes.index('executar_analise_textual') < nomes.index('executar_analise_descritiva')
+        assert nomes.index('buscar_dados_externos_e_benchmarks') < nomes.index('executar_analise_textual')
+        assert nomes.index('executar_analise_textual') < nomes.index('executar_analise_prescritiva')
         revisor = crew.tasks[nomes.index('revisar_qualidade_cientifica')]
         assert 'executar_analise_textual' in {t.name for t in revisor.context}
 
@@ -471,8 +493,6 @@ class TestAnaliseTextualCondicional:
 
         def agente_falso(self, task, context=None, tools=None):
             executadas.append(task.name)
-            if task.name == 'validacao_rigorosa_de_dados_e_pergunta':
-                return "DADOS VALIDADOS: " + ", ".join(arquivos)
             return "ok"
 
         env = {
@@ -485,15 +505,17 @@ class TestAnaliseTextualCondicional:
         return executadas
 
     def test_pula_textual_so_com_csv(self):
-        executadas = self._executar(['/up/notas.csv'])
+        executadas = self._executar([DATASET_UENF])
         assert 'executar_analise_textual' not in executadas
         assert executadas[-1] == 'compilacao_e_apresentacao_do_relatorio_final'
-        assert len(executadas) == 9
+        assert len(executadas) == 7
 
-    def test_executa_textual_com_pdf(self):
-        executadas = self._executar(['/up/notas.csv', '/up/relatorio.pdf'])
+    def test_executa_textual_com_pdf(self, tmp_path):
+        pdf = tmp_path / "relatorio.pdf"
+        pdf.write_bytes(b"%PDF-1.4")
+        executadas = self._executar([DATASET_UENF, str(pdf)])
         assert 'executar_analise_textual' in executadas
-        assert len(executadas) == 10
+        assert len(executadas) == 8
 
 
 class TestCancelamentoEErrosParalelos:
@@ -503,7 +525,8 @@ class TestCancelamentoEErrosParalelos:
         'OPENAI_API_KEY': 'test-key', 'OPENAI_API_BASE': 'http://localhost',
         'CREWAI_DISABLE_TELEMETRY': 'true', 'OTEL_SDK_DISABLED': 'true',
     }
-    RESPOSTA = "Thought: ok\nFinal Answer: DADOS VALIDADOS: /up/notas.csv"
+    RESPOSTA = "Thought: ok\nFinal Answer: análise concluída"
+    ENTRADAS = {'topico_pesquisa': 'Evasão', 'arquivos_analisados': [DATASET_UENF]}
 
     def _iniciar(self, llm_falso):
         """Roda o kickoff numa thread com o LLM simulado; retorna (instancia, thread, resultado)."""
@@ -519,7 +542,7 @@ class TestCancelamentoEErrosParalelos:
             with patch.dict(os.environ, self.ENV), \
                     patch('crewai.agents.crew_agent_executor.get_llm_response', llm_falso):
                 try:
-                    crew.kickoff(inputs={'topico_pesquisa': 'Evasão', 'arquivos_analisados': ['/up/notas.csv']})
+                    crew.kickoff(inputs=self.ENTRADAS)
                     resultado['erro'] = None
                 except BaseException as erro:  # noqa: BLE001
                     resultado['erro'] = erro
@@ -528,7 +551,7 @@ class TestCancelamentoEErrosParalelos:
         thread.start()
         return instancia, thread, resultado
 
-    def test_cancelar_antes_interrompe_no_primeiro_passo(self):
+    def test_cancelar_antes_nao_chama_o_llm(self):
         from Sapiens_MultiAgente.crew import AnaliseCancelada
         chamadas = []
 
@@ -544,8 +567,8 @@ class TestCancelamentoEErrosParalelos:
             instancia.cancelar()
             with patch('crewai.agents.crew_agent_executor.get_llm_response', llm_falso):
                 with pytest.raises(AnaliseCancelada):
-                    crew.kickoff(inputs={'topico_pesquisa': 'Evasão', 'arquivos_analisados': ['/up/notas.csv']})
-        assert len(chamadas) == 1
+                    crew.kickoff(inputs=self.ENTRADAS)
+        assert chamadas == []
 
     def test_cancelar_durante_bloco_paralelo_encerra_a_crew(self):
         import threading
@@ -562,18 +585,17 @@ class TestCancelamentoEErrosParalelos:
 
         instancia, thread, resultado = self._iniciar(llm_falso)
         limite = time.time() + 10
-        while len(chamadas) < 4 and time.time() < limite:  # validação, processamento e bloco paralelo
+        while len(chamadas) < 1 and time.time() < limite:  # bloco paralelo começou
             time.sleep(0.02)
-        no_cancelamento = len(chamadas)
         instancia.cancelar()
         thread.join(10)
 
         assert not thread.is_alive(), "a crew deveria terminar após cancelar()"
         assert isinstance(resultado['erro'], AnaliseCancelada)
         time.sleep(0.5)  # threads paralelas ainda em voo chegam ao próximo passo
-        # Só as chamadas já em andamento (no máximo as 4 paralelas) terminam; nenhuma task nova começa.
-        assert len(chamadas) <= no_cancelamento + 4
-        assert len(chamadas) < 9
+        # Só as chamadas já em andamento (no máximo uma por task paralela) terminam;
+        # prescritiva, revisão e relatório final não começam (sem cancelar seriam 7).
+        assert len(chamadas) <= 4
 
     def test_erro_persistente_em_task_paralela_nao_trava(self):
         def llm_falso(**kwargs):

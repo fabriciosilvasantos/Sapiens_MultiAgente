@@ -110,7 +110,6 @@ class TestIntegracaoComCrew:
         from Sapiens_MultiAgente.crew import SapiensAcademicMultiAgentDataAnalysisPlatformCrew
         config = SapiensAcademicMultiAgentDataAnalysisPlatformCrew().tasks_config
         for nome in [
-            'processamento_de_dados_reais_validados',
             'executar_analise_descritiva',
             'executar_analise_diagnostica',
             'executar_analise_preditiva',
@@ -141,8 +140,6 @@ class TestIntegracaoComCrew:
 
         def agente_falso(self, task, context=None, tools=None):
             descricoes[task.name] = task.description
-            if task.name == 'validacao_rigorosa_de_dados_e_pergunta':
-                return "DADOS VALIDADOS: uenf_alunos_2020_2025.csv"
             return "ok"
 
         env = {**self.ENV, 'CREWAI_DISABLE_TELEMETRY': 'true', 'OTEL_SDK_DISABLED': 'true'}

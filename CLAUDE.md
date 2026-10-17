@@ -97,26 +97,28 @@ print('Resultado:', '✅ Ambiente OK' if ok else '❌ Configure as variáveis fa
 
 ## Arquitetura dos agentes
 
-Antes do kickoff, `estatisticas_previas.py` calcula em Python (sem LLM) a visão geral,
-a descritiva e as correlações de cada CSV/Excel/JSON. O resultado entra nas tasks via
-`{estatisticas_previas}` (processamento, descritiva, diagnóstica, preditiva e revisor);
-os agentes interpretam esses números e usam `StatisticalAnalysisTool` só para recortes adicionais.
+Antes do kickoff, um `@before_kickoff` prepara tudo em Python, sem LLM:
+`preparacao_dados.py` valida os arquivos (sem dados utilizáveis → `DadosNecessarios`
+"DADOS NECESSÁRIOS: ..." e nenhuma chamada ao modelo) e gera `{resumo_dados}`;
+`estatisticas_previas.py` calcula visão geral, descritiva e correlações de cada
+CSV/Excel/JSON em `{estatisticas_previas}`. Os agentes interpretam esses números e
+usam `StatisticalAnalysisTool` só para recortes adicionais.
 
 ```
-agente_gerente_orquestrador             → valida dados (guardrail: "DADOS NECESSÁRIOS" interrompe a crew)
-  ↓                                        e processa os arquivos ({arquivos_analisados})
-especialista_em_analise_textual         → ConditionalTask: só roda com PDF/DOCX/TXT (sequencial)
+[Python] validar_arquivos → resumo_dados → estatisticas_previas
   ↓
 especialista_em_analise_descritiva      ┐
 especialista_em_analise_diagnostica     ├ async_execution=True (paralelas)
 especialista_em_analise_preditiva       │
 especialista_em_fontes_externas         ┘ (INEP/IBGE benchmarks)
   ↓ (todas concluídas)
+especialista_em_analise_textual         → ConditionalTask: só roda com PDF/DOCX/TXT (sequencial)
+  ↓
 especialista_em_analise_prescritiva     → recomendações baseadas nos achados acima (sequencial)
   ↓
-revisor_de_qualidade_cientifica         → revisão metodológica (sequencial)
+revisor_de_qualidade_cientifica         → revisão metodológica; confere números contra as estatísticas
   ↓
-compilacao_e_apresentacao_do_relatorio_final
+compilacao_e_apresentacao_do_relatorio_final   (agente_gerente_orquestrador, sem ferramentas)
 ```
 
 ## Tools disponíveis

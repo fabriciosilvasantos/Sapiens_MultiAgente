@@ -1,52 +1,4 @@
 ---
-validacao_rigorosa_de_dados_e_pergunta:
-  description: |
-    Verificar se o usuário forneceu dados reais para análise de {topico_pesquisa}.
-    Arquivos enviados pelo usuário (caminhos locais): {arquivos_analisados}
-    Formatos aceitos: CSV, Excel, PDF, DOCX, URLs de datasets ou relatórios.
-    Se a lista de arquivos estiver vazia, não há dados.
-    - SE há dados: validar acesso e qualidade, confirmar ao usuário e prosseguir.
-    - SE não há dados: PARAR e solicitar arquivos especificando formatos aceitos.
-    NUNCA inventar, simular ou fabricar dados.
-  expected_output: |
-    Uma linha de status começando EXATAMENTE com um dos prefixos:
-    "DADOS VALIDADOS: [lista de arquivos/fontes]" ou
-    "DADOS NECESSÁRIOS: [solicitação clara ao usuário com formatos aceitos]".
-    A resposta "DADOS NECESSÁRIOS" interrompe a análise.
-  agent: agente_gerente_orquestrador
-
-processamento_de_dados_reais_validados:
-  description: |
-    Processar os arquivos validados sobre {topico_pesquisa}:
-    {arquivos_analisados}
-    Usar CSVProcessorTool para CSV/Excel, FileReadTool para PDF/DOCX.
-    Extrair, limpar e estruturar os dados mantendo rastreabilidade da fonte.
-    Estatísticas já calculadas pelo SAPIENS em Python (valores de referência;
-    cite-os literalmente, não os recalcule nem os altere):
-    {estatisticas_previas}
-  expected_output: |
-    Sumário de processamento (máx. 300 palavras): origem dos dados, estrutura
-    do dataset (colunas, linhas, tipos), qualidade (nulos, outliers detectados)
-    e dados prontos para análise. Sem reproduzir os dados brutos.
-  agent: agente_gerente_orquestrador
-  context:
-  - validacao_rigorosa_de_dados_e_pergunta
-
-executar_analise_textual:
-  description: |
-    Analisar conteúdo textual dos documentos de {topico_pesquisa}.
-    (Executada apenas quando há PDF, DOCX ou TXT entre os arquivos enviados.)
-    Arquivos de dados: {arquivos_analisados}
-    Extrair palavras-chave, identificar entidades (instituições, datas,
-    indicadores) e detectar temas predominantes em PDFs/DOCX fornecidos.
-  expected_output: |
-    Relatório textual (máx. 300 palavras) com: top-10 palavras-chave,
-    entidades identificadas em tabela, temas por relevância e
-    síntese qualitativa em 2–3 parágrafos.
-  agent: especialista_em_analise_textual
-  context:
-  - processamento_de_dados_reais_validados
-
 executar_analise_descritiva:
   description: |
     Análise descritiva de {topico_pesquisa} — "O que aconteceu?".
@@ -60,10 +12,8 @@ executar_analise_descritiva:
   expected_output: |
     Relatório descritivo (máx. 400 palavras) com: principais métricas e
     distribuições, tendências identificadas, gráficos em markdown e
-    3–5 achados-chave destacados. Evitar repetir dados já no sumário de processamento.
+    3–5 achados-chave destacados.
   agent: especialista_em_analise_descritiva
-  context:
-  - processamento_de_dados_reais_validados
 
 executar_analise_diagnostica:
   description: |
@@ -80,8 +30,6 @@ executar_analise_diagnostica:
     encontradas, resultados dos testes estatísticos (estatística + p-valor +
     tamanho de efeito), causas identificadas e 3–5 achados-chave.
   agent: especialista_em_analise_diagnostica
-  context:
-  - processamento_de_dados_reais_validados
 
 executar_analise_preditiva:
   description: |
@@ -98,20 +46,30 @@ executar_analise_preditiva:
     de validação, projeções para os próximos períodos com intervalos de
     confiança e 3–5 cenários para planejamento estratégico.
   agent: especialista_em_analise_preditiva
-  context:
-  - processamento_de_dados_reais_validados
 
 buscar_dados_externos_e_benchmarks:
   description: |
     Buscar benchmarks nacionais relevantes para contextualizar {topico_pesquisa}.
+    {resumo_dados}
     Usar ExternalDataTool para obter indicadores INEP/IBGE/CAPES/MEC e
     comparar com os dados institucionais processados.
   expected_output: |
     Tabela de benchmarks (máx. 200 palavras): indicador nacional × valor de
     referência × fonte, com nota sobre como comparar com os dados da instituição.
   agent: especialista_em_fontes_externas
-  context:
-  - processamento_de_dados_reais_validados
+
+executar_analise_textual:
+  description: |
+    Analisar conteúdo textual dos documentos de {topico_pesquisa}.
+    (Executada apenas quando há PDF, DOCX ou TXT entre os arquivos enviados.)
+    Arquivos de dados: {arquivos_analisados}
+    Extrair palavras-chave, identificar entidades (instituições, datas,
+    indicadores) e detectar temas predominantes em PDFs/DOCX fornecidos.
+  expected_output: |
+    Relatório textual (máx. 300 palavras) com: top-10 palavras-chave,
+    entidades identificadas em tabela, temas por relevância e
+    síntese qualitativa em 2–3 parágrafos.
+  agent: especialista_em_analise_textual
 
 executar_analise_prescritiva:
   description: |
@@ -127,7 +85,6 @@ executar_analise_prescritiva:
     por recomendação, achado que a fundamenta e indicadores de sucesso mensuráveis.
   agent: especialista_em_analise_prescritiva
   context:
-  - processamento_de_dados_reais_validados
   - executar_analise_descritiva
   - executar_analise_diagnostica
   - executar_analise_preditiva
@@ -160,6 +117,7 @@ revisar_qualidade_cientifica:
 compilacao_e_apresentacao_do_relatorio_final:
   description: |
     Compilar relatório final sobre {topico_pesquisa} integrando todos os resultados.
+    {resumo_dados}
     Sintetizar achados dos especialistas, incorporar o parecer de qualidade e
     traduzir descobertas técnicas em linguagem acessível para gestores universitários.
   expected_output: |

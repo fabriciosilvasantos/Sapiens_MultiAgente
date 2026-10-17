@@ -7,12 +7,10 @@ kickoff, e entregar o resultado pronto nas tasks economiza chamadas ao LLM e dá
 aos agentes números de referência que eles não precisam (nem podem) inventar.
 """
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
+from .preparacao_dados import EXTENSOES_TABULARES, normalizar_arquivos
 from .tools.statistical_analysis_tool import StatisticalAnalysisTool
-
-# .txt fica de fora: costuma ser documento narrativo (vai para a análise textual).
-EXTENSOES_PRE_CALCULO = {".csv", ".xlsx", ".xls", ".json"}
 
 # Teto por arquivo para não estourar o contexto dos modelos gratuitos.
 MAX_CARACTERES_POR_ARQUIVO = 8000
@@ -20,16 +18,6 @@ MAX_CARACTERES_POR_ARQUIVO = 8000
 SEM_DADOS_TABULARES = (
     "Nenhum arquivo tabular (CSV, Excel, JSON) foi enviado; não há estatísticas pré-calculadas."
 )
-
-
-def _normalizar(arquivos: Any) -> list[str]:
-    if not arquivos:
-        return []
-    if isinstance(arquivos, str):
-        return [arquivos]
-    if isinstance(arquivos, Iterable):
-        return [str(a) for a in arquivos]
-    return []
 
 
 def _visao_geral(tool: StatisticalAnalysisTool, caminho: str) -> str:
@@ -65,7 +53,7 @@ def calcular_estatisticas_previas(arquivos: Any) -> str:
     Nunca levanta exceção: falhas por arquivo viram "❌ ERRO: ..." no próprio texto,
     para que a crew siga e os agentes vejam o problema.
     """
-    tabulares = [a for a in _normalizar(arquivos) if Path(a).suffix.lower() in EXTENSOES_PRE_CALCULO]
+    tabulares = [a for a in normalizar_arquivos(arquivos) if Path(a).suffix.lower() in EXTENSOES_TABULARES]
     if not tabulares:
         return SEM_DADOS_TABULARES
 
