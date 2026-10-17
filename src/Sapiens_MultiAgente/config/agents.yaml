@@ -2,30 +2,15 @@
 # =============================================================================
 # CONFIGURAÇÕES SAPIENS - PLATAFORMA ACADÊMICA MULTIAGENTE DE ANÁLISE DE DADOS
 # =============================================================================
-# Versão: 2.2 - Otimizado para eficiência de tokens e velocidade
-# Data: 10 de abril de 2026
-
-# -----------------------------------------------------------------------------
-# CONFIGURAÇÕES GLOBAIS DO SISTEMA
-# -----------------------------------------------------------------------------
-sistema:
-  nome: "SAPIENS - Plataforma Acadêmica Multiagente"
-  versao: "1.0.0"
-  ambiente: "desenvolvimento"
-  timezone: "America/Sao_Paulo"
-  linguagem: "pt-BR"
-
-seguranca:
-  encriptacao_dados: true
-  validacao_arquivos: true
-  auditoria_habilitada: true
-  retencao_logs_dias: 90
-
-performance:
-  max_concurrent_analyses: 3
-  timeout_analysis_minutos: 30
-  cache_resultados: true
-  compressao_dados: true
+# Versão: 2.3 - Apenas campos lidos pelo crewai.Agent
+# Data: 17 de outubro de 2026
+#
+# Onde fica o resto da configuração:
+#   - ferramentas de cada agente  → crew.py
+#   - modelo e temperatura        → llm_config.yaml (por agente)
+#   - timeout da análise inteira  → variável SAPIENS_CREW_TIMEOUT (app.py)
+# Chaves que não são campos do crewai.Agent são ignoradas silenciosamente;
+# tests/test_crew_integration.py falha se alguma for adicionada.
 
 # -----------------------------------------------------------------------------
 # AGENTES ESPECIALIZADOS
@@ -40,20 +25,7 @@ agente_gerente_orquestrador:
   backstory: |
     Coordenador de análise acadêmica com ética científica rigorosa. Valida fontes,
     recusa fabricar dados e entrega relatórios claros para gestores universitários.
-  max_iterations: 10
-  timeout_minutos: 30
-  temperatura_modelo: 0.7
-  ferramentas:
-    - FileReadTool
-    - DataValidationTool
-    - CSVProcessorTool
-  seguranca:
-    validar_arquivos: true
-    permitir_simulacao: false
-    auditoria_ativa: true
-  formato_saida:
-    incluir_timestamp: true
-    idioma: "pt-BR"
+  max_iter: 10
 
 especialista_em_analise_descritiva:
   role: "Especialista em Análise Descritiva"
@@ -63,16 +35,7 @@ especialista_em_analise_descritiva:
   backstory: |
     Estatístico especializado em dados acadêmicos. Produz resumos claros e
     visualizações acessíveis para gestores universitários.
-  max_iterations: 10
-  timeout_minutos: 20
-  temperatura_modelo: 0.7
-  ferramentas:
-    - FileReadTool
-    - StatisticalAnalysisTool
-    - ChartGeneratorTool
-  formato_saida:
-    incluir_graficos: true
-    formato_tabelas: "markdown"
+  max_iter: 10
 
 especialista_em_analise_diagnostica:
   role: "Especialista em Análise Diagnóstica"
@@ -82,15 +45,7 @@ especialista_em_analise_diagnostica:
   backstory: |
     Especialista em análise causal e estatística inferencial aplicada a dados acadêmicos.
     Explica padrões complexos com evidências estatísticas.
-  max_iterations: 10
-  timeout_minutos: 20
-  temperatura_modelo: 0.7
-  ferramentas:
-    - FileReadTool
-    - StatisticalAnalysisTool
-  formato_saida:
-    incluir_testes_estatisticos: true
-    nivel_significancia: 0.05
+  max_iter: 10
 
 especialista_em_analise_preditiva:
   role: "Especialista em Análise Preditiva"
@@ -100,15 +55,7 @@ especialista_em_analise_preditiva:
   backstory: |
     Especialista em modelagem preditiva e séries temporais acadêmicas. Constrói
     modelos confiáveis para apoiar planejamento estratégico universitário.
-  max_iterations: 10
-  timeout_minutos: 20
-  temperatura_modelo: 0.7
-  ferramentas:
-    - FileReadTool
-    - StatisticalAnalysisTool
-  formato_saida:
-    incluir_intervalos_confianca: true
-    horizonte_previsao: "medio_prazo"
+  max_iter: 10
 
 especialista_em_analise_prescritiva:
   role: "Especialista em Análise Prescritiva"
@@ -118,16 +65,7 @@ especialista_em_analise_prescritiva:
   backstory: |
     Especialista em otimização de decisões acadêmicas. Traduz dados em planos
     concretos implementáveis por gestores universitários.
-  max_iterations: 10
-  timeout_minutos: 20
-  temperatura_modelo: 0.7
-  ferramentas:
-    - FileReadTool
-    - StatisticalAnalysisTool
-    - CSVSearchTool
-  formato_saida:
-    formato_recomendacoes: "acionavel"
-    incluir_priorizacao: true
+  max_iter: 10
 
 especialista_em_fontes_externas:
   role: "Especialista em Fontes de Dados Externos"
@@ -137,15 +75,7 @@ especialista_em_fontes_externas:
   backstory: |
     Especialista em dados educacionais públicos brasileiros (Censo Educação Superior,
     ENADE, PNAD, Sucupira). Contextualiza resultados institucionais no cenário nacional.
-  max_iterations: 8
-  timeout_minutos: 15
-  temperatura_modelo: 0.6
-  ferramentas:
-    - ExternalDataTool
-    - ScrapeWebsiteTool
-  formato_saida:
-    incluir_benchmarks: true
-    idioma: "pt-BR"
+  max_iter: 8
 
 especialista_em_analise_textual:
   role: "Especialista em Análise Textual de Documentos Acadêmicos"
@@ -156,17 +86,7 @@ especialista_em_analise_textual:
     Especialista em análise de conteúdo aplicada ao domínio acadêmico. Processa
     PDFs, DOCX e textos narrativos, extraindo informações estruturadas que
     complementam dados quantitativos.
-  max_iterations: 8
-  timeout_minutos: 15
-  temperatura_modelo: 0.6
-  ferramentas:
-    - TextAnalysisTool
-    - FileReadTool
-    - PDFSearchTool
-    - DOCXSearchTool
-  formato_saida:
-    formato_entidades: "tabela"
-    idioma: "pt-BR"
+  max_iter: 8
 
 revisor_de_qualidade_cientifica:
   role: "Revisor de Qualidade Científica"
@@ -178,12 +98,4 @@ revisor_de_qualidade_cientifica:
     Peer reviewer interno do SAPIENS. Verifica boas práticas estatísticas,
     distingue correlação de causalidade e certifica que conclusões têm evidências
     suficientes antes do relatório final.
-  max_iterations: 8
-  timeout_minutos: 15
-  temperatura_modelo: 0.5
-  ferramentas:
-    - QualityReviewTool
-  formato_saida:
-    incluir_pontuacao: true
-    nivel_rigor: "academico"
-    idioma: "pt-BR"
+  max_iter: 8
