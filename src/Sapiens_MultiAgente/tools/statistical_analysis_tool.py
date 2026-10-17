@@ -1,15 +1,29 @@
 import pandas as pd
 import numpy as np
 from scipy import stats
+from pathlib import Path
 from typing import Type, Optional, List
 from pydantic import BaseModel, Field
 from crewai.tools import BaseTool
+import csv
 import json
+
+EXTENSOES_TABULARES = {".csv", ".txt", ".xlsx", ".xls", ".json"}
 
 
 class StatisticalAnalysisToolInput(BaseModel):
     """Input schema for StatisticalAnalysisTool."""
-    data: str = Field(..., description="JSON string containing the data to analyze")
+    file_path: Optional[str] = Field(
+        default=None,
+        description=(
+            "Caminho do arquivo de dados (.csv, .xlsx, .xls, .json) — forma PREFERIDA. "
+            "Use os caminhos recebidos na tarefa em vez de copiar os dados para 'data'."
+        )
+    )
+    data: Optional[str] = Field(
+        default=None,
+        description="Dados inline em JSON (lista de registros ou dict de colunas). Use apenas para amostras pequenas."
+    )
     analysis_type: str = Field(
         ...,
         description=(
@@ -34,21 +48,24 @@ class StatisticalAnalysisTool(BaseTool):
     description: str = (
         "Ferramenta avançada para análises estatísticas. Realiza análises descritivas, "
         "correlações, testes de hipóteses, regressões e outras análises estatísticas "
-        "para apoiar decisões baseadas em dados acadêmicos."
+        "para apoiar decisões baseadas em dados acadêmicos. Informe o arquivo em 'file_path' "
+        "(CSV/Excel/JSON) — não é preciso colar os dados no argumento."
     )
     args_schema: Type[BaseModel] = StatisticalAnalysisToolInput
 
-    def _run(self, data: str, analysis_type: str, variables: Optional[List[str]] = None,
-             group_column: Optional[str] = None, alpha: float = 0.05) -> str:
+    def _run(self, data: Optional[str] = None, analysis_type: str = "descriptive",
+             variables: Optional[List[str]] = None, group_column: Optional[str] = None,
+             alpha: float = 0.05, file_path: Optional[str] = None) -> str:
         """
         Executa análise estatística nos dados fornecidos.
 
         Args:
-            data: Dados em formato JSON
+            data: Dados em formato JSON (alternativa a file_path)
             analysis_type: Tipo de análise desejada
             variables: Variáveis específicas para análise
             group_column: Coluna de agrupamento para ANOVA
             alpha: Nível de significância
+            file_path: Caminho de arquivo CSV/Excel/JSON (tem precedência sobre data)
 
         Returns:
             Resultados da análise estatística
@@ -70,16 +87,17 @@ class StatisticalAnalysisTool(BaseTool):
         analysis_type = _ALIASES.get(analysis_type.lower(), analysis_type.lower())
 
         try:
-            # Parse dos dados
-            data_dict = json.loads(data)
-
-            # Converter para DataFrame se necessário
-            if isinstance(data_dict, list):
-                df = pd.DataFrame(data_dict)
-            elif isinstance(data_dict, dict):
+            if file_path:
+                df = self._carregar_arquivo(file_path)
+                if isinstance(df, str):
+                    return df
+            elif data:
+                data_dict = json.loads(data)
+                if not isinstance(data_dict, (list, dict)):
+                    return "❌ ERRO: Formato de dados não suportado."
                 df = pd.DataFrame(data_dict)
             else:
-                return "❌ ERRO: Formato de dados não suportado."
+                return "❌ ERRO: Informe 'file_path' (caminho do arquivo de dados) ou 'data' (JSON)."
 
             if df.empty:
                 return "❌ ERRO: Dados vazios fornecidos."
@@ -114,6 +132,36 @@ class StatisticalAnalysisTool(BaseTool):
             return "❌ ERRO: Dados não estão em formato JSON válido."
         except Exception as e:
             return f"❌ ERRO durante análise estatística: {str(e)}"
+
+    def _carregar_arquivo(self, file_path: str):
+        """Lê CSV/Excel/JSON em DataFrame; retorna string '❌ ERRO: ...' se não for possível."""
+        caminho = Path(file_path).expanduser()
+        extensao = caminho.suffix.lower()
+        if extensao not in EXTENSOES_TABULARES:
+            return (
+                f"❌ ERRO: Extensão '{extensao or '(nenhuma)'}' não suportada para análise estatística. "
+                "Use .csv, .xlsx, .xls ou .json."
+            )
+        if not caminho.is_file():
+            return f"❌ ERRO: Arquivo não encontrado: {file_path}"
+
+        if extensao in (".xlsx", ".xls"):
+            return pd.read_excel(caminho)
+        if extensao == ".json":
+            return pd.read_json(caminho)
+        # CSV: tolera arquivos em latin-1 e detecta o separador entre ',', ';', tab e '|'
+        for encoding in ("utf-8-sig", "latin-1"):
+            try:
+                with open(caminho, encoding=encoding, newline="") as f:
+                    amostra = f.read(64 * 1024)
+                break
+            except UnicodeDecodeError:
+                continue
+        try:
+            separador = csv.Sniffer().sniff(amostra, delimiters=",;\t|").delimiter
+        except csv.Error:
+            separador = ","  # uma única coluna ou formato ambíguo
+        return pd.read_csv(caminho, sep=separador, encoding=encoding)
 
     def _descriptive_analysis(self, df: pd.DataFrame) -> str:
         """Análise descritiva completa."""
