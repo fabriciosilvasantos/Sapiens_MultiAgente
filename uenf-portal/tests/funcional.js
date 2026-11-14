@@ -19,6 +19,19 @@ const { chromium } = require('playwright');
   ok('home: notícias sem repetição', new Set(tit.slice(0, 9)).size === 9);
   ok('home: 9 editais', await p.locator('.uenf-lista-editais .wp-block-post').count() === 9);
   ok('home: destaque usa a 1ª imagem do conteúdo', await p.locator('.uenf-destaque__midia img').count() === 1);
+  // modelos do Design System
+  const filtros = p.locator('.uenf-secao .is-style-filtros');
+  ok('filtros por categoria em Notícias e Editais, com o primeiro ativo', await filtros.count() === 2 && await filtros.nth(0).locator('.is-ativo a').count() === 1 && await filtros.nth(0).locator('a').count() >= 3, (await filtros.nth(0).locator('a').allTextContents()).join(' | '));
+  const hrefFiltro = await filtros.nth(0).locator('a >> nth=1').getAttribute('href');
+  ok('filtro aponta para o arquivo da categoria', /\/categoria\//.test(hrefFiltro), hrefFiltro);
+  ok('botão "Mais notícias" abaixo da lista', await p.locator('.uenf-noticias__topo .is-style-bloco a').count() === 1);
+  const selos = await p.locator('.uenf-lista-editais .uenf-selo').allTextContents();
+  ok('editais: selo só para tags de situação', selos.length === 5 && !selos.join().includes('editalproppg'), selos.join(' | '));
+  ok('cursos: 3 grupos e 21 cursos com link', await p.locator('.uenf-cursos__grupo').count() === 3 && await p.locator('.uenf-cursos .is-style-chips a').count() === 21 && await p.locator('.uenf-cursos .uenf-licenciatura').count() === 8);
+  ok('pró-reitorias em cartões escuros', await p.locator('.uenf-pro-reitoria.is-style-cartao-escuro').count() === 4 && await p.locator('.uenf-pro-reitoria .is-style-links a').count() === 11);
+  ok('formas de ingresso: 4 passos numerados + 4 opções', await p.locator('.is-style-passos li').count() === 4 && await p.locator('.is-style-opcoes li').count() === 4);
+  ok('faixa "Já é estudante?" com 3 botões', await p.locator('.is-style-faixa-chamada .wp-block-button a').count() === 3);
+  ok('documentos: 6 cartões clicáveis', await p.locator('.uenf-documentos .uenf-cartao-horizontal h3 a').count() === 6);
   // contadores
   const cont = p.locator('.is-style-contador'); const finais = ['2','5','14','20','20','320','191','7.500'];
   await cont.first().scrollIntoViewIfNeeded(); await p.waitForTimeout(300);

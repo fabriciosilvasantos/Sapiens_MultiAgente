@@ -74,3 +74,39 @@ function uenf_portal_lista_categoria( string $slug ): string {
 <!-- /wp:query-no-results --></div>
 <!-- /wp:query -->';
 }
+
+/**
+ * Link do arquivo de uma categoria a partir do slug ('' se não existir).
+ */
+function uenf_portal_link_categoria( string $slug ): string {
+	$id = uenf_portal_categoria_id( $slug );
+	return $id ? (string) get_category_link( $id ) : '';
+}
+
+/**
+ * Filtros por categoria (bloco Botões com o estilo "Filtros").
+ *
+ * Cada filtro é um link para a listagem correspondente; o primeiro item fica
+ * marcado como ativo. Categorias que não existem no site são omitidas.
+ *
+ * @param string $todos_rotulo Rótulo do primeiro filtro (ex.: "Todas").
+ * @param string $todos_url    Destino do primeiro filtro.
+ * @param array  $categorias   Lista de [ rótulo, slug da categoria ].
+ */
+function uenf_portal_filtros( string $todos_rotulo, string $todos_url, array $categorias ): string {
+	$itens = array( array( $todos_rotulo, $todos_url, true ) );
+	foreach ( $categorias as $categoria ) {
+		$url = uenf_portal_link_categoria( $categoria[1] );
+		if ( $url ) {
+			$itens[] = array( $categoria[0], $url, false );
+		}
+	}
+
+	$html = '<!-- wp:buttons {"className":"is-style-filtros"} -->' . "\n" . '<div class="wp-block-buttons is-style-filtros">';
+	foreach ( $itens as $item ) {
+		$classe = $item[2] ? ' {"className":"is-ativo"}' : '';
+		$html  .= '<!-- wp:button' . $classe . ' -->' . "\n";
+		$html  .= '<div class="wp-block-button' . ( $item[2] ? ' is-ativo' : '' ) . '"><a class="wp-block-button__link wp-element-button" href="' . esc_url( $item[1] ) . '">' . esc_html( $item[0] ) . "</a></div>\n<!-- /wp:button -->\n\n";
+	}
+	return rtrim( $html ) . "</div>\n<!-- /wp:buttons -->\n";
+}

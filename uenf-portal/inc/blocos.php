@@ -19,6 +19,8 @@ add_action(
 				'cartao-link'     => 'Cartão clicável',
 				'banner-rotativo' => 'Banners rotativos',
 				'linha-edital'    => 'Linha de listagem',
+				'cartao-escuro'   => 'Cartão escuro',
+				'faixa-chamada'   => 'Faixa de chamada',
 			),
 			'core/paragraph'    => array(
 				'rotulo'   => 'Rótulo de seção',
@@ -27,18 +29,24 @@ add_action(
 			'core/social-links' => array(
 				'compartilhar' => 'Compartilhar esta página',
 			),
+			'core/buttons'      => array(
+				'filtros' => 'Filtros (abas)',
+			),
 			'core/button'       => array(
 				'seta'     => 'Link com seta',
 				'contorno' => 'Contorno claro',
-			),
-			'core/cover'        => array(
-				'cartao-escuro' => 'Cartão escuro',
+				'claro'    => 'Claro (sobre fundo escuro)',
+				'bloco'    => 'Largura total, com contorno',
 			),
 			'core/list'         => array(
-				'links' => 'Lista de links',
+				'links'  => 'Lista de links',
+				'chips'  => 'Chips (cursos)',
+				'passos' => 'Passos numerados',
+				'opcoes' => 'Opções com descrição',
 			),
 			'core/post-terms'   => array(
 				'etiqueta' => 'Etiqueta',
+				'selo'     => 'Selo de situação',
 			),
 		);
 

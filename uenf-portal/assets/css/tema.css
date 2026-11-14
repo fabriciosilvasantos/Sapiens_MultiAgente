@@ -3,7 +3,7 @@
  * Carregado no site e no editor (add_editor_style), para que o que se vê
  * ao editar seja o que será publicado.
  *
- * Sumário: 1 Base · 2 Cabeçalho · 3 Componentes · 4 Página inicial
+ * Sumário: 1 Base · 2 Cabeçalho · 3 Componentes · 4 Página inicial · 4b Design System
  *          5 Páginas internas · 6 Rodapé · 7 Acessibilidade
  */
 
@@ -156,6 +156,14 @@ img {
 .uenf-menu-principal .wp-block-navigation__submenu-container .wp-block-navigation-item__content:hover {
 	background: var(--wp--preset--color--superficie);
 	color: var(--wp--preset--color--primaria);
+}
+
+/* Os últimos submenus abrem alinhados à direita, para não sair da tela. */
+@media (min-width: 1024px) {
+	.uenf-menu-principal .wp-block-navigation__container > .has-child:nth-child(n+5) > .wp-block-navigation__submenu-container {
+		left: auto;
+		right: 0;
+	}
 }
 
 /* Itens que só aparecem no menu sobreposto (celular). */
@@ -1106,6 +1114,502 @@ body:not(.block-editor-iframe__body) .is-style-banner-rotativo[data-uenf-pronto]
 	display: block;
 	height: 51px;
 	width: auto;
+}
+
+/* ------------------------------------- 4b. Modelos do Design System */
+
+/* Filtros por categoria (Botões com o estilo "Filtros") */
+.wp-block-buttons.is-style-filtros {
+	gap: 0.5rem;
+	margin-bottom: 1.5rem;
+}
+
+.wp-block-buttons.is-style-filtros .wp-block-button__link {
+	background: #fff;
+	border: var(--uenf-borda);
+	border-radius: 999px;
+	color: var(--wp--preset--color--contraste);
+	font-size: 0.8125rem;
+	padding: 0.5rem 1rem;
+}
+
+.wp-block-buttons.is-style-filtros .wp-block-button__link:hover {
+	border-color: var(--wp--preset--color--primaria);
+	color: var(--wp--preset--color--primaria);
+}
+
+.wp-block-buttons.is-style-filtros .is-ativo .wp-block-button__link {
+	background: var(--wp--preset--color--primaria);
+	border-color: var(--wp--preset--color--primaria);
+	color: #fff;
+}
+
+/* Botão de largura total com contorno ("Mais notícias") */
+.wp-block-buttons:has(> .is-style-bloco:only-child) {
+	margin-top: 1rem;
+}
+
+.wp-block-button.is-style-bloco {
+	width: 100%;
+}
+
+.wp-block-button.is-style-bloco .wp-block-button__link {
+	background: #fff;
+	border: var(--uenf-borda);
+	color: var(--wp--preset--color--primaria);
+	display: block;
+	font-weight: 700;
+	text-align: center;
+}
+
+.wp-block-button.is-style-bloco .wp-block-button__link::after {
+	content: "→";
+	margin-left: 0.5rem;
+}
+
+.wp-block-button.is-style-bloco .wp-block-button__link:hover {
+	background: var(--wp--preset--color--superficie-2);
+	border-color: var(--wp--preset--color--primaria);
+	color: var(--wp--preset--color--primaria);
+}
+
+/* Botão claro, para fundos escuros */
+.wp-block-button.is-style-claro .wp-block-button__link {
+	background: #fff;
+	color: var(--wp--preset--color--marinho);
+}
+
+.wp-block-button.is-style-claro .wp-block-button__link:hover {
+	background: var(--wp--preset--color--dourado);
+	color: var(--wp--preset--color--marinho-900);
+}
+
+/* Selo de situação (tags aberto, resultado, em-breve…) */
+.wp-block-post-terms.is-style-selo {
+	display: flex;
+	flex: none;
+	flex-wrap: wrap;
+	gap: 0.25rem;
+	letter-spacing: 0;
+	text-transform: none;
+}
+
+.uenf-selo {
+	align-items: center;
+	background: var(--wp--preset--color--superficie-2);
+	border-radius: 999px;
+	color: var(--wp--preset--color--primaria);
+	display: inline-flex;
+	font-size: 0.6875rem;
+	font-weight: 700;
+	gap: 0.375rem;
+	line-height: 1;
+	padding: 0.375rem 0.625rem;
+	text-decoration: none;
+	white-space: nowrap;
+}
+
+.uenf-selo::before {
+	background: currentcolor;
+	border-radius: 50%;
+	content: "";
+	height: 0.375rem;
+	width: 0.375rem;
+}
+
+.uenf-selo--positivo {
+	background: #e3f4e8;
+	color: #17603a;
+}
+
+.uenf-selo--aviso {
+	background: var(--wp--preset--color--dourado-claro);
+	color: #6b4700;
+}
+
+/* Cartão escuro (Pró-Reitorias, programas) */
+.is-style-cartao-escuro {
+	background: var(--wp--preset--gradient--marinho);
+	border: 0;
+	border-radius: var(--uenf-raio);
+	box-shadow: var(--wp--preset--shadow--cartao);
+	color: #fff;
+	overflow: hidden;
+	padding: 1.25rem;
+}
+
+.is-style-cartao-escuro :where(h2, h3, h4) {
+	color: #fff;
+}
+
+.is-style-cartao-escuro.uenf-pro-reitoria {
+	padding: 0;
+}
+
+.is-style-cartao-escuro.uenf-pro-reitoria .wp-block-image {
+	border-bottom: 0;
+	position: relative;
+}
+
+.is-style-cartao-escuro.uenf-pro-reitoria .wp-block-image::after {
+	background: linear-gradient(180deg, rgb(12 28 51 / 15%) 0%, rgb(12 28 51 / 55%) 60%, #0e2140 100%);
+	content: "";
+	inset: 0;
+	pointer-events: none;
+	position: absolute;
+}
+
+.uenf-cartao-escuro__rotulo {
+	color: var(--wp--preset--color--dourado);
+	font-size: 0.625rem;
+	font-weight: 700;
+	letter-spacing: 0.14em;
+	margin-bottom: 0.25rem !important;
+	text-transform: uppercase;
+}
+
+.is-style-cartao-escuro .uenf-pro-reitoria__corpo {
+	margin-top: -1.5rem;
+	position: relative;
+}
+
+.is-style-cartao-escuro .uenf-pro-reitoria__corpo h3 a:hover {
+	color: var(--wp--preset--color--dourado);
+}
+
+.is-style-cartao-escuro .wp-block-list.is-style-links a {
+	color: rgb(255 255 255 / 86%);
+}
+
+.is-style-cartao-escuro .wp-block-list.is-style-links a:hover {
+	color: #fff;
+}
+
+/* Cursos de graduação */
+.uenf-cursos__legenda {
+	align-items: center;
+	color: var(--wp--preset--color--suave);
+	display: flex;
+	font-size: 0.75rem;
+	font-weight: 600;
+	gap: 0.375rem;
+	margin-block: -0.75rem 0;
+}
+
+.uenf-ponto {
+	background: var(--wp--preset--color--dourado);
+	border-radius: 50%;
+	display: inline-block;
+	height: 0.5rem;
+	width: 0.5rem;
+}
+
+.uenf-ponto--licenciatura {
+	background: var(--wp--preset--color--primaria);
+	margin-left: 0.75rem;
+}
+
+.uenf-cursos__grupo {
+	margin-top: 1.75rem;
+}
+
+.uenf-cursos__grupo > * {
+	margin-block: 0;
+}
+
+.uenf-cursos__topo {
+	align-items: center;
+	gap: 1rem;
+	margin-bottom: 0.875rem;
+}
+
+.uenf-cursos__topo > .wp-block-group > * {
+	margin: 0;
+}
+
+.uenf-cursos__topo h3 {
+	font-size: 1.0625rem;
+}
+
+.uenf-cursos__topo p {
+	color: var(--wp--preset--color--suave);
+	font-size: 0.75rem;
+	font-weight: 500;
+}
+
+.uenf-cursos__topo .uenf-cursos__total {
+	background: var(--wp--preset--color--superficie-2);
+	border-radius: 999px;
+	color: var(--wp--preset--color--primaria);
+	flex: none;
+	font-weight: 700;
+	margin: 0;
+	padding: 0.25rem 0.75rem;
+}
+
+.wp-block-list.is-style-chips {
+	display: grid;
+	gap: 0.625rem;
+	grid-template-columns: repeat(auto-fill, minmax(min(15rem, 100%), 1fr));
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.wp-block-list.is-style-chips li {
+	margin: 0;
+}
+
+.wp-block-list.is-style-chips a {
+	align-items: center;
+	background: #fff;
+	border: var(--uenf-borda);
+	border-radius: 10px;
+	box-sizing: border-box;
+	color: var(--wp--preset--color--contraste);
+	display: flex;
+	font-size: 0.8125rem;
+	font-weight: 600;
+	gap: 0.625rem;
+	height: 100%;
+	line-height: 1.3;
+	min-height: 2.75rem;
+	padding: 0.5rem 0.875rem;
+	text-decoration: none;
+	transition: border-color var(--uenf-transicao), box-shadow var(--uenf-transicao);
+}
+
+.wp-block-list.is-style-chips a::before {
+	background: var(--wp--preset--color--dourado);
+	border-radius: 50%;
+	content: "";
+	flex: none;
+	height: 0.5rem;
+	width: 0.5rem;
+}
+
+.wp-block-list.is-style-chips .uenf-licenciatura a::before {
+	background: var(--wp--preset--color--primaria);
+}
+
+.wp-block-list.is-style-chips a:hover {
+	border-color: var(--wp--preset--color--primaria);
+	box-shadow: var(--wp--preset--shadow--cartao);
+	color: var(--wp--preset--color--primaria);
+}
+
+/* Formas de ingresso */
+.uenf-ingresso {
+	gap: 1.25rem;
+}
+
+.uenf-ingresso .wp-block-column {
+	display: flex;
+}
+
+.uenf-ingresso__cartao {
+	display: flex;
+	flex-direction: column;
+	padding: 1.75rem;
+	position: relative;
+	width: 100%;
+}
+
+.uenf-ingresso__cartao::before {
+	left: 1.75rem;
+	margin: 0;
+	position: absolute;
+	top: 1.75rem;
+}
+
+.uenf-ingresso__cartao > h3 {
+	font-size: 1.125rem;
+	line-height: 2.5rem;
+	margin: 0 0 1.25rem;
+	padding-left: 3.25rem;
+}
+
+.uenf-ingresso__cartao > .wp-block-buttons {
+	margin-top: auto;
+	padding-top: 1.25rem;
+}
+
+.uenf-icone-formatura::before {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231D3771' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 10 12 5 2 10l10 5 10-5zM6 12v5c3 2.5 9 2.5 12 0v-5M22 10v6'/%3E%3C/svg%3E");
+}
+
+.uenf-icone-caminhos::before {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231D3771' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5'/%3E%3C/svg%3E");
+}
+
+.wp-block-list.is-style-passos,
+.wp-block-list.is-style-opcoes {
+	color: var(--wp--preset--color--suave);
+	counter-reset: uenf-passo;
+	font-size: 0.8125rem;
+	line-height: 1.5;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.wp-block-list.is-style-passos li,
+.wp-block-list.is-style-opcoes li {
+	border-bottom: var(--uenf-borda);
+	counter-increment: uenf-passo;
+	margin: 0;
+	min-height: 1.75rem;
+	padding: 0.75rem 0 0.75rem 2.75rem;
+	position: relative;
+}
+
+.wp-block-list.is-style-passos li:last-child,
+.wp-block-list.is-style-opcoes li:last-child {
+	border-bottom: 0;
+}
+
+.wp-block-list.is-style-passos li strong,
+.wp-block-list.is-style-opcoes li strong {
+	color: var(--wp--preset--color--contraste);
+	font-size: 0.9375rem;
+}
+
+.wp-block-list.is-style-passos li::before,
+.wp-block-list.is-style-opcoes li::before {
+	align-items: center;
+	background: var(--wp--preset--color--superficie-2);
+	border-radius: 50%;
+	color: var(--wp--preset--color--primaria);
+	content: counter(uenf-passo);
+	display: flex;
+	font-size: 0.75rem;
+	font-weight: 800;
+	height: 1.75rem;
+	justify-content: center;
+	left: 0;
+	position: absolute;
+	top: 0.75rem;
+	width: 1.75rem;
+}
+
+.wp-block-list.is-style-opcoes li::before {
+	content: "›";
+	font-size: 1rem;
+}
+
+/* Faixa de chamada ("Já é estudante?") */
+.uenf-chamada {
+	padding-block: var(--wp--preset--spacing--70);
+}
+
+.is-style-faixa-chamada {
+	align-items: center;
+	background: var(--wp--preset--gradient--marinho);
+	border-radius: 16px;
+	color: #fff;
+	gap: 1.5rem 2.5rem;
+	overflow: hidden;
+	padding: clamp(1.5rem, 4vw, 2.5rem);
+	position: relative;
+}
+
+.is-style-faixa-chamada::after {
+	border: 1px solid rgb(242 179 27 / 30%);
+	border-radius: 50%;
+	content: "";
+	height: 18rem;
+	pointer-events: none;
+	position: absolute;
+	right: -5rem;
+	top: -9rem;
+	width: 18rem;
+}
+
+.is-style-faixa-chamada > * {
+	position: relative;
+	z-index: 1;
+}
+
+.uenf-chamada__texto {
+	flex: 1 1 22rem;
+	max-width: 36rem;
+}
+
+.uenf-chamada__texto > * {
+	margin-block: 0;
+}
+
+.is-style-faixa-chamada h2 {
+	color: #fff;
+	font-size: var(--wp--preset--font-size--x-grande);
+	font-weight: 800;
+}
+
+.uenf-chamada__texto p {
+	color: rgb(255 255 255 / 80%);
+	font-size: 0.9375rem;
+	margin-top: 0.5rem;
+}
+
+.is-style-faixa-chamada .wp-block-buttons {
+	gap: 0.625rem;
+}
+
+.is-style-faixa-chamada .is-style-contorno .wp-block-button__link {
+	border-radius: 8px;
+	font-size: 0.875rem;
+	padding: 0.75rem 1.25rem;
+}
+
+/* Documentos: cartões horizontais */
+.uenf-documentos {
+	gap: 1rem;
+}
+
+.is-style-cartao-link.uenf-cartao-horizontal {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23566176' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 17 17 7M8 7h9v9'/%3E%3C/svg%3E");
+	background-position: right 1rem center;
+	background-repeat: no-repeat;
+	background-size: 1rem;
+	column-gap: 0.875rem;
+	display: grid;
+	grid-template-columns: auto 1fr;
+	padding: 1rem 2.75rem 1rem 1rem;
+}
+
+.uenf-cartao-horizontal::before {
+	align-self: center;
+	grid-row: span 2;
+	margin-bottom: 0;
+}
+
+.uenf-cartao-horizontal :where(h2, h3, h4) {
+	align-self: end;
+	margin: 0;
+}
+
+.uenf-cartao-horizontal p {
+	align-self: start;
+}
+
+/* Na linha de edital a data fica sempre na última coluna; o selo, antes dela. */
+.is-style-linha-edital .uenf-linha-edital__data {
+	min-width: 6.5rem;
+	order: 3;
+}
+
+.is-style-linha-edital .wp-block-post-terms.is-style-selo {
+	order: 2;
+}
+
+@media (max-width: 600px) {
+	.uenf-cursos__topo {
+		align-items: flex-start;
+	}
+
+	.is-style-faixa-chamada .wp-block-buttons {
+		width: 100%;
+	}
 }
 
 /* --------------------------------------------------- 5. Páginas internas */

@@ -3,7 +3,7 @@
  * Title: Últimas notícias
  * Slug: uenf/noticias
  * Categories: uenf-secoes, posts
- * Description: Notícia em destaque, lista das mais recentes e grade de cartões (9 notícias, como no portal anterior).
+ * Description: Filtros por categoria, notícia em destaque, lista das mais recentes e grade de cartões (9 notícias, como no portal anterior).
  *
  * @package uenf-portal
  */
@@ -12,7 +12,22 @@ $uenf_tax = uenf_portal_tax_query( 'noticias' );
 $uenf_q   = static fn ( int $id, int $por_pagina, int $desloc ) => '{"queryId":' . $id . ',"query":{"perPage":' . $por_pagina . ',"pages":0,"offset":' . $desloc . ',"postType":"post","order":"desc","orderBy":"date","inherit":false' . $uenf_tax . '}';
 ?>
 <!-- wp:group {"align":"full","className":"uenf-secao","layout":{"type":"constrained","contentSize":"1200px"}} -->
-<div class="wp-block-group alignfull uenf-secao"><?php echo uenf_portal_cabecalho_secao( 'Notícias', 'Últimas notícias', 'Acompanhe as novidades, eventos e comunicados da UENF.', 'Todas as notícias', home_url( '/noticias/' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+<div class="wp-block-group alignfull uenf-secao"><?php echo uenf_portal_cabecalho_secao( 'Notícias', 'Últimas notícias', 'Acompanhe as novidades, eventos e comunicados da UENF.' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+
+<?php
+echo uenf_portal_filtros( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	'Todas',
+	home_url( '/noticias/' ),
+	array(
+		array( 'Destaques', 'destaques' ),
+		array( 'Editais', 'editais' ),
+		array( 'Concursos', 'concursos' ),
+		array( 'Graduação', 'graduacao' ),
+		array( 'Pós-Graduação', 'pos-graduacao' ),
+		array( 'Extensão', 'extensao' ),
+	)
+);
+?>
 
 <!-- wp:columns {"className":"uenf-noticias__topo"} -->
 <div class="wp-block-columns uenf-noticias__topo"><!-- wp:column {"width":"56%"} -->
@@ -56,7 +71,13 @@ $uenf_q   = static fn ( int $id, int $por_pagina, int $desloc ) => '{"queryId":'
 <!-- wp:post-date {"format":"j \\d\\e F \\d\\e Y"} /--></div>
 <!-- /wp:group -->
 <!-- /wp:post-template --></div>
-<!-- /wp:query --></div>
+<!-- /wp:query -->
+
+<!-- wp:buttons -->
+<div class="wp-block-buttons"><!-- wp:button {"className":"is-style-bloco"} -->
+<div class="wp-block-button is-style-bloco"><a class="wp-block-button__link wp-element-button" href="<?php echo esc_url( home_url( '/noticias/' ) ); ?>">Mais notícias</a></div>
+<!-- /wp:button --></div>
+<!-- /wp:buttons --></div>
 <!-- /wp:column --></div>
 <!-- /wp:columns -->
 

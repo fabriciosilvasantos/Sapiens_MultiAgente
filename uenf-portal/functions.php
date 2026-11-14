@@ -23,6 +23,7 @@ require get_theme_file_path( 'inc/blocos.php' );
 require get_theme_file_path( 'inc/imagem-destaque.php' );
 require get_theme_file_path( 'inc/consultas.php' );
 require get_theme_file_path( 'inc/compartilhar.php' );
+require get_theme_file_path( 'inc/situacao.php' );
 require get_theme_file_path( 'inc/acessibilidade.php' );
 require get_theme_file_path( 'inc/compatibilidade.php' );
 

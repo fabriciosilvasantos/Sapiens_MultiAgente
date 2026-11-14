@@ -3,7 +3,7 @@
  * Title: Pró-Reitorias
  * Slug: uenf/pro-reitorias
  * Categories: uenf-secoes
- * Description: Quatro cartões com imagem para as Pró-Reitorias e seus principais links.
+ * Description: Quatro cartões escuros com imagem para as Pró-Reitorias e seus principais links.
  *
  * @package uenf-portal
  */
@@ -54,13 +54,17 @@ $uenf_pr = array(
 <div class="wp-block-group alignfull uenf-secao has-superficie-background-color has-background"><?php echo uenf_portal_cabecalho_secao( 'Pró-Reitorias', 'Pró-Reitorias', 'Ensino, pesquisa, extensão e vida universitária na UENF.' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 
 <!-- wp:group {"className":"uenf-pro-reitorias","layout":{"type":"grid","minimumColumnWidth":"15rem"}} -->
-<div class="wp-block-group uenf-pro-reitorias"><?php foreach ( $uenf_pr as $uenf_p ) : ?><!-- wp:group {"className":"uenf-pro-reitoria","layout":{"type":"default"}} -->
-<div class="wp-block-group uenf-pro-reitoria"><!-- wp:image {"sizeSlug":"full","linkDestination":"custom"} -->
+<div class="wp-block-group uenf-pro-reitorias"><?php foreach ( $uenf_pr as $uenf_p ) : ?><!-- wp:group {"className":"is-style-cartao-escuro uenf-pro-reitoria","layout":{"type":"default"}} -->
+<div class="wp-block-group is-style-cartao-escuro uenf-pro-reitoria"><!-- wp:image {"sizeSlug":"full","linkDestination":"custom"} -->
 <figure class="wp-block-image size-full"><a href="<?php echo esc_url( $uenf_p[1] ); ?>"><img src="<?php echo esc_url( get_theme_file_uri( 'assets/images/' . $uenf_p[2] ) ); ?>" alt=""/></a></figure>
 <!-- /wp:image -->
 
 <!-- wp:group {"className":"uenf-pro-reitoria__corpo","layout":{"type":"default"}} -->
-<div class="wp-block-group uenf-pro-reitoria__corpo"><!-- wp:heading {"level":3} -->
+<div class="wp-block-group uenf-pro-reitoria__corpo"><!-- wp:paragraph {"className":"uenf-cartao-escuro__rotulo"} -->
+<p class="uenf-cartao-escuro__rotulo">Pró-Reitoria</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:heading {"level":3} -->
 <h3 class="wp-block-heading"><a href="<?php echo esc_url( $uenf_p[1] ); ?>"><?php echo esc_html( $uenf_p[0] ); ?></a></h3>
 <!-- /wp:heading -->
 
