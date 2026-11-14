@@ -59,7 +59,7 @@ $uenf_contatos = array(
 
 <!-- wp:group {"className":"uenf-rodape__contatos","layout":{"type":"grid","minimumColumnWidth":"14rem"}} -->
 <div class="wp-block-group uenf-rodape__contatos"><?php foreach ( $uenf_contatos as $uenf_c ) : ?><!-- wp:paragraph -->
-<p><strong><?php echo esc_html( $uenf_c[0] ); ?></strong><br><a href="tel:+55<?php echo esc_attr( preg_replace( '/\D/', '', $uenf_c[1] ) ); ?>"><?php echo esc_html( $uenf_c[1] ); ?></a><?php if ( $uenf_c[2] ) : ?> | <a href="mailto:<?php echo esc_attr( $uenf_c[2] ); ?>"><?php echo esc_html( $uenf_c[2] ); ?></a><?php endif; ?></p>
+<p><strong><?php echo esc_html( $uenf_c[0] ); ?></strong><br><a href="tel:+55<?php echo esc_attr( preg_replace( '/\D/', '', $uenf_c[1] ) ); ?>"><?php echo esc_html( $uenf_c[1] ); ?></a><?php if ( $uenf_c[2] ) : ?> | <a href="<?php echo esc_url( 'mailto:' . $uenf_c[2] ); ?>"><?php echo esc_html( $uenf_c[2] ); ?></a><?php endif; ?></p>
 <!-- /wp:paragraph -->
 
 <?php endforeach; ?></div>

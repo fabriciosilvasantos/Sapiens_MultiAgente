@@ -52,7 +52,7 @@ add_action(
 	static function () {
 		?>
 		<script>
-		(function(){try{var p=JSON.parse(localStorage.getItem('uenfA11y')||'{}'),h=document.documentElement;(p.classes||[]).forEach(function(c){h.classList.add('uenf-a11y-'+c)});if(p.escala){h.style.fontSize=p.escala+'%'}}catch(e){}})();
+		(function(){try{var p=JSON.parse(localStorage.getItem('uenfA11y')||'{}'),h=document.documentElement,ok=['cinza','alto-contraste','negativo','fundo-claro','sublinhado','fonte-legivel'],e=parseInt(p.escala,10);(Array.isArray(p.classes)?p.classes:[]).forEach(function(c){if(ok.indexOf(c)>-1){h.classList.add('uenf-a11y-'+c)}});if(e>=80&&e<=160&&e!==100){h.style.fontSize=e+'%'}}catch(e){}})();
 		</script>
 		<?php
 	},

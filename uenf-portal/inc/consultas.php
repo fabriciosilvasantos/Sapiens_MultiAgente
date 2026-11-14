@@ -34,8 +34,9 @@ function uenf_portal_tax_query( string $slug ): string {
 add_filter(
 	'render_block_data',
 	static function ( array $bloco ): array {
-		if ( 'core/query' === ( $bloco['blockName'] ?? '' ) && 'uenf/relacionados' === ( $bloco['attrs']['namespace'] ?? '' ) ) {
-			$GLOBALS['uenf_portal_relacionados'][ (int) ( $bloco['attrs']['queryId'] ?? 0 ) ] = true;
+		$id_consulta = (int) ( $bloco['attrs']['queryId'] ?? 0 );
+		if ( $id_consulta && 'core/query' === ( $bloco['blockName'] ?? '' ) && 'uenf/relacionados' === ( $bloco['attrs']['namespace'] ?? '' ) ) {
+			$GLOBALS['uenf_portal_relacionados'][ $id_consulta ] = true;
 		}
 		return $bloco;
 	}
@@ -45,7 +46,13 @@ add_filter(
 	'query_loop_block_query_vars',
 	static function ( array $query, WP_Block $bloco ): array {
 		$id_consulta = (int) ( $bloco->context['queryId'] ?? 0 );
-		if ( empty( $GLOBALS['uenf_portal_relacionados'][ $id_consulta ] ) || ! is_singular() ) {
+
+		// Listagens sem paginação não precisam contar o total de resultados.
+		if ( $id_consulta && UENF_PORTAL_CONSULTA_PRINCIPAL !== $id_consulta && empty( $bloco->context['query']['inherit'] ) ) {
+			$query['no_found_rows'] = true;
+		}
+
+		if ( ! $id_consulta || empty( $GLOBALS['uenf_portal_relacionados'][ $id_consulta ] ) || ! is_singular() ) {
 			return $query;
 		}
 

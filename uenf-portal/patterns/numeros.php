@@ -51,7 +51,7 @@ $uenf_numeros = array(
 
 <!-- wp:column {"verticalAlignment":"center","width":"44%"} -->
 <div class="wp-block-column is-vertically-aligned-center" style="flex-basis:44%"><!-- wp:image {"sizeSlug":"full","linkDestination":"none"} -->
-<figure class="wp-block-image size-full"><img src="<?php echo esc_url( get_theme_file_uri( 'assets/images/uenf-em-numeros.png' ) ); ?>" alt="Ilustração com fotos de estudantes e do campus da UENF"/></figure>
+<figure class="wp-block-image size-full"><img src="<?php echo esc_url( get_theme_file_uri( 'assets/images/uenf-em-numeros.webp' ) ); ?>" alt="Ilustração com fotos de estudantes e do campus da UENF"/></figure>
 <!-- /wp:image --></div>
 <!-- /wp:column --></div>
 <!-- /wp:columns --></div>

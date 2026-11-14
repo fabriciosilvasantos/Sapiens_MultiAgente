@@ -98,12 +98,17 @@
 		var painel = barra.querySelector( '.uenf-a11y__painel' );
 		var CHAVE = 'uenfA11y';
 		var EXCLUSIVOS = [ 'cinza', 'alto-contraste', 'negativo', 'fundo-claro' ];
+		var MODOS = EXCLUSIVOS.concat( [ 'sublinhado', 'fonte-legivel' ] );
 		var estado = { classes: [], escala: 100 };
 
 		try {
 			var salvo = JSON.parse( window.localStorage.getItem( CHAVE ) || '{}' );
-			estado.classes = Array.isArray( salvo.classes ) ? salvo.classes : [];
-			estado.escala = salvo.escala || 100;
+			var escala = parseInt( salvo.escala, 10 );
+			// Só valores conhecidos: o armazenamento é compartilhado com outros sites do domínio.
+			estado.classes = ( Array.isArray( salvo.classes ) ? salvo.classes : [] ).filter( function ( classe ) {
+				return MODOS.indexOf( classe ) > -1;
+			} );
+			estado.escala = escala >= 80 && escala <= 160 ? escala : 100;
 		} catch ( e ) {}
 
 		function salvar() {
