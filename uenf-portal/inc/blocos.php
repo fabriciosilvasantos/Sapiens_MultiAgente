@@ -60,3 +60,22 @@ add_action(
 		register_block_pattern_category( 'uenf-secoes', array( 'label' => 'UENF — Seções da página inicial' ) );
 	}
 );
+
+/**
+ * Filtros: o botão com a classe "is-ativo" é anunciado como o item atual.
+ */
+add_filter(
+	'render_block_core/button',
+	static function ( string $html, array $bloco ): string {
+		if ( ! str_contains( $bloco['attrs']['className'] ?? '', 'is-ativo' ) ) {
+			return $html;
+		}
+		$tags = new WP_HTML_Tag_Processor( $html );
+		if ( $tags->next_tag( 'a' ) ) {
+			$tags->set_attribute( 'aria-current', 'true' );
+		}
+		return $tags->get_updated_html();
+	},
+	10,
+	2
+);

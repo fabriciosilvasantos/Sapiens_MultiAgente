@@ -107,6 +107,27 @@ const { chromium } = require('playwright');
   await q.click('.uenf-menu-principal .wp-block-navigation__responsive-container-open'); await q.waitForTimeout(500);
   ok('celular: menu sobreposto com itens principais e links da barra superior', await q.locator('.uenf-menu-principal .is-menu-open .wp-block-navigation__container > li:visible').count() === 11);
   
+  // acessibilidade (regressões da auditoria)
+  await q.keyboard.press('Escape');
+  await q.evaluate(() => localStorage.setItem('uenfA11y', JSON.stringify({ classes: ['cinza'], escala: 100 })));
+  await q.reload({ waitUntil: 'networkidle' });
+  await q.click('.uenf-menu-principal .wp-block-navigation__responsive-container-open'); await q.waitForTimeout(500);
+  const alturaMenu = await q.evaluate(() => Math.round(document.querySelector('.uenf-menu-principal .wp-block-navigation__responsive-container.is-menu-open').getBoundingClientRect().height));
+  ok('modo tons de cinza: menu sobreposto continua do tamanho da tela (rolável)', alturaMenu <= 800, alturaMenu + 'px');
+  await q.keyboard.press('Escape'); await q.evaluate(() => localStorage.removeItem('uenfA11y'));
+  await p.goto(B + '/', { waitUntil: 'networkidle' });
+  const niveis = await p.evaluate(() => [...document.querySelectorAll('h1,h2,h3,h4,h5,h6')].filter(h => h.offsetParent).map(h => +h.tagName[1]));
+  ok('títulos sem salto de nível na página inicial', niveis[0] === 1 && niveis.filter(n => n === 1).length === 1 && niveis.every((n, i) => i === 0 || n - niveis[i - 1] <= 1), niveis.join(''));
+  await p.goto(B + '/noticias/', { waitUntil: 'networkidle' });
+  const niveis2 = await p.evaluate(() => [...document.querySelectorAll('main h1,main h2,main h3')].map(h => +h.tagName[1]));
+  ok('títulos sem salto de nível na listagem', niveis2.every((n, i) => i === 0 || n - niveis2[i - 1] <= 1), niveis2.join(''));
+  await p.goto(B + '/', { waitUntil: 'networkidle' });
+  ok('links sem nome acessível: nenhum', await p.evaluate(() => [...document.querySelectorAll('.wp-site-blocks a[href]')].filter(a => !a.getAttribute('aria-hidden') && !(a.textContent || '').trim() && !a.getAttribute('aria-label') && !a.querySelector('img[alt]:not([alt=""])')).length) === 0);
+  await p.focus('.uenf-hero__busca input[type=search]');
+  ok('busca da abertura mostra foco', await p.evaluate(() => getComputedStyle(document.querySelector('.uenf-hero__busca .wp-block-search__inside-wrapper')).outlineStyle) === 'solid');
+  ok('filtro ativo com aria-current', await p.locator('.is-style-filtros .is-ativo a[aria-current="true"]').count() === 2);
+  ok('barra de acessibilidade é região nomeada no início da página', await p.evaluate(() => { const a = document.querySelector('aside.uenf-a11y[aria-label]'); return !!a && a.compareDocumentPosition(document.querySelector('.wp-site-blocks')) & Node.DOCUMENT_POSITION_FOLLOWING; }) > 0);
+  ok('contador: leitor de tela recebe o valor final durante a animação', await p.evaluate(async () => { const el = [...document.querySelectorAll('.is-style-contador')].pop(); el.scrollIntoView(); await new Promise(r => setTimeout(r, 500)); const sr = el.querySelector('.screen-reader-text'); return sr ? sr.textContent : el.textContent; }) === '7.500');
   const t = await b.newContext({ viewport: { width: 820, height: 1000 } }); const tp = await t.newPage();
   await tp.goto(B + '/', { waitUntil: 'networkidle' });
   ok('tablet: menu sobreposto, sem rolagem horizontal', await tp.locator('.uenf-menu-principal .wp-block-navigation__responsive-container-open:visible').count() === 1 && await tp.evaluate(() => document.documentElement.scrollWidth <= innerWidth));

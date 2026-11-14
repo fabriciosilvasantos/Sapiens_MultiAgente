@@ -14,7 +14,7 @@ $uenf_pr = array(
 		'https://uenf.br/graduacao/',
 		'pro-reitoria-graduacao.jpg',
 		array(
-			array( 'Calendário Acadêmico', 'https://uenf.br/graduacao/institucional/calendario-academico/' ),
+			array( 'Calendário Acadêmico', 'https://uenf.br/graduacao/calendario-academico/' ),
 			array( 'Perguntas Frequentes', 'https://uenf.br/graduacao/perguntas-e-respostas/' ),
 			array( 'Sistema Acadêmico', 'https://academico.uenf.br/usuarios/sign_in' ),
 		),
@@ -55,8 +55,8 @@ $uenf_pr = array(
 
 <!-- wp:group {"className":"uenf-pro-reitorias","layout":{"type":"grid","minimumColumnWidth":"15rem"}} -->
 <div class="wp-block-group uenf-pro-reitorias"><?php foreach ( $uenf_pr as $uenf_p ) : ?><!-- wp:group {"className":"is-style-cartao-escuro uenf-pro-reitoria","layout":{"type":"default"}} -->
-<div class="wp-block-group is-style-cartao-escuro uenf-pro-reitoria"><!-- wp:image {"sizeSlug":"full","linkDestination":"custom"} -->
-<figure class="wp-block-image size-full"><a href="<?php echo esc_url( $uenf_p[1] ); ?>"><img src="<?php echo esc_url( get_theme_file_uri( 'assets/images/' . $uenf_p[2] ) ); ?>" alt=""/></a></figure>
+<div class="wp-block-group is-style-cartao-escuro uenf-pro-reitoria"><!-- wp:image {"sizeSlug":"full","linkDestination":"none"} -->
+<figure class="wp-block-image size-full"><img src="<?php echo esc_url( get_theme_file_uri( 'assets/images/' . $uenf_p[2] ) ); ?>" alt=""/></figure>
 <!-- /wp:image -->
 
 <!-- wp:group {"className":"uenf-pro-reitoria__corpo","layout":{"type":"default"}} -->

@@ -15,9 +15,9 @@ $uenf_blocos = array(
 foreach ( $uenf_blocos as $uenf_b ) :
 	?>
 <!-- wp:group {"className":"is-style-cartao uenf-lateral","layout":{"type":"default"}} -->
-<div class="wp-block-group is-style-cartao uenf-lateral"><!-- wp:paragraph {"className":"is-style-rotulo"} -->
-<p class="is-style-rotulo"><?php echo esc_html( $uenf_b[0] ); ?></p>
-<!-- /wp:paragraph -->
+<div class="wp-block-group is-style-cartao uenf-lateral"><!-- wp:heading {"className":"is-style-rotulo"} -->
+<h2 class="wp-block-heading is-style-rotulo"><?php echo esc_html( $uenf_b[0] ); ?></h2>
+<!-- /wp:heading -->
 
 <!-- wp:query {"queryId":<?php echo (int) $uenf_b[2]; ?>,"query":{"perPage":3,"pages":0,"offset":0,"postType":"post","order":"desc","orderBy":"date","inherit":false<?php echo uenf_portal_tax_query( $uenf_b[1] ); // phpcs:ignore ?>},"className":"uenf-lateral__lista"} -->
 <div class="wp-block-query uenf-lateral__lista"><!-- wp:post-template -->

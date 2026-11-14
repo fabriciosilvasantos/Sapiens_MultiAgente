@@ -34,7 +34,16 @@
 
 			var duracao = 1600;
 			var inicio = null;
-			el.setAttribute( 'aria-label', texto );
+
+			// Leitores de tela recebem só o valor final; a animação é decorativa.
+			var real = document.createElement( 'span' );
+			real.className = 'screen-reader-text';
+			real.textContent = texto;
+			var visual = document.createElement( 'span' );
+			visual.setAttribute( 'aria-hidden', 'true' );
+			el.textContent = '';
+			el.appendChild( real );
+			el.appendChild( visual );
 
 			function quadro( agora ) {
 				if ( inicio === null ) {
@@ -42,7 +51,7 @@
 				}
 				var progresso = Math.min( ( agora - inicio ) / duracao, 1 );
 				var suave = 1 - Math.pow( 1 - progresso, 3 );
-				el.textContent = partes[ 1 ] + formato.format( Math.round( alvo * suave ) ) + partes[ 3 ];
+				visual.textContent = partes[ 1 ] + formato.format( Math.round( alvo * suave ) ) + partes[ 3 ];
 				if ( progresso < 1 ) {
 					window.requestAnimationFrame( quadro );
 				} else {
@@ -96,6 +105,8 @@
 		var raiz = document.documentElement;
 		var alternar = barra.querySelector( '.uenf-a11y__alternar' );
 		var painel = barra.querySelector( '.uenf-a11y__painel' );
+		var rotulo = alternar.querySelector( '.screen-reader-text' );
+		var status = barra.querySelector( '[data-uenf-a11y-status]' );
 		var CHAVE = 'uenfA11y';
 		var EXCLUSIVOS = [ 'cinza', 'alto-contraste', 'negativo', 'fundo-claro' ];
 		var MODOS = EXCLUSIVOS.concat( [ 'sublinhado', 'fonte-legivel' ] );
@@ -136,6 +147,13 @@
 		function abrir( aberto ) {
 			painel.hidden = ! aberto;
 			alternar.setAttribute( 'aria-expanded', aberto ? 'true' : 'false' );
+			rotulo.textContent = aberto ? 'Fechar a barra de acessibilidade' : 'Abrir a barra de acessibilidade';
+		}
+
+		function anunciar( mensagem ) {
+			if ( status ) {
+				status.textContent = mensagem;
+			}
 		}
 
 		alternar.addEventListener( 'click', function () {
@@ -180,6 +198,14 @@
 			}
 			aplicar();
 			salvar();
+
+			if ( acao === 'aumentar' || acao === 'diminuir' ) {
+				anunciar( 'Texto em ' + estado.escala + '%' + ( estado.escala === 160 || estado.escala === 80 ? ' (limite)' : '' ) );
+			} else if ( acao === 'redefinir' ) {
+				anunciar( 'Preferências de acessibilidade redefinidas' );
+			} else {
+				anunciar( botao.textContent + ( estado.classes.indexOf( acao ) > -1 ? ' ativado' : ' desativado' ) );
+			}
 		} );
 
 		aplicar();

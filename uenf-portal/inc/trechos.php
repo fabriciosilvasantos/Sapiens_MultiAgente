@@ -30,12 +30,15 @@ function uenf_portal_cabecalho_secao( string $rotulo, string $titulo, string $de
 
 /**
  * Cartão de post para grades (categoria, título, resumo e data).
+ *
+ * @param int $palavras Tamanho do resumo.
+ * @param int $nivel    Nível do título: 3 dentro de uma seção com h2, 2 logo abaixo do h1 da página.
  */
-function uenf_portal_cartao_post( int $palavras = 18 ): string {
+function uenf_portal_cartao_post( int $palavras = 18, int $nivel = 3 ): string {
 	return '<!-- wp:group {"className":"is-style-cartao uenf-cartao-post","layout":{"type":"default"}} -->
 <div class="wp-block-group is-style-cartao uenf-cartao-post"><!-- wp:post-terms {"term":"category","className":"is-style-etiqueta"} /-->
 
-<!-- wp:post-title {"level":3,"isLink":true} /-->
+<!-- wp:post-title {"level":' . $nivel . ',"isLink":true} /-->
 
 <!-- wp:post-excerpt {"excerptLength":' . $palavras . '} /-->
 
@@ -62,7 +65,7 @@ function uenf_portal_paginacao(): string {
 function uenf_portal_lista_categoria( string $slug ): string {
 	return '<!-- wp:query {"queryId":' . UENF_PORTAL_CONSULTA_PRINCIPAL . ',"query":{"perPage":9,"pages":0,"offset":0,"postType":"post","order":"desc","orderBy":"date","inherit":false' . uenf_portal_tax_query( $slug ) . '},"className":"uenf-grade-posts"} -->
 <div class="wp-block-query uenf-grade-posts"><!-- wp:post-template {"layout":{"type":"grid","columnCount":3}} -->
-' . uenf_portal_cartao_post() . '
+' . uenf_portal_cartao_post( 18, 2 ) . '
 <!-- /wp:post-template -->
 
 ' . uenf_portal_paginacao() . '

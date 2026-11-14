@@ -12,7 +12,7 @@
 defined( 'ABSPATH' ) || exit;
 
 add_action(
-	'wp_footer',
+	'wp_body_open',
 	static function () {
 		$opcoes = array(
 			'aumentar'      => 'Aumentar texto',
@@ -26,7 +26,7 @@ add_action(
 			'redefinir'     => 'Redefinir',
 		);
 		?>
-		<div class="uenf-a11y" data-uenf-a11y>
+		<aside class="uenf-a11y" data-uenf-a11y aria-label="<?php echo esc_attr( 'Acessibilidade' ); ?>">
 			<button type="button" class="uenf-a11y__alternar" aria-expanded="false" aria-controls="uenf-a11y-painel">
 				<svg aria-hidden="true" viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><circle cx="12" cy="4.5" r="2"/><path d="M3.5 7.5h17v2H15v4l2 7-1.9.6-2.3-6.1h-1.6L8.9 21.1 7 20.5l2-7v-4H3.5z"/></svg>
 				<span class="screen-reader-text"><?php echo esc_html( 'Abrir a barra de acessibilidade' ); ?></span>
@@ -38,8 +38,9 @@ add_action(
 						<li><button type="button" data-acao="<?php echo esc_attr( $acao ); ?>"<?php echo in_array( $acao, array( 'aumentar', 'diminuir', 'redefinir' ), true ) ? '' : ' aria-pressed="false"'; ?>><?php echo esc_html( $rotulo ); ?></button></li>
 					<?php endforeach; ?>
 				</ul>
+				<p class="screen-reader-text" role="status" data-uenf-a11y-status></p>
 			</div>
-		</div>
+		</aside>
 		<?php
 	}
 );

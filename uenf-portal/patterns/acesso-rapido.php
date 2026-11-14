@@ -19,8 +19,8 @@ $uenf_cartoes = array(
 <!-- wp:group {"align":"full","className":"uenf-acesso-rapido","backgroundColor":"superficie","layout":{"type":"constrained","contentSize":"1200px"}} -->
 <div class="wp-block-group alignfull uenf-acesso-rapido has-superficie-background-color has-background"><!-- wp:group {"className":"uenf-acesso-rapido__grade","layout":{"type":"grid","minimumColumnWidth":"11rem"}} -->
 <div class="wp-block-group uenf-acesso-rapido__grade"><?php foreach ( $uenf_cartoes as $uenf_c ) : ?><!-- wp:group {"className":"is-style-cartao-link uenf-icone-<?php echo esc_attr( $uenf_c[0] ); ?>","layout":{"type":"default"}} -->
-<div class="wp-block-group is-style-cartao-link uenf-icone-<?php echo esc_attr( $uenf_c[0] ); ?>"><!-- wp:heading {"level":3} -->
-<h3 class="wp-block-heading"><a href="<?php echo esc_url( $uenf_c[3] ); ?>"><?php echo esc_html( $uenf_c[1] ); ?></a></h3>
+<div class="wp-block-group is-style-cartao-link uenf-icone-<?php echo esc_attr( $uenf_c[0] ); ?>"><!-- wp:heading -->
+<h2 class="wp-block-heading"><a href="<?php echo esc_url( $uenf_c[3] ); ?>"><?php echo esc_html( $uenf_c[1] ); ?></a></h2>
 <!-- /wp:heading -->
 
 <!-- wp:paragraph -->
