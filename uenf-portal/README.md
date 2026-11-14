@@ -101,4 +101,6 @@ patterns/             seções da home, cabeçalho, rodapé, listagens e "Leia t
 inc/                  menus iniciais, estilos de bloco, consultas, compartilhamento,
                       acessibilidade e compatibilidade com o site antigo
 assets/               CSS, JavaScript (sem dependências), fontes e imagens
+tests/                validação dos blocos no editor e testes funcionais (Playwright)
+CLAUDE.md             contexto e convenções para o time de agentes
 ```

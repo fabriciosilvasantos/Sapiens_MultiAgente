@@ -23,6 +23,13 @@ Definidos em `.claude/agents/` (análise completa em `docs/ANALISE_AGENTES.md`):
 | `security-auditor` | Revisão (somente leitura) de segurança e LGPD |
 | `statistical-methods-reviewer` | Revisão (somente leitura) do rigor estatístico |
 
+### Portal UENF (WordPress) — projeto separado em `uenf-portal/`
+
+Tema de blocos do portal `uenf.br/portal`, sem relação com o SAPIENS. Contexto, convenções e
+verificação em `uenf-portal/CLAUDE.md`. Time: `wp-theme-architect`, `wp-block-developer`,
+`ux-ui-designer`, `wp-migration-specialist`, `wp-qa-tester` e os revisores somente leitura
+`ux-accessibility-auditor` e `wp-security-performance-reviewer`.
+
 ## Skills disponíveis
 
 ### /test-sapiens

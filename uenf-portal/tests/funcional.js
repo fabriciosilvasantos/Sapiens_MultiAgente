@@ -1,0 +1,103 @@
+// Testes funcionais de navegador (Playwright) do tema UENF Portal.
+// Uso: WP_USER=<login do autor dos posts> node tests/funcional.js http://127.0.0.1:8080
+// Pressupõe um site de teste com posts nas categorias "noticias" e "editais",
+// páginas /noticias/, /editais/, /institucional/ e /institucional/sobre-a-uenf/ (modelo elementor_header_footer).
+const { chromium } = require('playwright');
+(async () => {
+  const B = process.argv[2] || 'http://127.0.0.1:8080'; const b = await chromium.launch();
+  const ok = (n, c, x='') => console.log((c ? 'OK   ' : 'FALHA') + ' ' + n + (x ? ' — ' + x : ''));
+  const ctx = await b.newContext({ viewport: { width: 1366, height: 900 } }); const p = await ctx.newPage();
+  const erros = []; p.on('pageerror', e => erros.push(e.message)); p.on('console', m => m.type() === 'error' && erros.push(m.text()));
+  await p.goto(B + '/', { waitUntil: 'networkidle' });
+  // banners
+  ok('banner rotativo exibe exatamente um banner', await p.locator('.is-style-banner-rotativo > .uenf-banner:visible').count() === 1);
+  ok('banner: versão desktop visível, mobile oculta', await p.locator('.uenf-banner .uenf-so-desktop:visible').count() === 1 && await p.locator('.uenf-banner .uenf-so-mobile:visible').count() === 0);
+  // home queries
+  const nNot = await p.locator('.uenf-destaque .wp-block-post, .uenf-lista-recentes .wp-block-post, .uenf-secao .uenf-grade-posts .wp-block-post').count();
+  ok('home: 9 notícias', nNot === 9, String(nNot));
+  const tit = await p.locator('.uenf-secao .wp-block-post-title').allTextContents();
+  ok('home: notícias sem repetição', new Set(tit.slice(0, 9)).size === 9);
+  ok('home: 9 editais', await p.locator('.uenf-lista-editais .wp-block-post').count() === 9);
+  ok('home: destaque usa a 1ª imagem do conteúdo', await p.locator('.uenf-destaque__midia img').count() === 1);
+  // contadores
+  const cont = p.locator('.is-style-contador'); const finais = ['2','5','14','20','20','320','191','7.500'];
+  await cont.first().scrollIntoViewIfNeeded(); await p.waitForTimeout(300);
+  const meio = await cont.last().textContent(); await p.waitForTimeout(2600);
+  const fim = await cont.allTextContents();
+  ok('contadores animam e terminam no valor original', JSON.stringify(fim.map(s => s.trim())) === JSON.stringify(finais) && meio.trim() !== '7.500', 'meio=' + meio.trim() + ' fim=' + fim.join(','));
+  // menu dropdown
+  await p.evaluate(() => scrollTo(0, 0));
+  await p.hover('.uenf-menu-principal .wp-block-navigation-submenu >> nth=0'); await p.waitForTimeout(400);
+  ok('menu: submenu abre ao passar o mouse', await p.locator('.uenf-menu-principal .wp-block-navigation__submenu-container >> nth=0').locator('a:visible').count() === 11);
+  ok('menu: 6 itens principais + 41 subitens', await p.locator('.uenf-menu-principal .wp-block-navigation__container > li:not(.uenf-so-sobreposicao)').count() === 6 && await p.locator('.uenf-menu-principal .wp-block-navigation__submenu-container a').count() === 41 + 0, String(await p.locator('.uenf-menu-principal .wp-block-navigation__submenu-container a').count()));
+  ok('barra superior: 5 links + 4 redes', await p.locator('.uenf-menu-secundario a:visible').count() === 5 && await p.locator('.uenf-barra-superior .wp-social-link').count() === 4);
+  // busca do cabeçalho
+  await p.mouse.move(5, 500);
+  await p.click('.uenf-busca-topo button'); await p.waitForTimeout(400);
+  await p.fill('.uenf-busca-topo input[type=search]', 'edital'); await Promise.all([p.waitForURL(/s=edital/), p.keyboard.press('Enter')]); await p.waitForLoadState('networkidle');
+  ok('busca do cabeçalho leva aos resultados', p.url().includes('s=edital') && await p.locator('.uenf-resultado').count() > 0, p.url() + ' ' + await p.locator('.uenf-resultado').count() + ' resultados');
+  ok('busca: título e paginação', (await p.locator('h1').first().textContent()).toLowerCase().includes('edital') && await p.locator('.wp-block-query-pagination a').count() > 0, await p.locator('h1').first().textContent());
+  // acessibilidade
+  await p.click('.uenf-a11y__alternar'); await p.click('[data-acao="alto-contraste"]'); await p.click('[data-acao="aumentar"]'); await p.click('[data-acao="sublinhado"]');
+  let st = await p.evaluate(() => [document.documentElement.className, document.documentElement.style.fontSize, getComputedStyle(document.querySelector('.wp-site-blocks')).backgroundColor]);
+  ok('acessibilidade: alto contraste + texto maior + sublinhado', st[0].includes('uenf-a11y-alto-contraste') && st[0].includes('uenf-a11y-sublinhado') && st[1] === '110%' && st[2] === 'rgb(0, 0, 0)', st.join(' | '));
+  
+  await p.click('[data-acao="cinza"]');
+  st = await p.evaluate(() => document.documentElement.className);
+  ok('acessibilidade: modos de cor são exclusivos', st.includes('uenf-a11y-cinza') && !st.includes('alto-contraste'));
+  await p.goto(B + '/noticias/', { waitUntil: 'networkidle' });
+  st = await p.evaluate(() => [document.documentElement.className, document.documentElement.style.fontSize]);
+  ok('acessibilidade: preferência persiste entre páginas', st[0].includes('uenf-a11y-cinza') && st[1] === '110%');
+  await p.click('.uenf-a11y__alternar'); await p.click('[data-acao="redefinir"]');
+  st = await p.evaluate(() => [document.documentElement.className, document.documentElement.style.fontSize]);
+  ok('acessibilidade: redefinir limpa tudo', !st[0].includes('uenf-a11y') && st[1] === '');
+  // listagem + paginação
+  const pg1 = await p.locator('.uenf-grade-posts .wp-block-post-title').allTextContents();
+  ok('página Notícias: 9 cartões + paginação', pg1.length === 9 && await p.locator('.wp-block-query-pagination-numbers a').count() > 0);
+  const r = await p.goto(B + '/noticias/2/', { waitUntil: 'networkidle' });
+  const pg2 = await p.locator('.uenf-grade-posts .wp-block-post-title').allTextContents();
+  ok('URL antiga /noticias/2/ redireciona para a paginação nativa', p.url().includes('query-1-page=2') && pg2.length > 0 && pg2[0] !== pg1[0], p.url());
+  ok('trilha de navegação presente', await p.locator('.uenf-trilha .wp-block-breadcrumbs a').count() >= 1, (await p.locator('.uenf-trilha').innerText()).replace(/\n/g, ' '));
+  // post
+  await p.goto(B + '/noticias/', { waitUntil: 'networkidle' });
+  await p.click('.uenf-grade-posts .wp-block-post-title a >> nth=1'); await p.waitForLoadState('networkidle');
+  const hrefs = await p.locator('.is-style-compartilhar a').evaluateAll(as => as.map(a => a.href));
+  const enc = encodeURIComponent(p.url());
+  ok('compartilhar: Facebook, LinkedIn e WhatsApp com a URL do post', hrefs.length === 3 && hrefs[0].startsWith('https://www.facebook.com/sharer/sharer.php?u=' + enc) && hrefs[1].includes('linkedin.com') && hrefs[1].includes(enc) && hrefs[2].includes('whatsapp'), hrefs[0]);
+  const h1 = (await p.locator('h1').textContent()).trim();
+  const rel = await p.locator('.uenf-relacionados .wp-block-post-title').allTextContents();
+  ok('leia também: 4 posts, sem o post atual', rel.length === 4 && !rel.map(s => s.trim()).includes(h1));
+  ok('post: data, autor e categoria com link', await p.locator('.uenf-meta--artigo a').count() === 3, (await p.locator('.uenf-meta--artigo').innerText()).replace(/\n/g, ' | '));
+  ok('post: barra lateral com 3 notícias + 3 editais', await p.locator('.uenf-lateral .wp-block-post').count() === 6);
+  ok('post: imagem do conteúdo não é duplicada no topo', await p.locator('.uenf-artigo > .wp-block-post-featured-image').count() === 0);
+  // arquivos
+  for (const [u, n] of [['/categoria/editais/', 'categoria'], ['/author/' + (process.env.WP_USER || 'admin') + '/', 'autor'], ['/2026/11/', 'data']]) {
+    const rr = await p.goto(B + u, { waitUntil: 'networkidle' });
+    ok('arquivo de ' + n, rr.status() === 200 && await p.locator('.uenf-grade-posts .wp-block-post').count() > 0, (await p.locator('h1').first().textContent()).trim());
+  }
+  // modelos legados
+  await p.goto(B + '/institucional/sobre-a-uenf/', { waitUntil: 'networkidle' });
+  ok('página com modelo antigo do Elementor usa "Página livre"', await p.locator('main.uenf-pagina-livre').count() === 1 && await p.locator('.uenf-lateral').count() === 0);
+  await p.goto(B + '/institucional/', { waitUntil: 'networkidle' });
+  ok('página padrão: título, conteúdo e barra lateral', await p.locator('.uenf-artigo h1').count() === 1 && await p.locator('.uenf-lateral').count() === 2);
+  // 404
+  const r4 = await p.goto(B + '/nao-existe/', { waitUntil: 'networkidle' });
+  ok('404: mensagem, busca e botão para a página inicial', r4.status() === 404 && await p.locator('.uenf-nao-encontrada input[type=search]').count() === 1 && (await p.locator('.uenf-nao-encontrada .wp-block-button a').getAttribute('href')) === B + '/');
+  // rodapé
+  ok('rodapé: 8 contatos, 2 endereços, 4 redes', await p.locator('.uenf-rodape__contatos p').count() === 8 && await p.locator('.uenf-rodape a[href*="maps.app"]').count() === 2 && await p.locator('.uenf-rodape .wp-social-link').count() === 4);
+  ok('link "pular para o conteúdo"', await p.locator('a.skip-link').count() === 1);
+  // mobile
+  const m = await b.newContext({ viewport: { width: 390, height: 800 } }); const q = await m.newPage(); q.on('pageerror', e => erros.push(e.message));
+  await q.goto(B + '/', { waitUntil: 'networkidle' });
+  ok('celular: banner mobile visível', await q.locator('.uenf-banner .uenf-so-mobile:visible').count() === 1 && await q.locator('.uenf-banner .uenf-so-desktop:visible').count() === 0);
+  ok('celular: sem rolagem horizontal', await q.evaluate(() => document.documentElement.scrollWidth <= innerWidth), String(await q.evaluate(() => document.documentElement.scrollWidth)));
+  await q.click('.uenf-menu-principal .wp-block-navigation__responsive-container-open'); await q.waitForTimeout(500);
+  ok('celular: menu sobreposto com itens principais e links da barra superior', await q.locator('.uenf-menu-principal .is-menu-open .wp-block-navigation__container > li:visible').count() === 11);
+  
+  const t = await b.newContext({ viewport: { width: 820, height: 1000 } }); const tp = await t.newPage();
+  await tp.goto(B + '/', { waitUntil: 'networkidle' });
+  ok('tablet: menu sobreposto, sem rolagem horizontal', await tp.locator('.uenf-menu-principal .wp-block-navigation__responsive-container-open:visible').count() === 1 && await tp.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  
+  const reais = erros.filter(e => !/status of 404/.test(e)); ok('sem erros de JavaScript', reais.length === 0, erros.slice(0, 3).join(' / '));
+  await b.close();
+})();
