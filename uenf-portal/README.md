@@ -8,6 +8,11 @@ cartões, rótulos com traço dourado, rodapé escuro).
 
 Requisitos: WordPress 6.9+ (testado no 7.1) e PHP 8.0+. Não há etapa de build.
 
+**Tema base.** O destino previsto é o UENF STI Theme (o mesmo de `uenf.br/cct`). Enquanto o
+código dele não está disponível, este tema funciona sozinho. As seções são padrões FSE
+independentes do cabeçalho e do rodapé, de modo que a troca do tema base exige portar apenas
+`parts/header.html`, `parts/footer.html` e os presets de `theme.json`.
+
 ## Instalação
 
 1. Copie a pasta `uenf-portal/` para `wp-content/themes/` (ou compacte-a em `.zip` e
@@ -33,6 +38,27 @@ Requisitos: WordPress 6.9+ (testado no 7.1) e PHP 8.0+. Não há etapa de build.
 | Barra de acessibilidade (One Click Accessibility) | Barra do próprio tema, com as mesmas 9 opções |
 | Fontes do Google carregadas pelo Elementor | Fonte Inter servida pelo próprio site (sem chamadas externas) |
 
+## Modelos do Design System da Graduação
+
+Além das funções do portal atual, a página inicial adota os modelos do Design System da
+Pró-Reitoria de Graduação. Todos são padrões de blocos (categoria "UENF — Seções da página
+inicial") e podem ser usados em qualquer página:
+
+| Modelo | Padrão | Como editar |
+|---|---|---|
+| Abertura com busca e atalhos | `uenf/hero` | Texto, botões de atalho |
+| Cartões de acesso rápido | `uenf/acesso-rapido` | Título, texto e link de cada cartão |
+| Notícia em destaque + lista, com filtros | `uenf/noticias` | Filtros são botões com o estilo **Filtros (abas)**; cada um leva à listagem da categoria |
+| Cursos em chips por campus | `uenf/cursos` | Lista com o estilo **Chips (cursos)**; a classe `uenf-licenciatura` no item muda a cor do ponto |
+| Cartões escuros (Pró-Reitorias) | `uenf/pro-reitorias` | Grupo com o estilo **Cartão escuro** |
+| Linhas de edital com data e selo | `uenf/editais` | O selo vem das tags do post: `aberto`, `resultado`, `em-breve`, `encerrado`, `retificado`, `continuo` |
+| Formas de ingresso | `uenf/ingresso` | Listas com os estilos **Passos numerados** e **Opções com descrição** |
+| Faixa de chamada | `uenf/chamada-estudante` | Grupo com o estilo **Faixa de chamada** |
+| Grade de documentos | `uenf/documentos` | Cartões clicáveis horizontais |
+
+Os filtros são links para as listagens (funcionam sem JavaScript); não filtram a lista na
+própria página. Categorias inexistentes no site são omitidas automaticamente.
+
 Também foram preservados: todos os itens dos dois menus, links das redes sociais,
 cartões das Pró-Reitorias, faixa do concurso, selos OuvERJ/Transparência,
 endereços e contatos do rodapé, arquivos por categoria, autor e data.
@@ -52,9 +78,10 @@ Tudo fica em **Aparência → Editor**:
 - **Cores, tipografia e espaçamentos** — *Estilos* (definidos em `theme.json`).
 
 Estilos de bloco disponíveis no painel "Estilos" do editor: Cartão, Cartão clicável,
-Linha de listagem e Banners rotativos (Grupo); Rótulo de seção e Contador animado
-(Parágrafo); Link com seta e Contorno claro (Botão); Lista de links (Lista);
-Etiqueta (Categorias); Compartilhar esta página (Ícones sociais).
+Cartão escuro, Faixa de chamada, Linha de listagem e Banners rotativos (Grupo); Rótulo de
+seção e Contador animado (Parágrafo); Filtros (Botões); Link com seta, Contorno claro, Claro
+e Largura total (Botão); Lista de links, Chips, Passos numerados e Opções com descrição
+(Lista); Etiqueta e Selo de situação (Categorias/Tags); Compartilhar esta página (Ícones sociais).
 
 ## Migração do site atual
 

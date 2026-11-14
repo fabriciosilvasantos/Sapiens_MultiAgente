@@ -9,9 +9,12 @@ Este diretório é independente do SAPIENS (o resto do repositório).
 2. **Tema base: UENF STI Theme** (`uenf_sti_theme`, o mesmo de `uenf.br/cct`; fonte em
    `git.uenf.br/web/uenf_sti_theme`). O portal deve rodar sobre ele (tema-filho ou padrões),
    reaproveitando cabeçalho, menu lateral, busca, painel de atalhos e rodapé do tema base.
-   O `uenf-portal/` atual é um tema de blocos independente: é a referência funcional e visual
-   a ser portada, não o destino final.
-3. **Referência visual: modelo da Pró-Reitoria de Graduação.** Abertura azul-marinho com busca e
+   O código-fonte dele ainda não está disponível; por decisão do responsável (14/11/2026), o
+   trabalho segue no tema de blocos independente `uenf-portal/` e o tema base será trocado
+   depois pela versão mais atual. Por isso **toda seção é um padrão FSE autocontido**: não
+   pode depender do cabeçalho, do rodapé nem de CSS fora das classes `uenf-*` e dos presets.
+3. **Referência visual: Design System da Pró-Reitoria de Graduação** (já implementado; tabela
+   em `README.md`, seção "Modelos do Design System da Graduação"). Abertura azul-marinho com busca e
    atalhos, cartões de acesso rápido, rótulo de seção com traço dourado, notícia em destaque + lista
    com filtros por categoria, linhas de edital com data e selo de situação, cartões escuros de
    programas, faixa de chamada ("Já é estudante?"), grade de documentos, rodapé escuro em colunas.
