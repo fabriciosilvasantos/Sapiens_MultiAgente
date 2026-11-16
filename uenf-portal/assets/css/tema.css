@@ -1440,6 +1440,59 @@ body:not(.block-editor-iframe__body) .is-style-banner-rotativo[data-uenf-pronto]
 	color: var(--wp--preset--color--primaria);
 }
 
+/* Cursos recolhidos: o botão é criado por tema.js e só aparece em telas estreitas. */
+.uenf-cursos__alternar {
+	display: none;
+}
+
+@media (max-width: 781px) {
+	.uenf-cursos__alternar {
+		align-items: center;
+		background: #fff;
+		border: 1px solid var(--wp--preset--color--primaria);
+		border-radius: 10px;
+		box-sizing: border-box;
+		color: var(--wp--preset--color--primaria);
+		cursor: pointer;
+		display: flex;
+		font: inherit;
+		font-size: 0.875rem;
+		font-weight: 700;
+		justify-content: space-between;
+		margin-bottom: 0.75rem;
+		min-height: 2.75rem;
+		padding: 0.5rem 1rem;
+		width: 100%;
+	}
+
+	.uenf-cursos__alternar::after {
+		border-bottom: 2px solid currentColor;
+		border-right: 2px solid currentColor;
+		content: "";
+		height: 0.5rem;
+		margin-left: 0.75rem;
+		transform: translateY(-25%) rotate(45deg);
+		width: 0.5rem;
+	}
+
+	.uenf-cursos__alternar[aria-expanded="true"]::after {
+		transform: translateY(25%) rotate(-135deg);
+	}
+
+	.uenf-cursos__alternar:hover {
+		background: var(--wp--preset--color--superficie-2);
+	}
+
+	.uenf-cursos__grupo.is-recolhido .is-style-chips {
+		display: none;
+	}
+
+	/* O botão já informa o total; o selo repetiria a informação. */
+	.uenf-cursos__grupo:has(> .uenf-cursos__alternar) .uenf-cursos__total {
+		display: none;
+	}
+}
+
 /* Formas de ingresso */
 .uenf-ingresso {
 	gap: 1.25rem;

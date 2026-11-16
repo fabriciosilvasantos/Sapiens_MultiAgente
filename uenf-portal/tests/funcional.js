@@ -28,6 +28,7 @@ const { chromium } = require('playwright');
   const selos = await p.locator('.uenf-lista-editais .uenf-selo').allTextContents();
   ok('editais: selo só para tags de situação', selos.length === 5 && !selos.join().includes('editalproppg'), selos.join(' | '));
   ok('cursos: 3 grupos e 21 cursos com link', await p.locator('.uenf-cursos__grupo').count() === 3 && await p.locator('.uenf-cursos .is-style-chips a').count() === 21 && await p.locator('.uenf-cursos .uenf-licenciatura').count() === 8);
+  ok('cursos: no computador todos visíveis, sem botão de recolher', await p.locator('.uenf-cursos .is-style-chips a:visible').count() === 21 && await p.locator('.uenf-cursos__alternar:visible').count() === 0);
   ok('pró-reitorias em cartões escuros', await p.locator('.uenf-pro-reitoria.is-style-cartao-escuro').count() === 4 && await p.locator('.uenf-pro-reitoria .is-style-links a').count() === 11);
   ok('formas de ingresso: 4 passos numerados + 4 opções', await p.locator('.is-style-passos li').count() === 4 && await p.locator('.is-style-opcoes li').count() === 4);
   ok('faixa "Já é estudante?" com 3 botões', await p.locator('.is-style-faixa-chamada .wp-block-button a').count() === 3);
@@ -104,6 +105,15 @@ const { chromium } = require('playwright');
   await q.goto(B + '/', { waitUntil: 'networkidle' });
   ok('celular: banner mobile visível', await q.locator('.uenf-banner .uenf-so-mobile:visible').count() === 1 && await q.locator('.uenf-banner .uenf-so-desktop:visible').count() === 0);
   ok('celular: sem rolagem horizontal', await q.evaluate(() => document.documentElement.scrollWidth <= innerWidth), String(await q.evaluate(() => document.documentElement.scrollWidth)));
+  {
+    const btn = q.locator('.uenf-cursos__alternar');
+    const fechado = await btn.count() === 3 && await q.locator('.uenf-cursos .is-style-chips a:visible').count() === 0
+      && await btn.first().getAttribute('aria-expanded') === 'false' && /Ver os 16 cursos/.test(await btn.first().textContent());
+    await btn.first().click();
+    const aberto = await q.locator('.uenf-cursos .is-style-chips a:visible').count() === 16 && await btn.first().getAttribute('aria-expanded') === 'true';
+    await btn.first().click();
+    ok('celular: cursos recolhidos com botão por grupo (abre e fecha)', fechado && aberto && await q.locator('.uenf-cursos .is-style-chips a:visible').count() === 0);
+  }
   await q.click('.uenf-menu-principal .wp-block-navigation__responsive-container-open'); await q.waitForTimeout(500);
   ok('celular: menu sobreposto com itens principais e links da barra superior', await q.locator('.uenf-menu-principal .is-menu-open .wp-block-navigation__container > li:visible').count() === 11);
   

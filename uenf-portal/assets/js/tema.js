@@ -3,7 +3,8 @@
  *
  * 1. Contador animado  → parágrafo com o estilo "Contador animado"
  * 2. Banners rotativos → grupo com o estilo "Banners rotativos"
- * 3. Barra de acessibilidade
+ * 3. Cursos recolhidos no celular
+ * 4. Barra de acessibilidade
  */
 ( function () {
 	'use strict';
@@ -94,7 +95,48 @@
 		} );
 	}
 
-	/* ------------------------------------------ 3. Barra de acessibilidade */
+	/* ------------------------------------- 3. Cursos recolhidos no celular */
+
+	// Sem JavaScript, todos os cursos aparecem. Com ele, cada grupo ganha um botão
+	// que só é exibido em telas estreitas (ver tema.css, "Cursos recolhidos").
+	function iniciarCursos() {
+		document.querySelectorAll( '.uenf-cursos__grupo' ).forEach( function ( grupo, indice ) {
+			var lista = grupo.querySelector( '.is-style-chips' );
+			if ( ! lista ) {
+				return;
+			}
+			var total = lista.querySelectorAll( 'li' ).length;
+			var titulo = grupo.querySelector( 'h3' );
+			var nome = titulo ? titulo.textContent.trim() : '';
+			lista.id = lista.id || 'uenf-cursos-lista-' + ( indice + 1 );
+
+			var botao = document.createElement( 'button' );
+			botao.type = 'button';
+			botao.className = 'uenf-cursos__alternar';
+			botao.setAttribute( 'aria-controls', lista.id );
+
+			function definir( aberto ) {
+				grupo.classList.toggle( 'is-recolhido', ! aberto );
+				botao.setAttribute( 'aria-expanded', aberto ? 'true' : 'false' );
+				botao.textContent = aberto ? 'Ocultar cursos' : 'Ver ' + ( total === 1 ? 'o curso' : 'os ' + total + ' cursos' );
+				if ( nome ) {
+					var contexto = document.createElement( 'span' );
+					contexto.className = 'screen-reader-text';
+					contexto.textContent = ' — ' + nome;
+					botao.appendChild( contexto );
+				}
+			}
+
+			botao.addEventListener( 'click', function () {
+				definir( grupo.classList.contains( 'is-recolhido' ) );
+			} );
+
+			lista.parentNode.insertBefore( botao, lista );
+			definir( false );
+		} );
+	}
+
+	/* ------------------------------------------ 4. Barra de acessibilidade */
 
 	function iniciarAcessibilidade() {
 		var barra = document.querySelector( '[data-uenf-a11y]' );
@@ -214,6 +256,7 @@
 	function iniciar() {
 		iniciarBanners();
 		iniciarContadores();
+		iniciarCursos();
 		iniciarAcessibilidade();
 	}
 
